@@ -1,0 +1,3 @@
+# Preserve the byte-exact generated upstream delta; its whitespace is part of
+# the source tree used to build the validated image.
+vendor/sparkinfer-glm53-nvfp4.patch -diff

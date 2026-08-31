@@ -1,0 +1,114 @@
+# Ground-up production build for the native-FP4/DCP2/DFlash2 serving image.
+#
+# The external `sparkinfer` named build context must contain the b12x tree at
+# commit 3a437ab5168060e4d625f05e1625c04089f1ba37 with
+# vendor/sparkinfer-glm53-nvfp4.patch applied. build-production-image.sh
+# prepares that context automatically.
+ARG BASE_IMAGE=ghcr.io/tonyd2wild/vllm-glm53-flash@sha256:4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6
+
+FROM ${BASE_IMAGE} AS accounting
+COPY overlay-dflash2/patch_kv_accounting.py /tmp/patch_kv_accounting.py
+RUN python3 /tmp/patch_kv_accounting.py && \
+    rm /tmp/patch_kv_accounting.py && \
+    python3 -m py_compile \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py
+
+FROM accounting AS native_fp4
+COPY --from=sparkinfer b12x /usr/local/lib/python3.12/dist-packages/b12x
+COPY overlay-dflash2/sm121_mxfp4_indexer.py \
+  /usr/local/lib/python3.12/dist-packages/b12x/attention/dsa_indexer/sm121_mxfp4.py
+COPY docker/sparse_attn_indexer_kpool_sm121.py \
+  /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py
+COPY overlay-dflash2/patch_vllm_nvfp4_experiment.py \
+     overlay-dflash2/patch_vllm_sm121_fp4_indexer.py /tmp/
+RUN python3 /tmp/patch_vllm_nvfp4_experiment.py && \
+    python3 /tmp/patch_vllm_sm121_fp4_indexer.py && \
+    rm /tmp/patch_vllm_nvfp4_experiment.py \
+       /tmp/patch_vllm_sm121_fp4_indexer.py && \
+    python3 -m py_compile \
+      /usr/local/lib/python3.12/dist-packages/b12x/attention/dsa_indexer/sm121_mxfp4.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/kv_cache_interface.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_utils.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_coordinator.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/core/single_type_kv_cache_manager.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/flashinfer_mla_sparse.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/flashinfer_mla_sparse_sm120.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/spec_decode/dflash/utils.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/attention/mla_attention.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/models/glm5next/nvidia/attention.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/indexer.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/platforms/interface.py && \
+    python3 -c 'from b12x.attention._shared.mla.kv_cache import concat_and_cache_nvfp4_mla_zero_rope'
+
+FROM native_fp4 AS dcp2
+COPY overlay-dflash2/sm121_mxfp4_indexer.py \
+  /usr/local/lib/python3.12/dist-packages/b12x/attention/dsa_indexer/sm121_mxfp4.py
+COPY overlay-dflash2/patch_vllm_heterogeneous_dcp.py /tmp/
+RUN python3 /tmp/patch_vllm_heterogeneous_dcp.py && \
+    rm /tmp/patch_vllm_heterogeneous_dcp.py && \
+    python3 -m py_compile \
+      /usr/local/lib/python3.12/dist-packages/b12x/attention/dsa_indexer/sm121_mxfp4.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/indexer.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/flashinfer_mla_sparse_sm120.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/flashinfer.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/attention/mla_attention.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_coordinator.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/core/single_type_kv_cache_manager.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/kv_cache_interface.py
+
+FROM dcp2 AS kda_fp16
+COPY overlay-dflash2/patch_vllm_kda_fp16_state.py /tmp/
+RUN python3 /tmp/patch_vllm_kda_fp16_state.py && \
+    rm /tmp/patch_vllm_kda_fp16_state.py && \
+    python3 -m py_compile \
+      /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/mamba/mamba_utils.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/platforms/interface.py
+
+FROM kda_fp16 AS compact_replay
+COPY overlay-dflash2/compact_kda_replay.py \
+  /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/mamba/ops/compact_kda_replay.py
+COPY overlay-dflash2/patch_b12x_nvfp4_compat.py \
+     overlay-dflash2/patch_vllm_compact_kda_replay.py /tmp/
+RUN python3 /tmp/patch_b12x_nvfp4_compat.py && \
+    python3 /tmp/patch_vllm_compact_kda_replay.py && \
+    rm /tmp/patch_b12x_nvfp4_compat.py \
+       /tmp/patch_vllm_compact_kda_replay.py && \
+    python3 -m py_compile \
+      /usr/local/lib/python3.12/dist-packages/b12x/attention/_shared/mla/io_mg.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/mamba/ops/compact_kda_replay.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/mamba/abstract.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/mamba/gdn/kimi_gdn_linear_attn.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/models/kimi_k3/nvidia/ops/third_party/kda/fused_recurrent.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/models/glm5next/nvidia/kda.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/third_party/flash_linear_attention/ops/fused_recurrent.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/third_party/flash_linear_attention/ops/kda.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/model_runner.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/mamba_utils.py
+
+FROM compact_replay AS page_layout
+COPY overlay-dflash2/sm121_mxfp4_indexer.py \
+  /usr/local/lib/python3.12/dist-packages/b12x/attention/dsa_indexer/sm121_mxfp4.py
+RUN python3 -m py_compile \
+  /usr/local/lib/python3.12/dist-packages/b12x/attention/dsa_indexer/sm121_mxfp4.py
+
+FROM page_layout AS production
+COPY overlay-dflash2/patch_compact_replay_production.py \
+     overlay-dflash2/patch_resident_dtype_inventory.py \
+     overlay-dflash2/patch_long_context_replicated_groups.py \
+     overlay-dflash2/patch_long_context_indexer_workspace.py /tmp/
+RUN python3 /tmp/patch_compact_replay_production.py && \
+    python3 /tmp/patch_resident_dtype_inventory.py && \
+    python3 /tmp/patch_long_context_replicated_groups.py && \
+    python3 /tmp/patch_long_context_indexer_workspace.py && \
+    rm /tmp/patch_compact_replay_production.py \
+       /tmp/patch_resident_dtype_inventory.py \
+       /tmp/patch_long_context_replicated_groups.py \
+       /tmp/patch_long_context_indexer_workspace.py && \
+    python3 -m py_compile \
+      /usr/local/lib/python3.12/dist-packages/vllm/models/glm5next/nvidia/kda.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/model_runner.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/indexer.py

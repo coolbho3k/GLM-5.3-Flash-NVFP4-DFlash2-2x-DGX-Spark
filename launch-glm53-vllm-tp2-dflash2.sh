@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# GLM-5.3-Flash + DFlash2 speculative decoding, TP2 on 2x DGX Spark (GB10/SM121).
-# This is the configuration behind the README's 46.9 tok/s figure.
+# GLM-5.3-Flash + DFlash2 speculative decoding, TP2/DCP2 on 2x DGX Spark.
+# Defaults select the validated compact native-FP4 KV-cache image.
 #
 # Prerequisites (see README Quickstart):
-#   1. docker pull ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2  (public image; pull on BOTH nodes)
+#   1. image glm53-v11:kvopt-final present on BOTH nodes (or set IMAGE)
 #   2. weights at $MODEL_HOST_PATH on BOTH nodes
 #   3. drafter (2.2 GB) at /var/tmp/models/GLM-5.3-Flash-DFlash2 on BOTH nodes
 #   4. cp docker/sparse_attn_indexer_kpool_sm121.py $HOME/patches/sparse_attn_indexer_kpool.py
@@ -14,29 +14,75 @@
 # Usage: ./launch-glm53-vllm-tp2-dflash2.sh <0|1>   -- worker (1) FIRST, then head (0)
 set -euo pipefail
 
-# GLM-5.3-Flash-NVFP4 on Reddie (head, rank 0) + Spark4 (worker, rank 1), vLLM TP2 over the fabric.
-# Official day-0 image (vLLM has glm5_next; SGLang support for this NVFP4 quant is still in-flight).
-# Day-1: NO speculative decode. MTP phase-2 after base is stable (image has Glm5NextMTPModel).
-# Run worker FIRST: Spark4 rank 1, wait ~20s, then Reddie rank 0.
-NODE_RANK="${1:?usage: launch-glm53-vllm-tp2.sh <0|1>}"
+# Run worker first, wait briefly, then run the head. start-cluster.sh does this
+# automatically; this lower-level launcher remains useful for diagnostics.
+NODE_RANK="${1:?usage: launch-glm53-vllm-tp2-dflash2.sh <0|1>}"
 [[ "$NODE_RANK" == "0" || "$NODE_RANK" == "1" ]] || { echo "rank must be 0 or 1" >&2; exit 2; }
 
-IMAGE="ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2"
-NAME="vllm_glm53"
-MODEL_HOST_PATH="/var/tmp/glm-5.3-flash-nvfp4"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+IMAGE="${IMAGE:-glm53-v11:kvopt-final}"
+NAME="${CONTAINER_NAME:-vllm_glm53}"
+MODEL_HOST_PATH="${MODEL_HOST_PATH:-$HOME/.cache/huggingface/glm53-redhat-nvfp4-9eaeadaf026871a90640e32c0604f6ab0b2d641d}"
 MODEL_PATH="/models/glm-5.3-flash-nvfp4"
-CACHE_HOST_PATH="/var/tmp/glm53-vllm-cache"
-HEAD_IP="192.168.192.2"
-MPORT="29521"
-PORT="8000"
+CACHE_HOST_PATH="${CACHE_HOST_PATH:-$HOME/.cache/huggingface/vllm-cache-glm53}"
+JIT_CACHE_HOST_PATH="${JIT_CACHE_HOST_PATH:-$HOME/.cache/glm53-vllm-jit}"
+DRAFT_HOST_PATH="${DRAFT_HOST_PATH:-$HOME/.cache/huggingface/glm53-dflash2-dc77ff1c99eeb2df044ee3d4f0094eb033fee410}"
+TOPK_PATCH="${TOPK_PATCH:-$SCRIPT_DIR/docker/sparse_attn_indexer_kpool_sm121.py}"
+CHAT_TEMPLATE="${CHAT_TEMPLATE:-$SCRIPT_DIR/chat_template_mm.jinja}"
+HEAD_IP="${HEAD_IP:-10.100.32.1}"
+WORKER_IP="${WORKER_IP:-10.100.32.2}"
+MPORT="${MASTER_PORT:-29521}"
+PORT="${API_PORT:-8000}"
+NCCL_HCA="${NCCL_IB_HCA:-rocep1s0f1}"
+NCCL_IFACE="${NCCL_SOCKET_IFNAME:-enp1s0f1np1}"
+NCCL_SUBNET="${NCCL_IB_ADDR_RANGE:-10.100.32.0/24}"
+MAX_MODEL_LEN="${MAX_MODEL_LEN:-262144}"
+CUDA_LAUNCH_BLOCKING="${CUDA_LAUNCH_BLOCKING:-0}"
+MAX_NUM_BATCHED_TOKENS="${MAX_NUM_BATCHED_TOKENS:-8192}"
+GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.87}"
+VLLM_ATTENTION_BACKEND="${VLLM_ATTENTION_BACKEND:-}"
+VLLM_LOAD_FORMAT="${VLLM_LOAD_FORMAT:-}"
+VLLM_DISABLE_FLASHINFER_AUTOTUNE="${VLLM_DISABLE_FLASHINFER_AUTOTUNE:-0}"
+USE_FP4_INDEXER_CACHE="${USE_FP4_INDEXER_CACHE:-1}"
+DCP_SIZE="${DCP_SIZE:-2}"
+ENABLE_DFLASH="${ENABLE_DFLASH:-1}"
+attention_backend_args=()
+if [[ -n "$VLLM_ATTENTION_BACKEND" ]]; then
+  attention_backend_args+=( --attention-backend "$VLLM_ATTENTION_BACKEND" )
+fi
+load_format_args=()
+if [[ -n "$VLLM_LOAD_FORMAT" ]]; then
+  load_format_args+=( --load-format "$VLLM_LOAD_FORMAT" )
+fi
+flashinfer_autotune_args=()
+if [[ "$VLLM_DISABLE_FLASHINFER_AUTOTUNE" == "1" ]]; then
+  flashinfer_autotune_args+=( --no-enable-flashinfer-autotune )
+fi
+attention_config_args=()
+if [[ "$USE_FP4_INDEXER_CACHE" == "1" ]]; then
+  attention_config_args+=( --attention-config '{"use_fp4_indexer_cache":true}' )
+fi
+dcp_args=()
+if [[ "$DCP_SIZE" != "1" ]]; then
+  dcp_args+=( --decode-context-parallel-size "$DCP_SIZE" )
+fi
+speculative_args=()
+if [[ "$ENABLE_DFLASH" == "1" ]]; then
+  speculative_args+=( --speculative-config '{"method":"dflash","model":"/models/dflash2-draft","num_speculative_tokens":7}' )
+fi
 
 case "$NODE_RANK" in
-  0) HOST_IP=192.168.192.2; HEADLESS="" ;;
-  1) HOST_IP=192.168.192.4; HEADLESS="--headless" ;;
+  0) HOST_IP="$HEAD_IP"; HEADLESS="" ;;
+  1) HOST_IP="$WORKER_IP"; HEADLESS="--headless" ;;
 esac
 
 test -f "$MODEL_HOST_PATH/config.json"
-mkdir -p "$CACHE_HOST_PATH"
+test -f "$MODEL_HOST_PATH/model.safetensors.index.json"
+test -f "$DRAFT_HOST_PATH/config.json"
+test -f "$DRAFT_HOST_PATH/model.safetensors"
+test -s "$TOPK_PATCH"
+test -s "$CHAT_TEMPLATE"
+mkdir -p "$CACHE_HOST_PATH" "$JIT_CACHE_HOST_PATH"
 docker rm -f "$NAME" 2>/dev/null || true
 
 docker run --gpus all -d \
@@ -46,36 +92,44 @@ docker run --gpus all -d \
   --device /dev/infiniband:/dev/infiniband \
   -v "$MODEL_HOST_PATH:$MODEL_PATH:ro" \
   -v "$CACHE_HOST_PATH:/cache" \
+  -v "$JIT_CACHE_HOST_PATH:/root/.cache" \
   -e VLLM_HOST_IP=$HOST_IP \
   -e HF_HOME=/cache/huggingface \
   -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 \
   -e VLLM_ENGINE_READY_TIMEOUT_S=3600 \
+  -e CUDA_LAUNCH_BLOCKING="$CUDA_LAUNCH_BLOCKING" \
   -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
   -e TORCH_CUDA_ARCH_LIST=12.1a -e FLASHINFER_CUDA_ARCH_LIST=12.1a \
   -e FLASHINFER_DISABLE_VERSION_CHECK=1 \
   -e NCCL_NET=IB -e NCCL_IB_DISABLE=0 \
-  -e NCCL_IB_HCA=rocep1s0f0 -e NCCL_IB_GID_INDEX=3 \
+  -e NCCL_IB_HCA="$NCCL_HCA" -e NCCL_IB_GID_INDEX=3 \
   -e NCCL_IB_ROCE_VERSION_NUM=2 -e NCCL_IB_ADDR_FAMILY=AF_INET \
-  -e NCCL_IB_ADDR_RANGE=192.168.192.0/24 \
-  -e NCCL_SOCKET_IFNAME=enp1s0f0np0 -e GLOO_SOCKET_IFNAME=enp1s0f0np0 \
-  -e TP_SOCKET_IFNAME=enp1s0f0np0 -e MN_IF_NAME=enp1s0f0np0 \
+  -e NCCL_IB_ADDR_RANGE="$NCCL_SUBNET" \
+  -e NCCL_SOCKET_IFNAME="$NCCL_IFACE" -e GLOO_SOCKET_IFNAME="$NCCL_IFACE" \
+  -e TP_SOCKET_IFNAME="$NCCL_IFACE" -e MN_IF_NAME="$NCCL_IFACE" \
   -e NCCL_NVLS_ENABLE=0 -e NCCL_CROSS_NIC=0 -e NCCL_IB_MERGE_NICS=0 \
   -e NCCL_CUMEM_ENABLE=0 -e NCCL_IGNORE_CPU_AFFINITY=1 -e NCCL_DEBUG=WARN \
   -e TORCH_NCCL_ASYNC_ERROR_HANDLING=1 \
-  -v $HOME/patches/sparse_attn_indexer_kpool.py:/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py:ro \
-  -v /var/tmp/models/GLM-5.3-Flash-DFlash2:/models/dflash2-draft:ro \
+  -v "$TOPK_PATCH:/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py:ro" \
+  -v "$DRAFT_HOST_PATH:/models/dflash2-draft:ro" \
+  -v "$CHAT_TEMPLATE:/models/chat_template_mm.jinja:ro" \
   "$IMAGE" \
     "$MODEL_PATH" \
     --served-model-name glm-5.3-flash \
     --host 0.0.0.0 --port "$PORT" \
     --trust-remote-code \
+    "${attention_backend_args[@]}" \
+    "${load_format_args[@]}" \
+    "${flashinfer_autotune_args[@]}" \
+    "${attention_config_args[@]}" \
     --tensor-parallel-size 2 \
-    --gpu-memory-utilization 0.85 \
-    --max-model-len 262144 \
-    --max-num-seqs 6 --block-size 2304 --moe-backend marlin --speculative-config '{"method":"dflash","model":"/models/dflash2-draft","num_speculative_tokens":7}' --kv-cache-dtype fp8_e4m3 --kv-cache-memory 3221225472 \
-    --enforce-eager --max-num-batched-tokens 8192 \
+    "${dcp_args[@]}" \
+    --gpu-memory-utilization "$GPU_MEMORY_UTILIZATION" \
+    --max-model-len "$MAX_MODEL_LEN" \
+    --max-num-seqs 6 --block-size 2304 --moe-backend marlin "${speculative_args[@]}" --kv-cache-dtype fp8_e4m3 \
+    --enforce-eager --max-num-batched-tokens "$MAX_NUM_BATCHED_TOKENS" \
     --tool-call-parser glm47 --enable-auto-tool-choice \
-    --reasoning-parser glm45 --default-chat-template-kwargs '{"enable_thinking":false}' --chat-template /models/glm-5.3-flash-nvfp4/chat_template_mm.jinja \
+    --reasoning-parser glm45 --default-chat-template-kwargs '{"enable_thinking":false}' --chat-template /models/chat_template_mm.jinja \
     --distributed-executor-backend mp \
     --nnodes 2 --node-rank "$NODE_RANK" \
     --master-addr "$HEAD_IP" --master-port "$MPORT" \

@@ -10,15 +10,21 @@ import vllm.envs as envs
 from vllm._aiter_ops import rocm_aiter_ops
 from vllm.compilation.breakable_cudagraph import eager_break_during_capture
 from vllm.config import get_current_vllm_config_or_none
+from vllm.distributed import get_dcp_group
 from vllm.forward_context import get_forward_context
 from vllm.logger import init_logger
 from vllm.model_executor.custom_op import CustomOp
+from vllm.model_executor.layers.sparse_attn_indexer import _merge_dcp_topk_global
 from vllm.models.glm5next.nvidia.ops.kpool_compress import (
     expand_pools_and_append_tail,
     expand_pools_to_tokens,
     kpool_compress_and_write_cache,
     kpool_decode_update_and_maybe_write_cache_batched,
     kpool_seed_tail_cache,
+)
+from b12x.attention.dsa_indexer.sm121_mxfp4 import (
+    kpool_compress_and_write_cache_mxfp4,
+    kpool_decode_update_and_maybe_write_cache_mxfp4,
 )
 from vllm.platforms import current_platform
 from vllm.utils.deep_gemm import (
@@ -63,6 +69,7 @@ def _kpool_compress_insert(
     kpool: int,
     head_dim: int,
     round_scale: bool,
+    use_fp4_cache: bool,
 ) -> None:
     """Pool ``kpool`` consecutive tokens into one fp8 K and write at pool slots.
 
@@ -87,19 +94,29 @@ def _kpool_compress_insert(
     write_mask = valid & (pos >= kpool - 1)
     offs = torch.arange(kpool, device=k.device)
     idx = (pos - (kpool - 1)).clamp_min(0)[:, None] + offs[None, :]
-    kpool_compress_and_write_cache(
-        kv_cache,
-        k[idx],  # [n, kpool, head_dim]
-        gate_score[idx],
-        ape,
-        slot_mapping.to(torch.int64),
-        pool_size=kpool,
-        head_dim=head_dim,
-        write_mask=write_mask,
-        round_scale=round_scale,
-        write_cache=True,
-        return_compressed=False,
-    )
+    if use_fp4_cache:
+        kpool_compress_and_write_cache_mxfp4(
+            kv_cache,
+            k[idx],  # [n, kpool, head_dim]
+            gate_score[idx],
+            ape,
+            slot_mapping.to(torch.int64),
+            write_mask=write_mask,
+        )
+    else:
+        kpool_compress_and_write_cache(
+            kv_cache,
+            k[idx],  # [n, kpool, head_dim]
+            gate_score[idx],
+            ape,
+            slot_mapping.to(torch.int64),
+            pool_size=kpool,
+            head_dim=head_dim,
+            write_mask=write_mask,
+            round_scale=round_scale,
+            write_cache=True,
+            return_compressed=False,
+        )
 
 
 def _build_decode_scatter_indices(
@@ -269,6 +286,9 @@ def sparse_attn_indexer_kpool(
     # path and when the tail cache is disabled.
     tail_kv_cache: torch.Tensor | None = None,
     tail_prefix: str | None = None,
+    dcp_rank: int = 0,
+    dcp_world_size: int = 1,
+    cp_kv_cache_interleave_size: int = 1,
 ) -> torch.Tensor:
     # careful! this will be None in dummy run
     attn_metadata = get_forward_context().attn_metadata
@@ -357,7 +377,6 @@ def sparse_attn_indexer_kpool(
         k = k[:num_tokens]
 
     if not skip_k_cache_insert:
-        assert not use_fp4_cache, "Unfused FP4 Insert is not supported yet"
         if index_kpool > 1 and gate_score is not None and compress_ape is not None:
             # kpool prefill write: pool kpool consecutive prefill tokens via
             # softmax(gate+ape)-weighted sum -> Hadamard -> fp8 -> pool slots.
@@ -378,6 +397,7 @@ def sparse_attn_indexer_kpool(
                     index_kpool,
                     head_dim,
                     round_scale=(scale_fmt is not None),
+                    use_fp4_cache=use_fp4_cache,
                 )
                 # Persist the prefill tail (trailing incomplete pool's raw K +
                 # gate score) into the paged tail cache, so the decode side can
@@ -423,6 +443,9 @@ def sparse_attn_indexer_kpool(
                         )
         else:
             # standard: per-token fp8 quant + scatter (all tokens).
+            assert not use_fp4_cache, (
+                "SM121 FP4 indexer insertion requires GLM kpool compression"
+            )
             assert scale_fmt is not None
             ops.indexer_k_quant_and_cache(
                 k,
@@ -492,16 +515,17 @@ def sparse_attn_indexer_kpool(
             scales_spec,
         )
         for chunk in prefill_metadata.chunks if not short_prefill else ():
-            k_quant = k_quant_full[: chunk.total_seq_lens]
-            k_scale = k_scale_full[: chunk.total_seq_lens]
+            assert chunk.local_cu_seq_lens is not None
+            k_quant = k_quant_full[: chunk.max_local_total_seq_lens]
+            k_scale = k_scale_full[: chunk.max_local_total_seq_lens]
 
-            if not chunk.skip_kv_gather:
+            if not chunk.skip_kv_gather and chunk.local_total_seq_lens > 0:
                 ops.cp_gather_indexer_k_quant_cache(
                     kv_cache,
                     k_quant,
                     k_scale,
                     chunk.block_table,
-                    chunk.cu_seq_lens,
+                    chunk.local_cu_seq_lens,
                 )
 
             q_slice = q_quant[chunk.token_start : chunk.token_end]
@@ -510,33 +534,14 @@ def sparse_attn_indexer_kpool(
                 if q_scale is not None
                 else None
             )
-            # DeepGEMM scalar-type tags (zero-copy): MXFP4 values → int8
-            # (kPackedFP4), scales → int32 squeezed to 1-D kv_sf / 2-D q_sf.
-            if use_fp4_cache:
-                q_slice_cast = q_slice.view(torch.int8)
-                k_quant_cast = k_quant.view(torch.int8)
-                k_scale_cast = k_scale.view(torch.int32).squeeze(-1)
-            else:
-                q_slice_cast = q_slice
-                k_quant_cast = k_quant
-                k_scale_cast = k_scale.view(torch.float32).squeeze(-1)
-            logits = fp8_fp4_mqa_logits(
-                (q_slice_cast, q_scale_slice),
-                (k_quant_cast, k_scale_cast),
-                weights[chunk.token_start : chunk.token_end],
-                chunk.cu_seqlen_ks,
-                chunk.cu_seqlen_ke,
-                clean_logits=False,
-            )
-            num_rows = logits.shape[0]
-
             # kpool: logits are pool-granular (compress_ratio == index_kpool),
             # so topk selects pools. We pick topk_tokens // kpool pools then
             # expand each pool back to its kpool constituent tokens.
+            num_rows = q_slice.shape[0]
             select_k = topk_tokens // index_kpool if index_kpool > 1 else topk_tokens
             if index_kpool > 1:
                 pool_topk = torch.full(
-                    (num_rows, select_k), -1, dtype=torch.int32, device=logits.device
+                    (num_rows, select_k), -1, dtype=torch.int32, device=q_slice.device
                 )
                 topk_dst = pool_topk
             else:
@@ -544,28 +549,58 @@ def sparse_attn_indexer_kpool(
                     chunk.token_start : chunk.token_end, :topk_tokens
                 ]
 
-            if current_platform.is_xpu():
-                xpu_ops.top_k_per_row_prefill(  # type: ignore[attr-defined]
-                    logits,
-                    chunk.cu_seqlen_ks,
-                    chunk.cu_seqlen_ke,
-                    topk_dst,
-                    num_rows,
-                    logits.stride(0),
-                    logits.stride(1),
-                    select_k,
-                )
+            if chunk.local_total_seq_lens == 0:
+                logits = q_slice.new_empty((num_rows, 0), dtype=torch.float32)
+                topk_dst.fill_(-1)
             else:
-                torch.ops._C.top_k_per_row_prefill(
-                    logits,
+                if use_fp4_cache:
+                    q_slice_cast = q_slice.view(torch.int8)
+                    k_quant_cast = k_quant.view(torch.int8)
+                    k_scale_cast = k_scale.view(torch.int32).squeeze(-1)
+                else:
+                    q_slice_cast = q_slice
+                    k_quant_cast = k_quant
+                    k_scale_cast = k_scale.view(torch.float32).squeeze(-1)
+                logits = fp8_fp4_mqa_logits(
+                    (q_slice_cast, q_scale_slice),
+                    (k_quant_cast, k_scale_cast),
+                    weights[chunk.token_start : chunk.token_end],
                     chunk.cu_seqlen_ks,
                     chunk.cu_seqlen_ke,
-                    topk_dst,
-                    num_rows,
-                    logits.stride(0),
-                    logits.stride(1),
-                    select_k,
+                    clean_logits=False,
                 )
+                if current_platform.is_xpu():
+                    xpu_ops.top_k_per_row_prefill(  # type: ignore[attr-defined]
+                        logits,
+                        chunk.cu_seqlen_ks,
+                        chunk.cu_seqlen_ke,
+                        topk_dst,
+                        num_rows,
+                        logits.stride(0),
+                        logits.stride(1),
+                        select_k,
+                    )
+                else:
+                    torch.ops._C.top_k_per_row_prefill(
+                        logits,
+                        chunk.cu_seqlen_ks,
+                        chunk.cu_seqlen_ke,
+                        topk_dst,
+                        num_rows,
+                        logits.stride(0),
+                        logits.stride(1),
+                        select_k,
+                    )
+
+            _merge_dcp_topk_global(
+                logits,
+                topk_dst,
+                select_k,
+                dcp_rank,
+                dcp_world_size,
+                cp_kv_cache_interleave_size,
+                row_starts=chunk.cu_seqlen_ks,
+            )
 
             if index_kpool > 1:
                 pool_ids = pool_topk.to(torch.int64)
@@ -722,19 +757,32 @@ def sparse_attn_indexer_kpool(
                 # provided. Inputs are already grouped per request (uniform:
                 # view; non-uniform: _scatter_decode_tokens_by_request padded to
                 # [B, lmax]) — no per-token .contiguous() copies needed.
-                kpool_decode_update_and_maybe_write_cache_batched(
-                    kv_cache_raw,
-                    tail_kv_cache,
-                    dec_tail_slot,
-                    dec_k,
-                    dec_gate,
-                    compress_ape,
-                    dec_slot,
-                    dec_pos,
-                    index_kpool,
-                    head_dim,
-                    round_scale=(scale_fmt is not None),
-                )
+                if use_fp4_cache:
+                    kpool_decode_update_and_maybe_write_cache_mxfp4(
+                        kv_cache_raw,
+                        tail_kv_cache,
+                        dec_tail_slot,
+                        dec_k,
+                        dec_gate,
+                        compress_ape,
+                        dec_slot,
+                        dec_pos,
+                        index_kpool,
+                    )
+                else:
+                    kpool_decode_update_and_maybe_write_cache_batched(
+                        kv_cache_raw,
+                        tail_kv_cache,
+                        dec_tail_slot,
+                        dec_k,
+                        dec_gate,
+                        compress_ape,
+                        dec_slot,
+                        dec_pos,
+                        index_kpool,
+                        head_dim,
+                        round_scale=(scale_fmt is not None),
+                    )
         decode_lens = decode_metadata.decode_lens
         if decode_metadata.requires_padding:
             # pad in edge case where we have short chunked prefill length <
@@ -851,6 +899,16 @@ def sparse_attn_indexer_kpool(
                     select_k,
                 )
 
+        if decode_metadata.global_seq_lens is not None:
+            _merge_dcp_topk_global(
+                logits,
+                topk_dst,
+                select_k,
+                dcp_rank,
+                dcp_world_size,
+                cp_kv_cache_interleave_size,
+            )
+
         # Resolve to token-level indices in the output buffer.
         if index_kpool > 1:
             pool_ids = pool_topk.to(torch.int64)
@@ -915,6 +973,9 @@ def sparse_attn_indexer_kpool_fake(
     positions: torch.Tensor | None = None,
     tail_kv_cache: torch.Tensor | None = None,
     tail_prefix: str | None = None,
+    dcp_rank: int = 0,
+    dcp_world_size: int = 1,
+    cp_kv_cache_interleave_size: int = 1,
 ) -> torch.Tensor:
     return topk_indices_buffer
 
@@ -972,6 +1033,20 @@ class SparseAttnIndexerKpool(CustomOp):
         self.topk_indices_buffer = topk_indices_buffer
         self.skip_k_cache_insert = skip_k_cache_insert
         self.use_fp4_cache = use_fp4_cache
+        config = get_current_vllm_config_or_none()
+        if config is None:
+            self.dcp_world_size = 1
+            self.dcp_rank = 0
+            self.cp_kv_cache_interleave_size = 1
+        else:
+            parallel_config = config.parallel_config
+            self.dcp_world_size = parallel_config.decode_context_parallel_size
+            self.dcp_rank = (
+                get_dcp_group().rank_in_group if self.dcp_world_size > 1 else 0
+            )
+            self.cp_kv_cache_interleave_size = (
+                parallel_config.cp_kv_cache_interleave_size
+            )
         if current_platform.is_cuda() and not has_deep_gemm():
             raise RuntimeError(
                 "Sparse Attention Indexer CUDA op requires DeepGEMM to be installed."
@@ -1049,6 +1124,9 @@ class SparseAttnIndexerKpool(CustomOp):
             positions,
             self.tail_cache.kv_cache if self.tail_cache is not None else None,
             self.tail_cache.prefix if self.tail_cache is not None else None,
+            self.dcp_rank,
+            self.dcp_world_size,
+            self.cp_kv_cache_interleave_size,
         )
 
     def forward_hip(

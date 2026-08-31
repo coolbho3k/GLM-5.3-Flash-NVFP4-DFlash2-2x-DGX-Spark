@@ -3,8 +3,14 @@
 OpenAI-compatible vLLM serving of [zai-org/GLM-5.3-Flash](https://huggingface.co/zai-org/GLM-5.3-Flash)
 (320B total / 18B active MoE) across two DGX Spark (GB10, SM121) nodes at tensor-parallel 2,
 using the [RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4)
-compressed-tensors quant (the corruption-free **default**, see below), **fp8 KV cache**, and the [`incoai/GLM-5.3-Flash-DFlash2`](https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2)
-speculative drafter. 262,144-token context. Deployed the same day the model dropped.
+compressed-tensors quant (the corruption-free **default**, see below), a
+native **NVFP4 sparse-MLA + MXFP4 indexer cache** (with FP8 rollback), and the
+[`incoai/GLM-5.3-Flash-DFlash2`](https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2)
+speculative drafter. On the cluster in this checkout, a native FP4/DCP2 cache
+keeps every serving feature while providing at least **2,198,799 logical KV
+tokens** at a 262,144-token request limit and **3,561,829 logical KV tokens**
+at the model-native 1,048,576-token limit. Deployed the same day the model
+dropped.
 
 ---
 
@@ -19,7 +25,7 @@ We reproduced and fixed it on this exact cluster (Korean-Hangul probe, `temperat
 | ModelOpt NVFP4 (LibertAIDAI / keys-ablit) | `modelopt` | 4 / 9 / 8 |
 | **[RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4)** | **`compressed-tensors`** | **0 / 0 / 0** |
 
-**Default checkpoint: `RedHatAI/GLM-5.3-Flash-NVFP4`.** Ungated, same `Glm5NextForConditionalGeneration` arch, **drop-in** — no flag changes (`--moe-backend marlin`, DFlash2 `k=7`, fp8 KV all identical), just repoint the model path. Loads ~2x faster (11 large shards vs 120 small). Tradeoff: it also quantizes activations to 4-bit (W4A4) where the weight-only builds are W4A16, so expect a few points lower on hard reasoning — but the output is **correct**. Make sure the vision `chat_template_mm.jinja` is present in the weights dir or image requests 500.
+**Default checkpoint: `RedHatAI/GLM-5.3-Flash-NVFP4`.** Ungated, same `Glm5NextForConditionalGeneration` arch, **drop-in** — just repoint the model path. Loads ~2x faster (11 large shards vs 120 small). Tradeoff: it also quantizes activations to 4-bit (W4A4) where the weight-only builds are W4A16, so expect a few points lower on hard reasoning — but the output is **correct**. Make sure the vision `chat_template_mm.jinja` is present in the weights dir or image requests 500.
 
 Corruption first flagged by [@ajclark](https://github.com/ajclark) (issue #10). Uncensored (abliterated) builds remain available but carry the ModelOpt corruption until a compressed-tensors abliteration exists.
 
@@ -46,6 +52,79 @@ working DFlash2 deployment of this model on GB10** ([docs/DFLASH2-SPECULATIVE-DE
 
 ## Quickstart
 
+### This cluster (`spark-0` + `dgx1.lan`)
+
+This checkout is configured for the two active RoCE links at `10.100.32.1` and
+`10.100.32.2`. The corruption-free RedHat target checkpoint and DFlash2 draft
+checkpoint are already installed on both nodes. Start both ranks from `spark-0`
+with one command:
+
+```bash
+cd /home/emi/code/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark
+./start-cluster.sh
+```
+
+The command verifies that the promoted image and critical runtime files match
+on both nodes, copies the required launcher assets to `dgx1.lan`, starts the
+worker before the head, and waits for `/health`. Cold startup takes roughly
+10–15 minutes. The default is the validated 262,144-token configuration. Use
+the model-native million-token limit with:
+
+```bash
+MAX_MODEL_LEN=1048576 ./start-cluster.sh
+```
+
+At `gpu-memory-utilization=0.87`, the measured capacities are at least
+2,198,799 logical tokens at the 256K limit and 3,561,829 at the 1M limit. UMA
+state can move the exact block count between cold boots, so the wrapper prints
+the capacity it actually obtained.
+
+The OpenAI-compatible endpoint is `http://10.100.32.1:8000/v1`, and the served
+model name is `glm-5.3-flash`. Check or stop it with:
+
+```bash
+curl -fsS http://10.100.32.1:8000/health
+./stop-cluster.sh
+```
+
+Do not launch rank scripts separately for routine operation. The wrapper also
+removes both ranks if startup fails, avoiding a stale worker joining the next
+rendezvous.
+
+The default image, `glm53-v11:kvopt-final`, is already installed on both
+cluster nodes. See [the final KV report](docs/KV-OPTIMIZATION-STATUS.md) for
+physical accounting, capacity by request length, validation, performance,
+image IDs, and rollback commands.
+
+### Build the optimized image from pinned sources
+
+The production image is reproducible without any of the local experiment
+tags used during development. The build pins the public DFlash2 base by digest
+and SparkInfer by commit, applies the checked-in native-FP4 patch, and composes
+all DCP2, KDA, page-layout, accounting, and long-context fixes in one Dockerfile:
+
+```bash
+./build-production-image.sh
+```
+
+Run that command from a checkout of this branch on both ARM64 DGX Spark nodes.
+If `/home/emi/code/glm/vendor/sparkinfer` exists it is used as a read-only Git
+source; otherwise the script clones the pinned public commit into a temporary
+directory. Set `SPARKINFER_REPO=/path/to/sparkinfer` to use another clone or
+`IMAGE=registry/name:tag` to choose the output tag. Independent builds can
+have different image IDs; `start-cluster.sh` compares the runtime-defining
+files before either rank starts.
+
+Model weights are deliberately not part of the image. Put the RedHat target
+checkpoint and DFlash2 draft at the launcher defaults on both nodes, or set
+`MODEL_HOST_PATH` and `DRAFT_HOST_PATH` when using the lower-level launcher.
+
+### Original public FP8 deployment (portable fallback)
+
+The following instructions describe the published FP8 image for a different
+pair of machines. They are retained as a portable rollback path; they do not
+produce the optimized 955K-class configuration above.
+
 **1. Pull the images** (GHCR, public, anonymous — no build required):
 
 ```bash
@@ -54,12 +133,8 @@ docker pull ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v8            # base, fp8 
 ```
 
 They contain **only vLLM + our patches** — no model weights (those bind-mount at runtime).
-The launchers reference the local `radixark/…` tag names, so retag once:
-
-```bash
-docker tag ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v8 ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v8
-docker tag ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2 ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2
-```
+Select the rollback image with the launcher's `IMAGE` environment variable; no retag is
+required.
 
 **2. Fetch the weights** to the same path on both nodes (or NFS-export from the head):
 [RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4) (default) →
@@ -83,13 +158,14 @@ interface names inside the `docker run` body** (`NCCL_IB_HCA`, `NCCL_SOCKET_IFNA
 `NCCL_IB_ADDR_RANGE`) — wrong NIC names fail silently. `ibdev2netdev` and `ip -br a` will
 tell you what yours are.
 
-Then launch — **pre-launch ritual on BOTH nodes, every time** (GB10 unified memory):
+Then launch the worker before the head:
 
 ```bash
-sync; echo 3 | sudo tee /proc/sys/vm/drop_caches      # both nodes
-./launch-glm53-vllm-tp2-dflash2.sh 1    # worker FIRST
+IMAGE=ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2 \
+  ./launch-glm53-vllm-tp2-dflash2.sh 1    # worker FIRST
 sleep 25
-./launch-glm53-vllm-tp2-dflash2.sh 0    # then head — serves :8000
+IMAGE=ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2 \
+  ./launch-glm53-vllm-tp2-dflash2.sh 0    # then head — serves :8000
 ```
 
 Without the drafter, use [`launch-glm53-vllm-tp2.sh`](launch-glm53-vllm-tp2.sh) (v8 image,
@@ -140,7 +216,28 @@ Published image digests, so you can tell whether a local build differs:
 
 ---
 
-## Results (TP2, 2026-08-28)
+## Optimized results (TP2/DCP2, 2026-08-31)
+
+The `glm53-v11:kvopt-final` image combines native 288-byte GLM
+NVFP4 sparse-MLA records, a 17-byte MXFP4 indexer, DCP2, repaired hybrid page
+geometry, FP16 KDA persistence, and compact accepted-prefix replay.
+
+| | value |
+|---|---:|
+| KV capacity at 256K max context | **at least 2,198,799 logical tokens** |
+| KV capacity at 1M max context | **3,561,829 logical tokens** |
+| Limiting 1M-profile blocks | 428 × 17,177,600 bytes |
+| 1M-profile C1 aggregate throughput | 33.4 tok/s |
+| 1M-profile C6 aggregate throughput | **55.4 tok/s** |
+| Long-context gate | 1,020,049-token retrieval + 1,003,520-token prefix hit: passed |
+
+The full 1.02M-token uncached retrieval completed correctly in 723.8 seconds
+(about 1,409 input tok/s); the subsequent 1.00M-token prefix-cache hit completed
+in 14.7 seconds. The two-round 1M-profile C1/C6 sweep had zero failures. The
+full evidence and exact meaning of the capacity figures are in
+[docs/KV-OPTIMIZATION-STATUS.md](docs/KV-OPTIMIZATION-STATUS.md).
+
+## Historical FP8 results (TP2, 2026-08-28)
 
 **DFlash2 + fp8 KV — the shipped configuration.** All measured on our own hardware; the
 harness is [`probes/bench_c1c6.py`](probes/bench_c1c6.py), run as:
@@ -239,17 +336,18 @@ point. It does not recover on its own.
 
 ---
 
-## Status: work in progress
+## Status
 
-This repo is an active bring-up log, not a finished product. Everything published here is
-measured on our own hardware and dated — **if a number is not in a dated table, treat it as
-unverified.**
+Everything published here is measured on our own hardware and dated. The
+native FP4/DCP2 configuration is now the production deployment for the
+`spark-0` + `dgx1.lan` cluster.
 
 | | state |
 |---|---|
-| **DFlash2 + fp8 KV, TP2** | ✅ **Proven.** Benchmarked C1–C6, zero failures. This is the config to copy. |
+| **DFlash2 + native FP4 KV/indexer, TP2/DCP2** | ✅ **Production.** 3,561,829 logical KV tokens in 1M mode; full 1.02M retrieval and C1/C6 gates passed. |
+| **DFlash2 + compatible FP4 KV, TP2/DCP2** | ⚠️ Experimental. Correct output and 736,624-token capacity, but concurrent divergent-prefix accounting reported no reuse. |
+| **DFlash2 + fp8 KV, TP2** | ✅ Proven rollback. Benchmarked C1–C6, zero failures. |
 | **DFlash2 + fp8 KV, TP4 / 1M ctx** | ✅ Serving — 68.5 tok/s, 2,622,494-token pool. See the sibling repo. |
-| **DFlash2 + NVFP4 KV, TP2** | ⚠️ **Partial.** Serves and drafts (35.9 tok/s, 0.563 acceptance, 334K pool), but prompts long enough to need chunked prefill (>~3K tokens) kill the rank-0 worker. Root cause open; the standalone drafter KV path is the suspect. [Details](docs/DFLASH2-SPECULATIVE-DECODING.md). |
 | **InstantTensor fast load** | ⚠️ Experimental — 15x faster loads, unstable multi-node. See below. |
 
 ---
