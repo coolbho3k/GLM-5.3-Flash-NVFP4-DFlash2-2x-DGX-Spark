@@ -1,0 +1,101 @@
+{
+  "elapsed_seconds": 1.1416683197021484,
+  "experts": [
+    0
+  ],
+  "layers": [
+    23
+  ],
+  "method": "group16_e2m1_mse_scale_search",
+  "output_tokens": 32,
+  "projections": [
+    "down_proj"
+  ],
+  "replacement_tensors": [
+    "model.language_model.layers.23.mlp.experts.0.down_proj.weight_packed",
+    "model.language_model.layers.23.mlp.experts.0.down_proj.weight_scale"
+  ],
+  "scale_radius_above": 16,
+  "scale_radius_below": 16,
+  "schema": 1,
+  "seed": 20260901,
+  "source_root": "/source",
+  "summary": {
+    "baseline_output_relative_rmse_mean": 0.09224944561719894,
+    "baseline_weight_relative_rmse_mean": 0.09250791370868683,
+    "candidate_output_relative_rmse_mean": 0.0766264945268631,
+    "candidate_weight_relative_rmse_mean": 0.07708393782377243,
+    "output_rmse_improvement_mean": 0.16935550111775532,
+    "relative_rmse_improvement_mean": 0.1667314207678,
+    "tensors": 1
+  },
+  "target_root": "/target",
+  "tensors": [
+    {
+      "baseline_output_error": {
+        "cosine": 0.995766282081604,
+        "max_abs": 0.380859375,
+        "mean_abs": 0.0629173219203949,
+        "relative_rmse": 0.09224944561719894,
+        "tokens": 32
+      },
+      "baseline_weight_error": {
+        "cosine": 0.9957417249679565,
+        "max_abs": 0.01171875,
+        "mean_abs": 0.0013065128587186337,
+        "relative_rmse": 0.09250791370868683
+      },
+      "candidate_output_error": {
+        "cosine": 0.9970600008964539,
+        "max_abs": 0.30078125,
+        "mean_abs": 0.05229853838682175,
+        "relative_rmse": 0.0766264945268631,
+        "tokens": 32
+      },
+      "candidate_weight_error": {
+        "cosine": 0.997024655342102,
+        "max_abs": 0.0102306567132473,
+        "mean_abs": 0.0011400904040783644,
+        "relative_rmse": 0.07708393782377243
+      },
+      "expert": 0,
+      "global_divisor": 24576.0,
+      "layer": 23,
+      "output_rmse_improvement": 0.16935550111775532,
+      "projection": "down_proj",
+      "relative_rmse_improvement": 0.1667314207678,
+      "search": {
+        "candidate_count": 33,
+        "clipped_value_fraction": 0.06565535068511963,
+        "lower_boundary_fraction": 0.0,
+        "scale_code_changed_fraction": 0.6863479614257812,
+        "scale_code_delta_histogram": {
+          "-1": 96481,
+          "-2": 7217,
+          "0": 164444,
+          "1": 59112,
+          "12": 3,
+          "13": 1,
+          "2": 1586,
+          "3": 23723,
+          "4": 55358,
+          "5": 84144,
+          "6": 32189,
+          "7": 17,
+          "8": 11,
+          "9": 2
+        },
+        "scale_code_delta_max": 13,
+        "scale_code_delta_mean": 1.6366920471191406,
+        "scale_code_delta_min": -2,
+        "upper_boundary_fraction": 0.0
+      },
+      "shape": [
+        4096,
+        2048
+      ],
+      "source_shard": "model-00021-of-00062.safetensors",
+      "target_shard": "model-00005-of-00010.safetensors"
+    }
+  ]
+}

@@ -46,6 +46,13 @@ VLLM_DISABLE_FLASHINFER_AUTOTUNE="${VLLM_DISABLE_FLASHINFER_AUTOTUNE:-0}"
 USE_FP4_INDEXER_CACHE="${USE_FP4_INDEXER_CACHE:-1}"
 DCP_SIZE="${DCP_SIZE:-2}"
 ENABLE_DFLASH="${ENABLE_DFLASH:-1}"
+QUANTIZATION="${QUANTIZATION:-}"
+MOE_BACKEND="${MOE_BACKEND:-marlin}"
+KV_CACHE_DTYPE="${KV_CACHE_DTYPE:-fp8_e4m3}"
+ENFORCE_EAGER="${ENFORCE_EAGER:-1}"
+MAX_NUM_SEQS="${MAX_NUM_SEQS:-6}"
+EXL3_FUSED_MOE="${EXL3_FUSED_MOE:-1}"
+EXL3_MOE_ROW_TILE="${EXL3_MOE_ROW_TILE:-0}"
 attention_backend_args=()
 if [[ -n "$VLLM_ATTENTION_BACKEND" ]]; then
   attention_backend_args+=( --attention-backend "$VLLM_ATTENTION_BACKEND" )
@@ -70,6 +77,19 @@ speculative_args=()
 if [[ "$ENABLE_DFLASH" == "1" ]]; then
   speculative_args+=( --speculative-config '{"method":"dflash","model":"/models/dflash2-draft","num_speculative_tokens":7}' )
 fi
+quantization_args=()
+if [[ -n "$QUANTIZATION" ]]; then
+  quantization_args+=( --quantization "$QUANTIZATION" )
+fi
+moe_backend_args=()
+if [[ -n "$MOE_BACKEND" && "$MOE_BACKEND" != "auto" ]]; then
+  moe_backend_args+=( --moe-backend "$MOE_BACKEND" )
+fi
+eager_args=()
+if [[ "$ENFORCE_EAGER" == "1" ]]; then
+  eager_args+=( --enforce-eager )
+fi
+
 
 case "$NODE_RANK" in
   0) HOST_IP="$HEAD_IP"; HEADLESS="" ;;
@@ -112,6 +132,8 @@ docker run --gpus all -d \
   -e TORCH_NCCL_ASYNC_ERROR_HANDLING=1 \
   -v "$TOPK_PATCH:/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py:ro" \
   -v "$DRAFT_HOST_PATH:/models/dflash2-draft:ro" \
+  -e EXL3_FUSED_MOE="$EXL3_FUSED_MOE" \
+  -e EXL3_MOE_ROW_TILE="$EXL3_MOE_ROW_TILE" \
   -v "$CHAT_TEMPLATE:/models/chat_template_mm.jinja:ro" \
   "$IMAGE" \
     "$MODEL_PATH" \
@@ -121,13 +143,14 @@ docker run --gpus all -d \
     "${attention_backend_args[@]}" \
     "${load_format_args[@]}" \
     "${flashinfer_autotune_args[@]}" \
+    "${quantization_args[@]}" \
     "${attention_config_args[@]}" \
     --tensor-parallel-size 2 \
     "${dcp_args[@]}" \
     --gpu-memory-utilization "$GPU_MEMORY_UTILIZATION" \
     --max-model-len "$MAX_MODEL_LEN" \
-    --max-num-seqs 6 --block-size 2304 --moe-backend marlin "${speculative_args[@]}" --kv-cache-dtype fp8_e4m3 \
-    --enforce-eager --max-num-batched-tokens "$MAX_NUM_BATCHED_TOKENS" \
+    --max-num-seqs "$MAX_NUM_SEQS" --block-size 2304 "${moe_backend_args[@]}" "${speculative_args[@]}" --kv-cache-dtype "$KV_CACHE_DTYPE" \
+    "${eager_args[@]}" --max-num-batched-tokens "$MAX_NUM_BATCHED_TOKENS" \
     --tool-call-parser glm47 --enable-auto-tool-choice \
     --reasoning-parser glm45 --default-chat-template-kwargs '{"enable_thinking":false}' --chat-template /models/chat_template_mm.jinja \
     --distributed-executor-backend mp \

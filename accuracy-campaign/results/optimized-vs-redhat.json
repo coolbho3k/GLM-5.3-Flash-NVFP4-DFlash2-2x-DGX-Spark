@@ -1,0 +1,1371 @@
+{
+  "cases": [
+    {
+      "category": "reasoning",
+      "common_prefix_positions": 3,
+      "compared_positions": 3,
+      "exact_output_match": true,
+      "id": "arithmetic",
+      "mean_js_nats_topk": 0.00011835370407813971,
+      "positions": [
+        {
+          "js_nats_topk": 0.0002559438528827293,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0014923398848623037
+        },
+        {
+          "js_nats_topk": 1.0652681154372514e-06,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -4.017272294731811e-05
+        },
+        {
+          "js_nats_topk": 9.805199123625257e-05,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.002196520334109664
+        }
+      ],
+      "repeat": 0,
+      "student_acceptance_ratio": 0.2857142857142857,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.2857142857142857,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "reasoning",
+      "common_prefix_positions": 3,
+      "compared_positions": 3,
+      "exact_output_match": true,
+      "id": "arithmetic",
+      "mean_js_nats_topk": 0.0003245375857811072,
+      "positions": [
+        {
+          "js_nats_topk": 0.00025638158076554614,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0014085381990298629
+        },
+        {
+          "js_nats_topk": 1.262413643877273e-06,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -3.814624506048858e-05
+        },
+        {
+          "js_nats_topk": 0.0007159687629338981,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0015148365637287498
+        }
+      ],
+      "repeat": 1,
+      "student_acceptance_ratio": 0.2857142857142857,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.2857142857142857,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "stability",
+      "common_prefix_positions": 13,
+      "compared_positions": 14,
+      "exact_output_match": false,
+      "id": "bare_test",
+      "mean_js_nats_topk": 0.017853991909713037,
+      "positions": [
+        {
+          "js_nats_topk": 0.05680240772656082,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -1.2177001237869263
+        },
+        {
+          "js_nats_topk": 1.8146421084347653e-05,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0013158005895093083
+        },
+        {
+          "js_nats_topk": 0.07146055679315272,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.23024621605873108
+        },
+        {
+          "js_nats_topk": 0.02186061318115526,
+          "position": 3,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.7962981462478638
+        },
+        {
+          "js_nats_topk": 0.03469701669876789,
+          "position": 4,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.321956068277359
+        },
+        {
+          "js_nats_topk": 0.003611479621907292,
+          "position": 5,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.45527613162994385
+        },
+        {
+          "js_nats_topk": 0.0007526944616908077,
+          "position": 6,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.02115495316684246
+        },
+        {
+          "js_nats_topk": 7.974551587932425e-06,
+          "position": 7,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0001294529065489769
+        },
+        {
+          "js_nats_topk": 0.00014863314345717145,
+          "position": 8,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.002979603596031666
+        },
+        {
+          "js_nats_topk": 0.00026163668019726677,
+          "position": 9,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.010102213360369205
+        },
+        {
+          "js_nats_topk": 0.022566262656774715,
+          "position": 10,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.7323362231254578
+        },
+        {
+          "js_nats_topk": 0.0010125979425968826,
+          "position": 11,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.051995113492012024
+        },
+        {
+          "js_nats_topk": 0.0001302230379141233,
+          "position": 12,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0008250646642409265
+        },
+        {
+          "js_nats_topk": 0.0366256438191353,
+          "position": 13,
+          "same_sampled_token": false,
+          "same_top1": false,
+          "teacher_token_student_logprob": -0.8855836987495422
+        }
+      ],
+      "repeat": 0,
+      "student_acceptance_ratio": 0.24285714285714285,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.34285714285714286,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "stability",
+      "common_prefix_positions": 18,
+      "compared_positions": 19,
+      "exact_output_match": false,
+      "id": "bare_test",
+      "mean_js_nats_topk": 0.009212855973185252,
+      "positions": [
+        {
+          "js_nats_topk": 0.06348324888460101,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -1.309615135192871
+        },
+        {
+          "js_nats_topk": 4.609540857498214e-05,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0013831820106133819
+        },
+        {
+          "js_nats_topk": 0.010466447055225248,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.22034546732902527
+        },
+        {
+          "js_nats_topk": 0.02474208557402334,
+          "position": 3,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.7979190945625305
+        },
+        {
+          "js_nats_topk": 0.023928746565517946,
+          "position": 4,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.32137298583984375
+        },
+        {
+          "js_nats_topk": 0.0018133308960146532,
+          "position": 5,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.4146799147129059
+        },
+        {
+          "js_nats_topk": 0.0006415294865773725,
+          "position": 6,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.018315711989998817
+        },
+        {
+          "js_nats_topk": 1.0210990152956243e-05,
+          "position": 7,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.00014411364099942148
+        },
+        {
+          "js_nats_topk": 8.384898333299131e-05,
+          "position": 8,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.002980079036206007
+        },
+        {
+          "js_nats_topk": 0.0004738756299518239,
+          "position": 9,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.012889523059129715
+        },
+        {
+          "js_nats_topk": 0.01935277972742702,
+          "position": 10,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.750004231929779
+        },
+        {
+          "js_nats_topk": 0.00035819008365067025,
+          "position": 11,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.06510838121175766
+        },
+        {
+          "js_nats_topk": 7.073953925935354e-05,
+          "position": 12,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0007415643776766956
+        },
+        {
+          "js_nats_topk": 0.014763844391815932,
+          "position": 13,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.44928014278411865
+        },
+        {
+          "js_nats_topk": 0.0007547658466967776,
+          "position": 14,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.028575103729963303
+        },
+        {
+          "js_nats_topk": 0.00010026376281883948,
+          "position": 15,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0015439982526004314
+        },
+        {
+          "js_nats_topk": 7.331605079924469e-07,
+          "position": 16,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -1.4662635294371285e-05
+        },
+        {
+          "js_nats_topk": 0.003696241132720145,
+          "position": 17,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.2999224364757538
+        },
+        {
+          "js_nats_topk": 0.010257286371650753,
+          "position": 18,
+          "same_sampled_token": false,
+          "same_top1": true,
+          "teacher_token_student_logprob": -1.1010181903839111
+        }
+      ],
+      "repeat": 1,
+      "student_acceptance_ratio": 0.2571428571428571,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.34285714285714286,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "coding",
+      "common_prefix_positions": 35,
+      "compared_positions": 36,
+      "exact_output_match": false,
+      "id": "code_parser",
+      "mean_js_nats_topk": 0.0036472932873545033,
+      "positions": [
+        {
+          "js_nats_topk": 0.008919670583316809,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.19730299711227417
+        },
+        {
+          "js_nats_topk": 1.6657361946393638e-06,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -2.1457441107486375e-05
+        },
+        {
+          "js_nats_topk": 1.7476097986520265e-05,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0003890234511345625
+        },
+        {
+          "js_nats_topk": 0.03741981065795825,
+          "position": 3,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.35559985041618347
+        },
+        {
+          "js_nats_topk": 4.0952752614939205e-06,
+          "position": 4,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0001436368766007945
+        },
+        {
+          "js_nats_topk": 1.0244518072756642e-06,
+          "position": 5,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -4.5060096454108134e-05
+        },
+        {
+          "js_nats_topk": 9.156495608477194e-08,
+          "position": 6,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -5.006777428206988e-06
+        },
+        {
+          "js_nats_topk": 2.0802405025383603e-06,
+          "position": 7,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -1.5139465176616795e-05
+        },
+        {
+          "js_nats_topk": 1.0728077146548127e-06,
+          "position": 8,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -9.345571743324399e-05
+        },
+        {
+          "js_nats_topk": 1.1258552797427296e-05,
+          "position": 9,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0004553949984256178
+        },
+        {
+          "js_nats_topk": 7.184322487914829e-08,
+          "position": 10,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -9.536738616588991e-07
+        },
+        {
+          "js_nats_topk": 9.318234475614856e-06,
+          "position": 11,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0002029928145930171
+        },
+        {
+          "js_nats_topk": 3.147511713690285e-08,
+          "position": 12,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -1.0728830375228426e-06
+        },
+        {
+          "js_nats_topk": 1.7160239951720482e-05,
+          "position": 13,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.00018630675913300365
+        },
+        {
+          "js_nats_topk": 7.859180345958552e-06,
+          "position": 14,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0005100856651552022
+        },
+        {
+          "js_nats_topk": 3.524807356851048e-07,
+          "position": 15,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -8.106198947643861e-06
+        },
+        {
+          "js_nats_topk": 5.3686764568257244e-05,
+          "position": 16,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -6.568216485902667e-05
+        },
+        {
+          "js_nats_topk": 4.466148586500221e-05,
+          "position": 17,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0020328350365161896
+        },
+        {
+          "js_nats_topk": 0.000775687806984248,
+          "position": 18,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.01683410257101059
+        },
+        {
+          "js_nats_topk": 0.015133652272722065,
+          "position": 19,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.657349705696106
+        },
+        {
+          "js_nats_topk": 9.901285120073635e-05,
+          "position": 20,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0043854969553649426
+        },
+        {
+          "js_nats_topk": 2.558412646527528e-05,
+          "position": 21,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.3599531352519989
+        },
+        {
+          "js_nats_topk": 3.129882437603801e-05,
+          "position": 22,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0027677821926772594
+        },
+        {
+          "js_nats_topk": 1.4880508558683165e-05,
+          "position": 23,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.00482596829533577
+        },
+        {
+          "js_nats_topk": 0.009400018383429184,
+          "position": 24,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.225633442401886
+        },
+        {
+          "js_nats_topk": 0.0031213508179748902,
+          "position": 25,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.8059712648391724
+        },
+        {
+          "js_nats_topk": 0.0004683034964003364,
+          "position": 26,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.004867727402597666
+        },
+        {
+          "js_nats_topk": 1.634909521741884e-06,
+          "position": 27,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.00011157367407577112
+        },
+        {
+          "js_nats_topk": 0.0030428566445228223,
+          "position": 28,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.032209113240242004
+        },
+        {
+          "js_nats_topk": 0.017363300256505582,
+          "position": 29,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.1601405143737793
+        },
+        {
+          "js_nats_topk": 0.008408700235268074,
+          "position": 30,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.18366101384162903
+        },
+        {
+          "js_nats_topk": 0.0024940146001510045,
+          "position": 31,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.45198214054107666
+        },
+        {
+          "js_nats_topk": 0.0058928604044998795,
+          "position": 32,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.16705363988876343
+        },
+        {
+          "js_nats_topk": 0.004382591963125482,
+          "position": 33,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.4794507622718811
+        },
+        {
+          "js_nats_topk": 1.444248332031614e-07,
+          "position": 34,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -1.3828182090946939e-05
+        },
+        {
+          "js_nats_topk": 0.01413527814544294,
+          "position": 35,
+          "same_sampled_token": false,
+          "same_top1": false,
+          "teacher_token_student_logprob": -1.3560459613800049
+        }
+      ],
+      "repeat": 0,
+      "student_acceptance_ratio": 0.4419642857142857,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.48668280871670705,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "coding",
+      "common_prefix_positions": 35,
+      "compared_positions": 36,
+      "exact_output_match": false,
+      "id": "code_parser",
+      "mean_js_nats_topk": 0.003568525910897389,
+      "positions": [
+        {
+          "js_nats_topk": 0.01656640636221852,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.22400911152362823
+        },
+        {
+          "js_nats_topk": 2.3321315736256403e-06,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -2.6940935640595853e-05
+        },
+        {
+          "js_nats_topk": 3.133851673599759e-05,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0006429274217225611
+        },
+        {
+          "js_nats_topk": 0.001551858809550034,
+          "position": 3,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.25876590609550476
+        },
+        {
+          "js_nats_topk": 1.1826796059424662e-06,
+          "position": 4,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0001227780303452164
+        },
+        {
+          "js_nats_topk": 1.171411554945636e-06,
+          "position": 5,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -4.60137271147687e-05
+        },
+        {
+          "js_nats_topk": 1.0498259928106963e-07,
+          "position": 6,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -5.006777428206988e-06
+        },
+        {
+          "js_nats_topk": 5.317719040480093e-07,
+          "position": 7,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -1.0371154530730564e-05
+        },
+        {
+          "js_nats_topk": 2.050528601156831e-06,
+          "position": 8,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -7.152301259338856e-05
+        },
+        {
+          "js_nats_topk": 4.294553655518177e-06,
+          "position": 9,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0003570872650016099
+        },
+        {
+          "js_nats_topk": 3.2899288966235153e-07,
+          "position": 10,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -4.768370445162873e-07
+        },
+        {
+          "js_nats_topk": 8.382569221395688e-06,
+          "position": 11,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0002348147245356813
+        },
+        {
+          "js_nats_topk": 1.0758009790141859e-07,
+          "position": 12,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -1.6689286894688848e-06
+        },
+        {
+          "js_nats_topk": 1.463535930779575e-05,
+          "position": 13,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.00011777184408856556
+        },
+        {
+          "js_nats_topk": 5.467221252168354e-06,
+          "position": 14,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0007370378007180989
+        },
+        {
+          "js_nats_topk": 2.2386731241925727e-07,
+          "position": 15,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -8.106198947643861e-06
+        },
+        {
+          "js_nats_topk": 0.00015804149106695307,
+          "position": 16,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -3.814624506048858e-05
+        },
+        {
+          "js_nats_topk": 0.0002743979334281604,
+          "position": 17,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.00108159682713449
+        },
+        {
+          "js_nats_topk": 0.0003475477529289847,
+          "position": 18,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.013658870942890644
+        },
+        {
+          "js_nats_topk": 0.010529554747223193,
+          "position": 19,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.6891697645187378
+        },
+        {
+          "js_nats_topk": 6.389407732922906e-05,
+          "position": 20,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.004205668810755014
+        },
+        {
+          "js_nats_topk": 0.0017873663185947238,
+          "position": 21,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.3966767191886902
+        },
+        {
+          "js_nats_topk": 1.1403024897002566e-05,
+          "position": 22,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0022776394616812468
+        },
+        {
+          "js_nats_topk": 4.265272231743429e-05,
+          "position": 23,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.006311602890491486
+        },
+        {
+          "js_nats_topk": 0.016726750591634747,
+          "position": 24,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.20105792582035065
+        },
+        {
+          "js_nats_topk": 0.009293271000462807,
+          "position": 25,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.6448423862457275
+        },
+        {
+          "js_nats_topk": 0.00023601045394898746,
+          "position": 26,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.006150129716843367
+        },
+        {
+          "js_nats_topk": 6.833383311354681e-06,
+          "position": 27,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -6.878139538457617e-05
+        },
+        {
+          "js_nats_topk": 0.0012671955573319387,
+          "position": 28,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0460435152053833
+        },
+        {
+          "js_nats_topk": 0.025927276015950684,
+          "position": 29,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.15507321059703827
+        },
+        {
+          "js_nats_topk": 0.0004198492073680028,
+          "position": 30,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.18338645994663239
+        },
+        {
+          "js_nats_topk": 0.004456830183057564,
+          "position": 31,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.5972163677215576
+        },
+        {
+          "js_nats_topk": 0.010747960685269026,
+          "position": 32,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.2086334377527237
+        },
+        {
+          "js_nats_topk": 0.0023045561940154874,
+          "position": 33,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.5285812020301819
+        },
+        {
+          "js_nats_topk": 2.5437178118116174e-07,
+          "position": 34,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -1.9907753085135482e-05
+        },
+        {
+          "js_nats_topk": 0.02567486974230813,
+          "position": 35,
+          "same_sampled_token": false,
+          "same_top1": false,
+          "teacher_token_student_logprob": -1.3205018043518066
+        }
+      ],
+      "repeat": 1,
+      "student_acceptance_ratio": 0.391304347826087,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.4642857142857143,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "coding_reasoning",
+      "common_prefix_positions": 3,
+      "compared_positions": 4,
+      "exact_output_match": false,
+      "id": "debug_race",
+      "mean_js_nats_topk": 0.024836103407941228,
+      "positions": [
+        {
+          "js_nats_topk": 0.05006707921868585,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.6273304224014282
+        },
+        {
+          "js_nats_topk": 0.021229590522105213,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": false,
+          "teacher_token_student_logprob": -1.198533058166504
+        },
+        {
+          "js_nats_topk": 3.628012682641381e-06,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0004172646440565586
+        },
+        {
+          "js_nats_topk": 0.028044115878291212,
+          "position": 3,
+          "same_sampled_token": false,
+          "same_top1": false,
+          "teacher_token_student_logprob": -0.9779384732246399
+        }
+      ],
+      "repeat": 0,
+      "student_acceptance_ratio": 0.1694915254237288,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.18078381795195955,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "coding_reasoning",
+      "common_prefix_positions": 3,
+      "compared_positions": 4,
+      "exact_output_match": false,
+      "id": "debug_race",
+      "mean_js_nats_topk": 0.04074607951006805,
+      "positions": [
+        {
+          "js_nats_topk": 0.03701807272765604,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.7003923058509827
+        },
+        {
+          "js_nats_topk": 0.042488627714474494,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": false,
+          "teacher_token_student_logprob": -1.2189767360687256
+        },
+        {
+          "js_nats_topk": 1.3868543941960867e-05,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.00046885941992513835
+        },
+        {
+          "js_nats_topk": 0.0834637490541997,
+          "position": 3,
+          "same_sampled_token": false,
+          "same_top1": false,
+          "teacher_token_student_logprob": -1.181387186050415
+        }
+      ],
+      "repeat": 1,
+      "student_acceptance_ratio": 0.14857142857142858,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.19397116644823068,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "instruction",
+      "common_prefix_positions": 4,
+      "compared_positions": 4,
+      "exact_output_match": true,
+      "id": "exact_orchid",
+      "mean_js_nats_topk": 4.2292681263904936e-05,
+      "positions": [
+        {
+          "js_nats_topk": 0.00015518816123129227,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.001438060076907277
+        },
+        {
+          "js_nats_topk": 9.072360135423519e-07,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -2.5987286790041253e-05
+        },
+        {
+          "js_nats_topk": 2.330190501573441e-06,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -3.4689302992774174e-05
+        },
+        {
+          "js_nats_topk": 1.0745137309211682e-05,
+          "position": 3,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -7.712543447269127e-05
+        }
+      ],
+      "repeat": 0,
+      "student_acceptance_ratio": 0.42857142857142855,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.42857142857142855,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "instruction",
+      "common_prefix_positions": 4,
+      "compared_positions": 4,
+      "exact_output_match": true,
+      "id": "exact_orchid",
+      "mean_js_nats_topk": 6.125222526163663e-05,
+      "positions": [
+        {
+          "js_nats_topk": 0.00023098242721987283,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0011528043542057276
+        },
+        {
+          "js_nats_topk": 8.245538327115271e-07,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -1.8954096958623268e-05
+        },
+        {
+          "js_nats_topk": 2.240969978879453e-06,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -2.1457441107486375e-05
+        },
+        {
+          "js_nats_topk": 1.0960950015082721e-05,
+          "position": 3,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -7.283422019099817e-05
+        }
+      ],
+      "repeat": 1,
+      "student_acceptance_ratio": 0.42857142857142855,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.42857142857142855,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "language_stability",
+      "common_prefix_positions": 3,
+      "compared_positions": 4,
+      "exact_output_match": false,
+      "id": "language_lock",
+      "mean_js_nats_topk": 0.04937871834940323,
+      "positions": [
+        {
+          "js_nats_topk": 0.034229147364536694,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.8420767784118652
+        },
+        {
+          "js_nats_topk": 0.0021377337389266735,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.235220804810524
+        },
+        {
+          "js_nats_topk": 0.03002141202306099,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -1.1761800050735474
+        },
+        {
+          "js_nats_topk": 0.13112658027108856,
+          "position": 3,
+          "same_sampled_token": false,
+          "same_top1": false,
+          "teacher_token_student_logprob": -2.2493226528167725
+        }
+      ],
+      "repeat": 0,
+      "student_acceptance_ratio": 0.1896551724137931,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.16829745596868884,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "language_stability",
+      "common_prefix_positions": 3,
+      "compared_positions": 4,
+      "exact_output_match": false,
+      "id": "language_lock",
+      "mean_js_nats_topk": 0.04603605825370846,
+      "positions": [
+        {
+          "js_nats_topk": 0.04385412962519221,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.8747039437294006
+        },
+        {
+          "js_nats_topk": 0.001482658734184099,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.2266770601272583
+        },
+        {
+          "js_nats_topk": 0.04755753644722653,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -1.269603967666626
+        },
+        {
+          "js_nats_topk": 0.09124990820823102,
+          "position": 3,
+          "same_sampled_token": false,
+          "same_top1": false,
+          "teacher_token_student_logprob": -1.690199613571167
+        }
+      ],
+      "repeat": 1,
+      "student_acceptance_ratio": 0.17195767195767195,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.19616204690831557,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "long_context",
+      "common_prefix_positions": 4,
+      "compared_positions": 4,
+      "exact_output_match": true,
+      "id": "long_retrieval",
+      "mean_js_nats_topk": 0.0002620113023676649,
+      "positions": [
+        {
+          "js_nats_topk": 0.000969708506253495,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.008692758157849312
+        },
+        {
+          "js_nats_topk": 6.672311954753577e-06,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -4.827859811484814e-05
+        },
+        {
+          "js_nats_topk": 5.421193522563226e-05,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.0001938155182870105
+        },
+        {
+          "js_nats_topk": 1.745245603677886e-05,
+          "position": 3,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -9.97731985989958e-05
+        }
+      ],
+      "repeat": 0,
+      "student_acceptance_ratio": 0.14285714285714285,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.14285714285714285,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "long_context",
+      "common_prefix_positions": 4,
+      "compared_positions": 4,
+      "exact_output_match": true,
+      "id": "long_retrieval",
+      "mean_js_nats_topk": 0.0004017994252594726,
+      "positions": [
+        {
+          "js_nats_topk": 0.0015391065873661932,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.009908538311719894
+        },
+        {
+          "js_nats_topk": 9.704964894426319e-06,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -5.6980417866725475e-05
+        },
+        {
+          "js_nats_topk": 5.387405146040437e-05,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.00018785618885885924
+        },
+        {
+          "js_nats_topk": 4.512097316866594e-06,
+          "position": 3,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.00013863079948350787
+        }
+      ],
+      "repeat": 1,
+      "student_acceptance_ratio": 0.14285714285714285,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.14285714285714285,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "multilingual",
+      "common_prefix_positions": 7,
+      "compared_positions": 8,
+      "exact_output_match": false,
+      "id": "multilingual_zh",
+      "mean_js_nats_topk": 0.04252963641919419,
+      "positions": [
+        {
+          "js_nats_topk": 0.01241495003583459,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.38150522112846375
+        },
+        {
+          "js_nats_topk": 1.2989406769955498e-05,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.00022420754248742014
+        },
+        {
+          "js_nats_topk": 0.0005279947357928861,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.022397417575120926
+        },
+        {
+          "js_nats_topk": 0.015253140260883646,
+          "position": 3,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.050926677882671356
+        },
+        {
+          "js_nats_topk": 0.19931223619726063,
+          "position": 4,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.3406367003917694
+        },
+        {
+          "js_nats_topk": 0.013870988864876324,
+          "position": 5,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.09067273885011673
+        },
+        {
+          "js_nats_topk": 0.028886617786214513,
+          "position": 6,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.14780648052692413
+        },
+        {
+          "js_nats_topk": 0.06995817406592095,
+          "position": 7,
+          "same_sampled_token": false,
+          "same_top1": false,
+          "teacher_token_student_logprob": -2.3419623374938965
+        }
+      ],
+      "repeat": 0,
+      "student_acceptance_ratio": 0.14746543778801843,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.11180124223602485,
+      "teacher_quality_pass": true
+    },
+    {
+      "category": "multilingual",
+      "common_prefix_positions": 7,
+      "compared_positions": 8,
+      "exact_output_match": false,
+      "id": "multilingual_zh",
+      "mean_js_nats_topk": 0.04002659394678697,
+      "positions": [
+        {
+          "js_nats_topk": 0.008698555862348734,
+          "position": 0,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.4170103669166565
+        },
+        {
+          "js_nats_topk": 1.1282946522147225e-05,
+          "position": 1,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.00023016665363684297
+        },
+        {
+          "js_nats_topk": 0.0004091544829546282,
+          "position": 2,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.01983264461159706
+        },
+        {
+          "js_nats_topk": 0.011815365187255705,
+          "position": 3,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.05076182633638382
+        },
+        {
+          "js_nats_topk": 0.2038455775805444,
+          "position": 4,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.428916871547699
+        },
+        {
+          "js_nats_topk": 0.014634152929105158,
+          "position": 5,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.09489461779594421
+        },
+        {
+          "js_nats_topk": 0.028110019285228577,
+          "position": 6,
+          "same_sampled_token": true,
+          "same_top1": true,
+          "teacher_token_student_logprob": -0.08973400294780731
+        },
+        {
+          "js_nats_topk": 0.0526886433003364,
+          "position": 7,
+          "same_sampled_token": false,
+          "same_top1": false,
+          "teacher_token_student_logprob": -2.1962826251983643
+        }
+      ],
+      "repeat": 1,
+      "student_acceptance_ratio": 0.10064935064935066,
+      "student_quality_pass": true,
+      "teacher_acceptance_ratio": 0.10317460317460317,
+      "teacher_quality_pass": true
+    }
+  ],
+  "corpus_sha256": "a85b92bffff00921fa82c02d7ab9a483fed47eeaf66aad250cf087065ead2435",
+  "schema": 1,
+  "student": "optimized-nvfp4-scales-v1",
+  "summary": {
+    "exact_output_match_rate": 0.375,
+    "mean_js_nats_topk_common_prefix": 0.01253839886026473,
+    "pairs": 16,
+    "student_acceptance_ratio": 0.2484590584143799,
+    "student_quality_pass_rate": 1.0,
+    "teacher_acceptance_ratio": 0.2690724284806402,
+    "teacher_quality_pass_rate": 1.0,
+    "top1_agreement_rate_common_prefix": 0.9308176100628931
+  },
+  "teacher": "redhat-nativefp4-baseline"
+}

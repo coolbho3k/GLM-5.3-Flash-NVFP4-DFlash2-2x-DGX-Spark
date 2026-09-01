@@ -1,0 +1,80 @@
+{
+  "base_root": "/base",
+  "build_reports": {
+    "lower_boundary_fraction_max": 0.0,
+    "report_rows": 36288,
+    "unique_matrices": 36288,
+    "upper_boundary_fraction_max": 9.5367431640625e-05
+  },
+  "candidate_root": "/candidate",
+  "expected_matrices": 36288,
+  "expected_replacement_tensors": 72576,
+  "reference_replacements": {
+    "reference_tensors": 144,
+    "status": "exact_match"
+  },
+  "schema": 1,
+  "status": "PASS",
+  "tensor_contract": {
+    "model-00001-of-00010.safetensors": {
+      "bytes": 20002894272,
+      "changed_content_samples": 6,
+      "tensors": 12926,
+      "unchanged_content_samples": 3
+    },
+    "model-00002-of-00010.safetensors": {
+      "bytes": 20002803476,
+      "changed_content_samples": 6,
+      "tensors": 15738,
+      "unchanged_content_samples": 3
+    },
+    "model-00003-of-00010.safetensors": {
+      "bytes": 20000726256,
+      "changed_content_samples": 6,
+      "tensors": 15967,
+      "unchanged_content_samples": 3
+    },
+    "model-00004-of-00010.safetensors": {
+      "bytes": 20000334356,
+      "changed_content_samples": 6,
+      "tensors": 15715,
+      "unchanged_content_samples": 3
+    },
+    "model-00005-of-00010.safetensors": {
+      "bytes": 20000724512,
+      "changed_content_samples": 6,
+      "tensors": 15967,
+      "unchanged_content_samples": 3
+    },
+    "model-00006-of-00010.safetensors": {
+      "bytes": 20000331556,
+      "changed_content_samples": 6,
+      "tensors": 15715,
+      "unchanged_content_samples": 3
+    },
+    "model-00007-of-00010.safetensors": {
+      "bytes": 20000725168,
+      "changed_content_samples": 6,
+      "tensors": 15967,
+      "unchanged_content_samples": 3
+    },
+    "model-00008-of-00010.safetensors": {
+      "bytes": 20000332348,
+      "changed_content_samples": 6,
+      "tensors": 15715,
+      "unchanged_content_samples": 3
+    },
+    "model-00009-of-00010.safetensors": {
+      "bytes": 20000722232,
+      "changed_content_samples": 6,
+      "tensors": 15967,
+      "unchanged_content_samples": 3
+    },
+    "model-00010-of-00010.safetensors": {
+      "bytes": 10215657876,
+      "changed_content_samples": 6,
+      "tensors": 7068,
+      "unchanged_content_samples": 3
+    }
+  }
+}

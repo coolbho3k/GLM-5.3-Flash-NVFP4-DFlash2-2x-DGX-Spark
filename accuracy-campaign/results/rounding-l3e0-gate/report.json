@@ -1,0 +1,83 @@
+{
+  "elapsed_seconds": 1.110806941986084,
+  "experts": [
+    0
+  ],
+  "layers": [
+    3
+  ],
+  "method": "group16_e2m1_mse_scale_search",
+  "output_tokens": 32,
+  "projections": [
+    "gate_proj"
+  ],
+  "replacement_tensors": [
+    "model.language_model.layers.3.mlp.experts.0.gate_proj.weight_packed",
+    "model.language_model.layers.3.mlp.experts.0.gate_proj.weight_scale"
+  ],
+  "scale_radius_above": 8,
+  "scale_radius_below": 16,
+  "schema": 1,
+  "seed": 20260901,
+  "source_root": "/source",
+  "summary": {
+    "baseline_output_relative_rmse_mean": 0.09002385288476944,
+    "baseline_weight_relative_rmse_mean": 0.09006297588348389,
+    "candidate_output_relative_rmse_mean": 0.07662834227085114,
+    "candidate_weight_relative_rmse_mean": 0.0770559310913086,
+    "output_rmse_improvement_mean": 0.14879957016574885,
+    "relative_rmse_improvement_mean": 0.1444216634480604,
+    "tensors": 1
+  },
+  "target_root": "/target",
+  "tensors": [
+    {
+      "baseline_output_error": {
+        "cosine": 0.9959417581558228,
+        "max_abs": 0.5234375,
+        "mean_abs": 0.09188223630189896,
+        "relative_rmse": 0.09002385288476944,
+        "tokens": 32
+      },
+      "baseline_weight_error": {
+        "cosine": 0.9959403276443481,
+        "max_abs": 0.016294650733470917,
+        "mean_abs": 0.0013420559698715806,
+        "relative_rmse": 0.09006297588348389
+      },
+      "candidate_output_error": {
+        "cosine": 0.9970604181289673,
+        "max_abs": 0.455078125,
+        "mean_abs": 0.07818169891834259,
+        "relative_rmse": 0.07662834227085114,
+        "tokens": 32
+      },
+      "candidate_weight_error": {
+        "cosine": 0.9970279932022095,
+        "max_abs": 0.011863425374031067,
+        "mean_abs": 0.0011975551024079323,
+        "relative_rmse": 0.0770559310913086
+      },
+      "expert": 0,
+      "global_divisor": 17280.0,
+      "layer": 3,
+      "output_rmse_improvement": 0.14879957016574885,
+      "projection": "gate_proj",
+      "relative_rmse_improvement": 0.1444216634480604,
+      "search": {
+        "candidate_count": 25,
+        "clipped_value_fraction": 0.06693625450134277,
+        "scale_code_changed_fraction": 0.6440258026123047,
+        "scale_code_delta_max": 6,
+        "scale_code_delta_mean": 1.72186279296875,
+        "scale_code_delta_min": -2
+      },
+      "shape": [
+        2048,
+        4096
+      ],
+      "source_shard": "model-00031-of-00062.safetensors",
+      "target_shard": "model-00001-of-00010.safetensors"
+    }
+  ]
+}

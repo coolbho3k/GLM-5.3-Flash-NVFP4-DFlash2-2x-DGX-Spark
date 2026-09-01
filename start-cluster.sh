@@ -7,6 +7,7 @@ WORKER_HOST="${WORKER_HOST:-dgx1.lan}"
 REMOTE_DIR="${REMOTE_DIR:-$HOME/.cache/glm53-tp2-deploy}"
 CONTAINER_NAME="${CONTAINER_NAME:-vllm_glm53}"
 IMAGE="${IMAGE:-glm53-v11:kvopt-final}"
+MODEL_HOST_PATH="${MODEL_HOST_PATH:-$HOME/.cache/huggingface/glm53-redhat-nvfp4-9eaeadaf026871a90640e32c0604f6ab0b2d641d}"
 API_PORT="${API_PORT:-8000}"
 HEAD_IP="${HEAD_IP:-10.100.32.1}"
 WORKER_IP="${WORKER_IP:-10.100.32.2}"
@@ -90,10 +91,10 @@ ssh "${ssh_opts[@]}" "$WORKER_HOST" \
 echo "Starting worker rank on $WORKER_HOST..."
 trap cleanup_failed_start ERR INT TERM
 ssh "${ssh_opts[@]}" "$WORKER_HOST" \
-  "cd $(printf '%q' "$REMOTE_DIR") && CONTAINER_NAME=$(printf '%q' "$CONTAINER_NAME") IMAGE=$(printf '%q' "$IMAGE") API_PORT=$(printf '%q' "$API_PORT") HEAD_IP=$(printf '%q' "$HEAD_IP") WORKER_IP=$(printf '%q' "$WORKER_IP") DCP_SIZE=$(printf '%q' "$DCP_SIZE") USE_FP4_INDEXER_CACHE=$(printf '%q' "$USE_FP4_INDEXER_CACHE") GPU_MEMORY_UTILIZATION=$(printf '%q' "$GPU_MEMORY_UTILIZATION") MAX_MODEL_LEN=$(printf '%q' "$MAX_MODEL_LEN") CUDA_LAUNCH_BLOCKING=$(printf '%q' "$CUDA_LAUNCH_BLOCKING") ./launch-glm53-vllm-tp2-dflash2.sh 1"
+  "cd $(printf '%q' "$REMOTE_DIR") && CONTAINER_NAME=$(printf '%q' "$CONTAINER_NAME") IMAGE=$(printf '%q' "$IMAGE") MODEL_HOST_PATH=$(printf '%q' "$MODEL_HOST_PATH") API_PORT=$(printf '%q' "$API_PORT") HEAD_IP=$(printf '%q' "$HEAD_IP") WORKER_IP=$(printf '%q' "$WORKER_IP") DCP_SIZE=$(printf '%q' "$DCP_SIZE") USE_FP4_INDEXER_CACHE=$(printf '%q' "$USE_FP4_INDEXER_CACHE") GPU_MEMORY_UTILIZATION=$(printf '%q' "$GPU_MEMORY_UTILIZATION") MAX_MODEL_LEN=$(printf '%q' "$MAX_MODEL_LEN") CUDA_LAUNCH_BLOCKING=$(printf '%q' "$CUDA_LAUNCH_BLOCKING") ./launch-glm53-vllm-tp2-dflash2.sh 1"
 sleep 25
 echo "Starting head rank on $(hostname)..."
-CONTAINER_NAME="$CONTAINER_NAME" IMAGE="$IMAGE" API_PORT="$API_PORT" \
+CONTAINER_NAME="$CONTAINER_NAME" IMAGE="$IMAGE" MODEL_HOST_PATH="$MODEL_HOST_PATH" API_PORT="$API_PORT" \
   HEAD_IP="$HEAD_IP" WORKER_IP="$WORKER_IP" \
   DCP_SIZE="$DCP_SIZE" USE_FP4_INDEXER_CACHE="$USE_FP4_INDEXER_CACHE" \
   GPU_MEMORY_UTILIZATION="$GPU_MEMORY_UTILIZATION" MAX_MODEL_LEN="$MAX_MODEL_LEN" \
