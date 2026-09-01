@@ -25,6 +25,7 @@ from vllm.models.glm5next.nvidia.ops.kpool_compress import (
 from b12x.attention.dsa_indexer.sm121_mxfp4 import (
     kpool_compress_and_write_cache_mxfp4,
     kpool_decode_update_and_maybe_write_cache_mxfp4,
+    paged_mqa_logits_mxfp4,
 )
 from vllm.platforms import current_platform
 from vllm.utils.deep_gemm import (
@@ -833,16 +834,31 @@ def sparse_attn_indexer_kpool(
             if use_fp4_cache
             else padded_q_quant_decode_tokens
         )
-        logits = fp8_fp4_paged_mqa_logits(
-            (padded_q_quant_cast, padded_q_scale),
-            kv_cache,
-            padded_weights[:num_padded_tokens],
-            seq_lens,
-            decode_metadata.block_table,
-            decode_metadata.schedule_metadata,
-            max_model_len=max_model_len,
-            clean_logits=False,
-        )
+        if use_fp4_cache and current_platform.is_device_capability_family(120):
+            # DFLASH-SM121-NATIVE-SPEC: the vendored DeepGEMM SM12x paged-MQA
+            # kernel only accepts next_n in (1, 2). vLLM consequently flattens
+            # wider speculative verifies into independent rows, which loses the
+            # native per-request causal layout. Our Triton MXFP4 reader supports
+            # [B, next_n, H, 64] directly for arbitrary next_n, including K=7.
+            logits = paged_mqa_logits_mxfp4(
+                (padded_q_quant_cast, padded_q_scale),
+                kv_cache,
+                padded_weights[:num_padded_tokens],
+                seq_lens,
+                decode_metadata.block_table,
+                max_model_len=max_model_len,
+            )
+        else:
+            logits = fp8_fp4_paged_mqa_logits(
+                (padded_q_quant_cast, padded_q_scale),
+                kv_cache,
+                padded_weights[:num_padded_tokens],
+                seq_lens,
+                decode_metadata.block_table,
+                decode_metadata.schedule_metadata,
+                max_model_len=max_model_len,
+                clean_logits=False,
+            )
         num_rows = logits.shape[0]
         # kpool: logits are pool-granular -> select topk_tokens//kpool pools,
         # then expand each pool back to its kpool tokens.

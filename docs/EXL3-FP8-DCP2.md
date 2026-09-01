@@ -9,7 +9,8 @@ post-KV-campaign serving stack in this repository:
 - TP2 plus target-sequence DCP2;
 - exact-fit hybrid allocation;
 - replicated KDA and DFlash2 block-table fixes; and
-- DFlash2 speculative decoding at K=7.
+- DFlash2 speculative decoding at K=7 with graph-safe accepted-prefix KDA
+  replay.
 
 It lives on branch **feature/exl3-fp8-dcp2**. The original
 **feature/reproducible-long-context-serving** profile and launcher are not
@@ -95,14 +96,16 @@ campaign:
 - attention backend: FLASHINFER_MLA_SPARSE_SM120
 - FP4 indexer cache enabled
 - DFlash2 K=7 with draft KV auto
+- compact KDA accepted-prefix replay enabled
 - CUDA graphs for batch shapes 1, 2, 4, 8, 16, 24, and 32
 
 Do not add **--moe-backend marlin**; that belongs to the NVFP4 target and is
 incorrect for EXL3 weights.
 
-Set `ENFORCE_EAGER=1` on the cluster starter for the correctness-first
-rollback. Eager mode avoids graph memory and raises measured KV capacity from
-about 2.71M to 2.87M logical tokens, but lowers the structured C1 ceiling.
+Set `COMPACT_SPEC_REPLAY=0` on the cluster starter for the correctness-first
+native-snapshot rollback. This allocates all seven recurrent rollback states
+and therefore costs KV capacity. `ENFORCE_EAGER=1` remains available for
+CUDA-graph diagnostics.
 
 ## Validated results on spark-0 + dgx1.lan
 
@@ -112,28 +115,27 @@ observations rather than a fixed ABI.
 
 | measurement | result |
 |---|---:|
-| logical KV capacity | **2,709,239 tokens** |
-| full-1M maximum concurrency | **2.58x** |
-| graph memory | 0.99 GiB/GPU |
+| logical KV capacity | **2,844,701 tokens** |
+| full-1M maximum concurrency | **2.71x** |
+| graph memory | 0.98 GiB on the limiting GPU |
 | eager logical KV capacity | 2,869,786 tokens |
-| structured C1, 400 output tokens | **60.8 tok/s**, 0.913 acceptance |
-| same structured test, eager | 55.6 tok/s, 0.962 acceptance |
-| unique prose/code C1 | **22.3-22.8 tok/s**, 0.271-0.273 acceptance |
-| unique prose/code C4 | **46.9 aggregate tok/s**, 12.4/stream, 0.291 acceptance |
+| fixed K=7 bare-prompt regression | 46 coherent tokens, stop |
+| fixed K=7 sustained generation | 512 coherent tokens |
+| fixed K=7 concurrent regression | 3/3 coherent, no CUDA error |
+| observed concurrent throughput | 22.8 aggregate tok/s |
 
-CUDA graphs improved the structured decode ceiling by 9.3%. They also reduced
-the 27,049-token retrieval time from 73.1 seconds on the initial eager profile
-to 32.1 seconds. Ordinary prose remains acceptance-bound and is slower than
-this repository's committed native-FP4 profile (about 33.4 tok/s on its C1
-protocol), so EXL3 is an experimental weight-serving alternative rather than
-the new unconditional production default.
+Ordinary prose remains acceptance-bound, so EXL3 is an experimental
+weight-serving alternative rather than the new unconditional production
+default. The correctness figures above are from the graph-safe replay build;
+older decode numbers from the broken replay lifecycle have intentionally been
+removed.
 
 End-to-end correctness gates passed for exact text, deterministic arithmetic,
 tool parsing, vision, long-context retrieval, and observable prefix reuse:
 
 | retrieval prompt | exact result | first-request time | follow-up prefix hit |
 |---:|---|---:|---:|
-| 27,049 tokens | ORCHID | 32.1 s | 10,240 tokens |
+| 27,042 tokens | ORCHID | 33.0 s | 10,240 tokens |
 | 270,049 tokens | ORCHID | 310.5 s | 256,000 tokens |
 | 1,020,049 tokens | ORCHID | 72.4 s with retained cache | 1,003,520 tokens |
 
@@ -144,15 +146,22 @@ receipt, not a cold-prefill claim. Use `--request-timeout 1800` for a cold 1M
 validation run. Cold million-token prefill is the largest remaining serving
 performance weakness.
 
-Two composition bugs were found and fixed during cluster validation:
+Three composition bugs were found and fixed during cluster validation:
 
 - DFlash's FlashAttention backend inherited target DCP2 coordinates even
   though its TP-local sliding-window cache is sequence-replicated. Isolating
   it to DCP1 raised deterministic proposal acceptance from 0% to 96% and
   decode from about 7.4 to 55.6 tok/s before graphs.
-- CUDA-graph warmup pads sampler outputs and `input_batch.num_reqs` to the
-  capture size. Compact KDA replay now slices by the staged sequence mask's
-  real length before applying that mask.
+- CUDA graph replay executes captured tensor copies but does not rerun Python
+  assignments. The original compact KDA implementation cleared a Python
+  `pending` flag after its first commit and never re-armed it, so recurrent
+  state stopped advancing and output eventually repeated. Replay metadata now
+  uses fixed persistent buffers updated by every graph execution, and the
+  runner commits on every current step that contains draft tokens.
+- The `COMPACT_SPEC_REPLAY=0` switch previously disabled replay without
+  restoring the seven native rollback-state columns. It now changes both the
+  recurrence behavior and the authoritative Mamba cache specification, making
+  it a genuine safe fallback.
 
 ## Verification gates
 
@@ -168,7 +177,8 @@ The test checks byte-exact E4M3 values, FP32 scales, paged slot addressing,
 and negative-slot suppression against a PyTorch reference.
 
 The default uses the validated CUDA-graph shapes with 2K prefill chunks.
-`ENFORCE_EAGER=1 ./start-exl3-fp8-dcp2-cluster.sh` is the fail-safe rollback.
+`COMPACT_SPEC_REPLAY=0 ./start-exl3-fp8-dcp2-cluster.sh` selects the native
+rollback-state fallback.
 The exact long-context command used for the final boundary gate was:
 
     python3 probes/validate_kv_candidate.py \

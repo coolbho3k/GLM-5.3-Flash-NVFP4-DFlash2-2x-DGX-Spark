@@ -23,7 +23,16 @@ MAX_MODEL_LEN="${MAX_MODEL_LEN:-1048576}"
 MAX_NUM_SEQS="${MAX_NUM_SEQS:-4}"
 MAX_NUM_BATCHED_TOKENS="${MAX_NUM_BATCHED_TOKENS:-2048}"
 ENFORCE_EAGER="${ENFORCE_EAGER:-0}"
+ENABLE_DFLASH="${ENABLE_DFLASH:-1}"
+DFLASH_TOKENS="${DFLASH_TOKENS:-7}"
+DFLASH_DRAFT_TP="${DFLASH_DRAFT_TP:-1}"
+COMPACT_SPEC_REPLAY="${COMPACT_SPEC_REPLAY:-1}"
 ssh_opts=(-o BatchMode=yes -o ConnectTimeout=10)
+
+[[ "$ENABLE_DFLASH" == "0" || "$ENABLE_DFLASH" == "1" ]] || {
+  echo "ENABLE_DFLASH must be 0 or 1" >&2
+  exit 2
+}
 
 cleanup_failed_start() {
   status=$?
@@ -43,8 +52,14 @@ docker image inspect "$IMAGE" >/dev/null 2>&1 || {
   echo "Head is missing $IMAGE; run ./build-exl3-fp8-dcp2-image.sh" >&2
   exit 1
 }
-if ! ssh "${ssh_opts[@]}" "$WORKER_HOST" "docker image inspect $(printf '%q' "$IMAGE") >/dev/null 2>&1"; then
-  echo "Worker is missing $IMAGE; streaming the local image to $WORKER_HOST"
+local_image_id="$(docker image inspect "$IMAGE" --format '{{.Id}}')"
+remote_image_id="$(
+  ssh "${ssh_opts[@]}" "$WORKER_HOST" \
+    "docker image inspect $(printf '%q' "$IMAGE") --format '{{.Id}}' 2>/dev/null" \
+    || true
+)"
+if [[ "$remote_image_id" != "$local_image_id" ]]; then
+  echo "Worker image is missing or stale; streaming $local_image_id to $WORKER_HOST"
   docker save "$IMAGE" | ssh "${ssh_opts[@]}" "$WORKER_HOST" docker load
 fi
 
@@ -88,7 +103,7 @@ ssh "${ssh_opts[@]}" "$WORKER_HOST" "docker rm -f $(printf '%q' "$CONTAINER_NAME
 trap cleanup_failed_start ERR INT TERM
 echo "Starting EXL3 worker rank on $WORKER_HOST"
 ssh "${ssh_opts[@]}" "$WORKER_HOST" \
-  "cd $(printf '%q' "$REMOTE_DIR") && CONTAINER_NAME=$(printf '%q' "$CONTAINER_NAME") IMAGE=$(printf '%q' "$IMAGE") API_PORT=$(printf '%q' "$API_PORT") HEAD_IP=$(printf '%q' "$HEAD_IP") WORKER_IP=$(printf '%q' "$WORKER_IP") MODEL_HOST_PATH=$(printf '%q' "$WORKER_MODEL_HOST_PATH") DRAFT_HOST_PATH=$(printf '%q' "$WORKER_DRAFT_HOST_PATH") GPU_MEMORY_UTILIZATION=$(printf '%q' "$GPU_MEMORY_UTILIZATION") MAX_MODEL_LEN=$(printf '%q' "$MAX_MODEL_LEN") MAX_NUM_SEQS=$(printf '%q' "$MAX_NUM_SEQS") MAX_NUM_BATCHED_TOKENS=$(printf '%q' "$MAX_NUM_BATCHED_TOKENS") ENFORCE_EAGER=$(printf '%q' "$ENFORCE_EAGER") ./launch-glm53-exl3-fp8-dcp2.sh 1"
+  "cd $(printf '%q' "$REMOTE_DIR") && CONTAINER_NAME=$(printf '%q' "$CONTAINER_NAME") IMAGE=$(printf '%q' "$IMAGE") API_PORT=$(printf '%q' "$API_PORT") HEAD_IP=$(printf '%q' "$HEAD_IP") WORKER_IP=$(printf '%q' "$WORKER_IP") MODEL_HOST_PATH=$(printf '%q' "$WORKER_MODEL_HOST_PATH") DRAFT_HOST_PATH=$(printf '%q' "$WORKER_DRAFT_HOST_PATH") GPU_MEMORY_UTILIZATION=$(printf '%q' "$GPU_MEMORY_UTILIZATION") MAX_MODEL_LEN=$(printf '%q' "$MAX_MODEL_LEN") MAX_NUM_SEQS=$(printf '%q' "$MAX_NUM_SEQS") MAX_NUM_BATCHED_TOKENS=$(printf '%q' "$MAX_NUM_BATCHED_TOKENS") ENFORCE_EAGER=$(printf '%q' "$ENFORCE_EAGER") ENABLE_DFLASH=$(printf '%q' "$ENABLE_DFLASH") DFLASH_TOKENS=$(printf '%q' "$DFLASH_TOKENS") DFLASH_DRAFT_TP=$(printf '%q' "$DFLASH_DRAFT_TP") COMPACT_SPEC_REPLAY=$(printf '%q' "$COMPACT_SPEC_REPLAY") ./launch-glm53-exl3-fp8-dcp2.sh 1"
 sleep 25
 
 echo "Starting EXL3 head rank on $(hostname)"
@@ -97,7 +112,9 @@ CONTAINER_NAME="$CONTAINER_NAME" IMAGE="$IMAGE" API_PORT="$API_PORT" \
   MODEL_HOST_PATH="$MODEL_HOST_PATH" DRAFT_HOST_PATH="$DRAFT_HOST_PATH" \
   GPU_MEMORY_UTILIZATION="$GPU_MEMORY_UTILIZATION" MAX_MODEL_LEN="$MAX_MODEL_LEN" \
   MAX_NUM_SEQS="$MAX_NUM_SEQS" MAX_NUM_BATCHED_TOKENS="$MAX_NUM_BATCHED_TOKENS" \
-  ENFORCE_EAGER="$ENFORCE_EAGER" \
+  ENFORCE_EAGER="$ENFORCE_EAGER" ENABLE_DFLASH="$ENABLE_DFLASH" \
+  DFLASH_TOKENS="$DFLASH_TOKENS" DFLASH_DRAFT_TP="$DFLASH_DRAFT_TP" \
+  COMPACT_SPEC_REPLAY="$COMPACT_SPEC_REPLAY" \
   "$SCRIPT_DIR/launch-glm53-exl3-fp8-dcp2.sh" 0
 
 deadline=$((SECONDS + READY_TIMEOUT))

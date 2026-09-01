@@ -207,6 +207,33 @@ def main() -> None:
 
     run_case(results, "arithmetic", arithmetic_case)
 
+    def bare_prompt_coherence_case() -> dict[str, Any]:
+        response, elapsed = chat(
+            base_url,
+            [{"role": "user", "content": "test"}],
+            max_tokens=128,
+        )
+        answer = content(response).strip()
+        choice = response["choices"][0]
+        finish_reason = choice.get("finish_reason")
+        test_mentions = answer.lower().count("test")
+        if not answer:
+            raise AssertionError("empty response")
+        if finish_reason == "length":
+            raise AssertionError(f"bare prompt did not terminate: {answer!r}")
+        if test_mentions > 6:
+            raise AssertionError(
+                f"bare prompt repeated 'test' {test_mentions} times: {answer!r}"
+            )
+        return {
+            "answer": answer,
+            "finish_reason": finish_reason,
+            "test_mentions": test_mentions,
+            "request_seconds": round(elapsed, 3),
+        }
+
+    run_case(results, "bare_prompt_coherence", bare_prompt_coherence_case)
+
     def tool_case() -> dict[str, Any]:
         tools = [
             {

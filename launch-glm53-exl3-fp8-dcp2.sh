@@ -34,6 +34,9 @@ GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.87}"
 ATTENTION_BACKEND="${VLLM_ATTENTION_BACKEND:-FLASHINFER_MLA_SPARSE_SM120}"
 DCP_SIZE="${DCP_SIZE:-2}"
 ENABLE_DFLASH="${ENABLE_DFLASH:-1}"
+DFLASH_TOKENS="${DFLASH_TOKENS:-7}"
+DFLASH_DRAFT_TP="${DFLASH_DRAFT_TP:-1}"
+COMPACT_SPEC_REPLAY="${COMPACT_SPEC_REPLAY:-1}"
 ENFORCE_EAGER="${ENFORCE_EAGER:-0}"
 
 [[ "$DCP_SIZE" == "2" ]] || {
@@ -42,6 +45,18 @@ ENFORCE_EAGER="${ENFORCE_EAGER:-0}"
 }
 [[ "$ENFORCE_EAGER" == "0" || "$ENFORCE_EAGER" == "1" ]] || {
   echo "ENFORCE_EAGER must be 0 or 1" >&2
+  exit 2
+}
+[[ "$DFLASH_TOKENS" =~ ^[1-7]$ ]] || {
+  echo "DFLASH_TOKENS must be an integer from 1 through 7" >&2
+  exit 2
+}
+[[ "$DFLASH_DRAFT_TP" == "1" || "$DFLASH_DRAFT_TP" == "2" ]] || {
+  echo "DFLASH_DRAFT_TP must be 1 or 2" >&2
+  exit 2
+}
+[[ "$COMPACT_SPEC_REPLAY" == "0" || "$COMPACT_SPEC_REPLAY" == "1" ]] || {
+  echo "COMPACT_SPEC_REPLAY must be 0 or 1" >&2
   exit 2
 }
 case "$NODE_RANK" in
@@ -58,9 +73,14 @@ mkdir -p "$CACHE_ROOT/vllm" "$CACHE_ROOT/triton" "$CACHE_ROOT/tilelang"
 
 speculative_args=()
 if [[ "$ENABLE_DFLASH" == "1" ]]; then
+  speculative_config='{"method":"dflash","model":"/models/dflash2-draft","num_speculative_tokens":'
+  speculative_config+="$DFLASH_TOKENS"
+  speculative_config+=',"kv_cache_dtype":"auto","draft_sample_method":"probabilistic","rejection_sample_method":"standard","draft_tensor_parallel_size":'
+  speculative_config+="$DFLASH_DRAFT_TP"
+  speculative_config+='}'
   speculative_args+=(
     --speculative-config
-    '{"method":"dflash","model":"/models/dflash2-draft","num_speculative_tokens":7,"kv_cache_dtype":"auto","draft_sample_method":"probabilistic","rejection_sample_method":"standard","draft_tensor_parallel_size":1}'
+    "$speculative_config"
   )
 fi
 
@@ -85,6 +105,7 @@ docker run --gpus all -d \
   -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 \
   -e VLLM_ENGINE_READY_TIMEOUT_S=3600 \
   -e VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS=1800 \
+  -e VLLM_COMPACT_SPEC_REPLAY="$COMPACT_SPEC_REPLAY" \
   -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
   -e TORCH_CUDA_ARCH_LIST=12.1a -e FLASHINFER_CUDA_ARCH_LIST=12.1a \
   -e FLASHINFER_DISABLE_VERSION_CHECK=1 \

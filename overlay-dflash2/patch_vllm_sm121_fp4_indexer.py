@@ -174,3 +174,41 @@ replace(
         )
 ''',
 )
+
+replace(
+    "v1/attention/backends/mla/indexer.py",
+    '''        self.use_flattening = not current_platform.is_device_capability_family(
+            100
+        ) and next_n not in (1, 2)
+''',
+    '''        # DFLASH-SM121-NATIVE-SPEC: the custom MXFP4 paged reader accepts
+        # arbitrary next_n, unlike the generic DeepGEMM SM12x implementation.
+        sm121_native_fp4 = (
+            current_platform.is_device_capability_family(120)
+            and self.use_fp4_indexer_cache
+        )
+        self.use_flattening = not (
+            current_platform.is_device_capability_family(100)
+            or sm121_native_fp4
+        ) and next_n not in (1, 2)
+''',
+)
+
+replace(
+    "v1/attention/backends/mla/indexer.py",
+    '''            if current_platform.is_cuda() and has_deep_gemm():
+                self.scheduler_metadata_buffer[:] = get_paged_mqa_logits_metadata(
+''',
+    '''            if (
+                current_platform.is_cuda()
+                and has_deep_gemm()
+                and not (
+                    current_platform.is_device_capability_family(120)
+                    and self.use_fp4_indexer_cache
+                )
+            ):
+                # SM121 MXFP4 uses its Triton paged reader and does not consume
+                # DeepGEMM scheduler metadata (which is limited to next_n <= 2).
+                self.scheduler_metadata_buffer[:] = get_paged_mqa_logits_metadata(
+''',
+)
