@@ -965,7 +965,11 @@ replace_once(
         ]
         if pending_replays:
             sequence_mask = pending_replays[0][0].compact_replay_sequence_mask()
-            accepted = num_sampled[sequence_mask[: input_batch.num_reqs]].contiguous()
+            # CUDA graphs pad both input_batch.num_reqs and sampler output to
+            # the capture batch size. The staged replay mask retains the real
+            # scheduler batch length, so it is the authoritative slice bound.
+            replay_batch_size = sequence_mask.numel()
+            accepted = num_sampled[:replay_batch_size][sequence_mask].contiguous()
             for _, replay in pending_replays:
                 replay(accepted)
 

@@ -1,5 +1,8 @@
 # GLM-5.3-Flash NVFP4 + DFlash2 on 2x NVIDIA DGX Spark
 
+> Experimental EXL3 weight serving with the same compact long-context stack
+> is documented in [EXL3 + native FP8 KV + DCP2](docs/EXL3-FP8-DCP2.md).
+
 OpenAI-compatible vLLM serving of [zai-org/GLM-5.3-Flash](https://huggingface.co/zai-org/GLM-5.3-Flash)
 (320B total / 18B active MoE) across two DGX Spark (GB10, SM121) nodes at tensor-parallel 2,
 using the [RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4)

@@ -49,6 +49,7 @@ def chat(
     *,
     max_tokens: int = 64,
     tools: list[dict[str, Any]] | None = None,
+    timeout: float = 900,
 ) -> tuple[dict[str, Any], float]:
     payload: dict[str, Any] = {
         "model": "glm-5.3-flash",
@@ -63,7 +64,7 @@ def chat(
         payload["tool_choice"] = "auto"
     started = time.perf_counter()
     response = request_json(
-        "POST", f"{base_url}/v1/chat/completions", payload
+        "POST", f"{base_url}/v1/chat/completions", payload, timeout=timeout
     )
     return response, time.perf_counter() - started
 
@@ -157,6 +158,12 @@ def main() -> None:
     parser.add_argument(
         "--video-path",
         help="Optional MP4 path; when set, validate the model's video input path.",
+    )
+    parser.add_argument(
+        "--request-timeout",
+        type=float,
+        default=900,
+        help="HTTP timeout in seconds for each long-context request.",
     )
     args = parser.parse_args()
     base_url = args.url.rstrip("/")
@@ -323,6 +330,7 @@ def main() -> None:
                     },
                 ],
                 max_tokens=16,
+                timeout=args.request_timeout,
             )
             answer = content(response).strip()
             if answer != "ORCHID":
@@ -355,6 +363,7 @@ def main() -> None:
                     },
                 ],
                 max_tokens=16,
+                timeout=args.request_timeout,
             )
             after = metric(base_url, metric_name)
             answer = content(response).strip()
