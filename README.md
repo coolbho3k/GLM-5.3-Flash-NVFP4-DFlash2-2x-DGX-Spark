@@ -68,12 +68,9 @@ cd /home/emi/code/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark
 The command verifies that the promoted image and critical runtime files match
 on both nodes, copies the required launcher assets to `dgx1.lan`, starts the
 worker before the head, and waits for `/health`. Cold startup takes roughly
-10–15 minutes. The default is the validated 262,144-token configuration. Use
-the model-native million-token limit with:
-
-```bash
-MAX_MODEL_LEN=1048576 ./start-cluster.sh
-```
+10–15 minutes. The default is the optimized-scale checkpoint with the validated
+model-native 1,048,576-token limit. Override `MODEL_HOST_PATH` or `MAX_MODEL_LEN`
+only when selecting a different checkpoint or profile.
 
 At `gpu-memory-utilization=0.87`, the measured capacities are at least
 2,198,799 logical tokens at the 256K limit and 3,561,829 at the 1M limit. UMA

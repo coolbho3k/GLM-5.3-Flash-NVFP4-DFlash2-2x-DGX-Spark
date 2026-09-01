@@ -121,5 +121,4 @@ MAX_MODEL_LEN=1048576 \
 ```
 
 All other production defaults remain unchanged, including DCP2, DFlash2 K=7,
-and the native-FP4 KV/indexer implementation. Omit `MAX_MODEL_LEN` to use the
-launcher's 262,144-token default.
+and the native-FP4 KV/indexer implementation. Omit `MAX_MODEL_LEN` to use the validated 1,048,576-token default.
