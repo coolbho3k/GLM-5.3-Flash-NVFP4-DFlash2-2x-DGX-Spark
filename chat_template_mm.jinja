@@ -1,5 +1,16 @@
 [gMASK]<sop>
-{%- set effective_reasoning_effort = reasoning_effort if reasoning_effort is defined and reasoning_effort in ['low', 'high'] else 'max' -%}
+{%- set requested_reasoning_effort = reasoning_effort if reasoning_effort is defined else 'high' -%}
+{%- if requested_reasoning_effort == 'none' or (enable_thinking is defined and not enable_thinking) -%}
+    {%- set effective_reasoning_effort = none -%}
+{%- elif requested_reasoning_effort in ['minimal', 'low'] -%}
+    {%- set effective_reasoning_effort = 'low' -%}
+{%- elif requested_reasoning_effort in ['medium', 'high'] -%}
+    {%- set effective_reasoning_effort = 'high' -%}
+{%- elif requested_reasoning_effort in ['xhigh', 'max'] -%}
+    {%- set effective_reasoning_effort = 'max' -%}
+{%- else -%}
+    {%- set effective_reasoning_effort = 'high' -%}
+{%- endif -%}
 {%- if effective_reasoning_effort is not none -%}<|system|>Reasoning Effort: {{ effective_reasoning_effort | capitalize }}{%- endif -%}
 {%- if tools -%}
 {%- macro tool_to_json(tool) -%}
@@ -209,7 +220,7 @@ For each function call, output the function name and arguments within the follow
 {%- endif -%}
 {%- endfor -%}
 {%- if add_generation_prompt -%}
-    {%- if enable_thinking is defined and not enable_thinking -%}
+    {%- if effective_reasoning_effort is none -%}
     <|assistant|>{{- '<think></think>' -}}
     {%- else -%}
     <|assistant|>{{- '<think>' -}}

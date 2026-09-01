@@ -182,8 +182,34 @@ until curl -sf http://<head>:8000/health >/dev/null; do sleep 20; done
 ```bash
 curl http://<head>:8000/v1/chat/completions -H 'Content-Type: application/json' \
   -d '{"model":"glm-5.3-flash","messages":[{"role":"user","content":"2+2=?"}],
-       "max_tokens":40,"chat_template_kwargs":{"enable_thinking":false}}'
+       "max_tokens":80}'
 ```
+
+**Reasoning effort.** The server defaults to native `high`. GLM-5.3 has three trained
+effort controls, so the seven common OpenAI API values use compatibility aliases:
+
+| API value | Native GLM-5.3 mode |
+|---|---|
+| `none` | local thinking-off template |
+| `minimal`, `low` | `low` |
+| `medium`, `high` | `high` |
+| `xhigh`, `max` | `max` |
+
+For Chat Completions, pass a top-level field:
+
+```json
+{"model":"glm-5.3-flash","messages":[{"role":"user","content":"2+2=?"}],"reasoning_effort":"medium"}
+```
+
+For the Responses API, use the standard reasoning object:
+
+```json
+{"model":"glm-5.3-flash","input":"2+2=?","reasoning":{"effort":"medium"}}
+```
+
+`chat_template_kwargs: {"enable_thinking": false}` remains supported as a legacy
+alias for `reasoning_effort: "none"`. Validate every mapping and both response parsers with
+`python3 probes/validate_reasoning_levels.py`.
 
 Full serve args, NCCL fabric env, and the rationale for every flag:
 [docs/DEPLOY-REPORT.md](docs/DEPLOY-REPORT.md).
@@ -415,8 +441,9 @@ Blackwell part. Upstream-ready issue drafts with receipts:
 - **Swap on with `vm.swappiness=0`** — not off. Fully disabled, the worker dies during MoE
   marlin repack with no valve; at default swappiness the kernel pages vLLM out mid-load and
   triggers a UVM driver livelock that freezes the shard loader.
-- `max_tokens` includes reasoning tokens when thinking is on; disable per-request with
-  `chat_template_kwargs: {"enable_thinking": false}`.
+- `max_tokens` includes reasoning tokens when thinking is on; use top-level
+  `reasoning_effort: "none"` to disable it per request (the legacy `chat_template_kwargs`
+  switch remains supported).
 
 ---
 

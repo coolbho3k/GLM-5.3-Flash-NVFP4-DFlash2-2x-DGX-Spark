@@ -60,7 +60,7 @@ docker run --gpus all -d \
     --max-num-seqs 6 --block-size 2304 --moe-backend marlin --speculative-config '{"method":"mtp","num_speculative_tokens":4}' --kv-cache-dtype fp8_e4m3 --kv-cache-memory 4445787956 \
     --enforce-eager --max-num-batched-tokens 8192 \
     --tool-call-parser glm47 --enable-auto-tool-choice \
-    --reasoning-parser glm45 --default-chat-template-kwargs '{"enable_thinking": false}' \
+    --reasoning-parser glm45 --default-chat-template-kwargs '{"enable_thinking": true, "reasoning_effort": "high"}' \
     --distributed-executor-backend mp \
     --nnodes 2 --node-rank "$NODE_RANK" \
     --master-addr "$HEAD_IP" --master-port "$MPORT" \
