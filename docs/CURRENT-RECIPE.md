@@ -7,7 +7,9 @@ four-over-six scale search, FP8 indexer cache, DCP2, DFlash2 K=7, 1M context,
 and the async decode-first scheduler.
 
 Model weights are not stored in Git. The scripts deterministically rebuild and
-verify them from public checkpoints.
+verify them from public checkpoints. The promoted artifact preserves Marlin's
+fused-W13 contract: every routed-expert gate/up pair has one exact shared FP32
+global scale.
 
 ## Pinned inputs
 
@@ -53,7 +55,8 @@ SOURCE=/path/to/zai-org-GLM-5.3-Flash-03eb536
 REDHAT=/path/to/RedHatAI-GLM-5.3-Flash-NVFP4
 SCALE="$HOME/.cache/huggingface/glm53-redhat-nvfp4-optimized-scales-v1"
 FIXED="$HOME/.cache/huggingface/glm53-redhat-nvfp4-fp8-passthrough-v1"
-FINAL="$HOME/.cache/huggingface/glm53-nvfp4-global-divisor-v1"
+GLOBAL="$HOME/.cache/huggingface/glm53-nvfp4-global-divisor-v1"
+FINAL="$HOME/.cache/huggingface/glm53-nvfp4-marlin-shared-w13-v1"
 ```
 
 For each optimization phase, assign shards 1–5 to the head and 6–10 to the
@@ -88,7 +91,7 @@ nodes:
 
 ```bash
 SOURCE_HOST_PATH="$SOURCE" TARGET_HOST_PATH="$FIXED" \
-OUTPUT_HOST_PATH="$FINAL" TARGET_SHARDS="$TARGET_SHARDS" \
+OUTPUT_HOST_PATH="$GLOBAL" TARGET_SHARDS="$TARGET_SHARDS" \
 GLOBAL_DIVISOR_STEPS_PER_OCTAVE=16 GLOBAL_DIVISOR_SEARCH_ROWS=32 \
 GLOBAL_DIVISOR_HELDOUT_TOLERANCE=0 IMAGE=glm53-v14:nvfp4-gscale-tooling \
 ./build-optimized-nvfp4-shards.sh
@@ -96,13 +99,13 @@ GLOBAL_DIVISOR_HELDOUT_TOLERANCE=0 IMAGE=glm53-v14:nvfp4-gscale-tooling \
 
 Before exchanging final shards, preserve each node's generic JSONL report as
 `nvfp4-build-tensors-head.jsonl` or
-`nvfp4-build-tensors-dgx1.jsonl`. Assemble all ten final shards and both
+`nvfp4-build-tensors-dgx1.jsonl`. Assemble all ten global-divisor shards and both
 reports on both nodes, then verify:
 
 ```bash
 docker run --rm --entrypoint /usr/bin/python3 \
   -v "$PWD/probes:/workspace/probes:ro" \
-  -v "$FIXED:/base:ro" -v "$FINAL:/candidate" \
+  -v "$FIXED:/base:ro" -v "$GLOBAL:/candidate" \
   glm53-v14:nvfp4-gscale-tooling \
   /workspace/probes/verify_nvfp4_checkpoint.py \
     --base-root /base --candidate-root /candidate \
@@ -117,6 +120,23 @@ weighted RMSE 0.8730%; 8 held-out and 4 full-matrix gates safely fell back.
 Both nodes' ten shard hashes matched. See
 `accuracy-campaign/results/global-divisor-full-v1-summary.json` and
 [NVFP4-WEIGHT-OPTIMIZATION.md](NVFP4-WEIGHT-OPTIMIZATION.md).
+
+The compressed-tensors Marlin loader fuses gate and up into W13 and accepts
+only one global divisor for the pair. Do not serve the independently optimized
+`GLOBAL` intermediate directly. On both nodes, restore the complete matched
+gate/up triplets (packed weights, group scales, and global scales) from the
+phase-one `FIXED` checkpoint while retaining the global-divisor-optimized
+down projections:
+
+```bash
+CURRENT_HOST_PATH="$GLOBAL" REFERENCE_HOST_PATH="$FIXED" \
+OUTPUT_HOST_PATH="$FINAL" IMAGE=glm53-v14:nvfp4-gscale-tooling \
+./repair-w13-shared-scale-checkpoint.sh
+```
+
+The repair performs no quantization and is resumable by shard. Its full
+verification checks all 72,576 restored tensors and all 12,096 W1/W3 global
+scale pairs. The promoted build must report zero mismatches.
 
 ## Validate the scheduler
 
@@ -143,7 +163,7 @@ That is equivalent to:
 
 ```bash
 IMAGE=glm53-v14:nvfp4-gscale-tooling \
-MODEL_HOST_PATH="$HOME/.cache/huggingface/glm53-nvfp4-global-divisor-v1" \
+MODEL_HOST_PATH="$HOME/.cache/huggingface/glm53-nvfp4-marlin-shared-w13-v1" \
 DRAFT_HOST_PATH="$HOME/.cache/huggingface/glm53-dflash2-bf582e4eacc1810f76656d1811693ff6c6737d2a" \
 MAX_MODEL_LEN=1048576 DCP_SIZE=2 USE_FP4_INDEXER_CACHE=0 GPU_MEMORY_UTILIZATION=0.87 \
 USE_CALIBRATED_NVFP4_MLA=1 \

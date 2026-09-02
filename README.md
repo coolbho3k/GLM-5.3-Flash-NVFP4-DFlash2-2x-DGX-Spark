@@ -35,7 +35,7 @@ Pick your weights: **same launcher, same recipe**, just point the model path at 
 | | HuggingFace | notes |
 |---|---|---|
 | Red Hat foundation | [RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4) | **compressed-tensors, corruption-free** |
-| Optimized Red Hat layout | [build recipe](docs/NVFP4-WEIGHT-OPTIMIZATION.md) | Same W4A16 Marlin format and serving cost; group-scale plus global-divisor optimization |
+| Optimized Red Hat layout | [build recipe](docs/NVFP4-WEIGHT-OPTIMIZATION.md) | Same W4A16 Marlin format and serving cost; optimized group scales plus Marlin-safe down-projection divisors |
 | **⭐ Current default** | [reproducible recipe](docs/CURRENT-RECIPE.md) | Optimized NVFP4 experts plus 179 restored W8A16 tensors |
 | Censored (legacy) | [LibertAIDAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4) | stock NVFP4 weight-only — ⚠️ ModelOpt token corruption |
 | **Uncensored (abliterated)** | [drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock](https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock) | abliterated (layers 15-45, anchor-stock), no refusals |
@@ -142,7 +142,7 @@ have different image IDs; `start-cluster.sh` compares the runtime-defining
 files before either rank starts.
 
 Model weights are deliberately not part of the image. Put the derived checkpoint
-at `~/.cache/huggingface/glm53-nvfp4-global-divisor-v1` and the DFlash2 draft
+at `~/.cache/huggingface/glm53-nvfp4-marlin-shared-w13-v1` and the DFlash2 draft
 at the launcher defaults on both nodes, or set `MODEL_HOST_PATH` and
 `DRAFT_HOST_PATH`. See
 [the current reproducible recipe](docs/CURRENT-RECIPE.md) for the complete

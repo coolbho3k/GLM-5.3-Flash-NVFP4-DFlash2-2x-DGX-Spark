@@ -1,7 +1,7 @@
 # NVFP4 weight optimization
 
 This recipe improves the routed-expert NVFP4 group scales, packed codes, and
-FP32 global divisors without changing the compressed-tensors layout, tensor
+compatible FP32 global divisors without changing the compressed-tensors layout, tensor
 shapes or dtypes, Marlin W4A16 kernels, KV cache, DFlash2 configuration, or
 tensor payload size. It is an offline checkpoint transformation and adds no
 serving work.
@@ -32,13 +32,22 @@ objective while retaining exactly the existing serving layout.
 On 72 matrices spanning layers 3, 23, and 43, eight widely separated experts,
 and gate/up/down projections, every phase-one matrix improved:
 
-| metric | Red Hat | group-scale | global-divisor | Red Hat → final |
+| metric | Red Hat | group-scale | independent divisor | Red Hat → independent |
 |---|---:|---:|---:|---:|
 | Mean weight relative RMSE | 9.1114% | 7.7185% | 7.6630% | 15.8968% |
 | Mean random-input output RMSE | 9.1182% | 7.7211% | 7.6633% | 15.9559% |
 
 The divisor phase alone reduced representative weight RMSE another 0.7187%
 and weight MSE 1.4323%; random-input output RMSE fell another 0.7482%.
+
+Those independent-divisor numbers are an offline upper-bound experiment, not
+the promoted Marlin representation. The compressed-tensors fused-MoE loader
+combines gate and up as W13 and carries one global divisor for the pair. An
+independently selected gate/up pair can therefore be reconstructed with the
+wrong scale at runtime. The promoted checkpoint restores gate/up from the
+phase-one artifact as complete matched triplets, retaining their 7.72% result,
+and keeps the second divisor phase only for unfused down projections. This has
+the same size and serving performance while satisfying Marlin exactly.
 
 On the same 72-matrix sample (37.75 million group scales), 65.02% of stored
 scales change. The median across all scales is unchanged and the mean is
@@ -77,6 +86,20 @@ Machine-readable results are
 `accuracy-campaign/results/optimized-full-verification.json` for phase one,
 `accuracy-campaign/results/global-divisor-representative-v1-summary.json`,
 and `accuracy-campaign/results/global-divisor-full-v1-summary.json`.
+
+After validating the intermediate global-divisor checkpoint, build the
+Marlin-safe serving checkpoint on both nodes:
+
+```bash
+CURRENT_HOST_PATH=/path/to/glm53-nvfp4-global-divisor-v1 \
+REFERENCE_HOST_PATH=/path/to/glm53-redhat-nvfp4-fp8-passthrough-v1 \
+OUTPUT_HOST_PATH=/path/to/glm53-nvfp4-marlin-shared-w13-v1 \
+IMAGE=glm53-v14:nvfp4-gscale-tooling \
+  ./repair-w13-shared-scale-checkpoint.sh
+```
+
+The repair's validator checks equality of all 72,576 restored gate/up tensors
+and exact equality of all 12,096 paired global scales.
 
 ## Build selected checkpoint shards
 
@@ -128,7 +151,7 @@ Put the completed checkpoint at the same absolute path on both nodes. The
 cluster wrapper forwards `MODEL_HOST_PATH` to both ranks:
 
 ```bash
-MODEL_HOST_PATH=/path/to/glm53-nvfp4-global-divisor-v1 \
+MODEL_HOST_PATH=/path/to/glm53-nvfp4-marlin-shared-w13-v1 \
 MAX_MODEL_LEN=1048576 GPU_MEMORY_UTILIZATION=0.87 \
   ./start-cluster.sh
 ```
