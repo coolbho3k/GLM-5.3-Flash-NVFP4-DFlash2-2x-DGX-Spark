@@ -1,0 +1,43 @@
+{
+  "schema": "glm-nvfp4-mla-corpus-plan-v1",
+  "notes": "Targets are guidance for constructing JSONL input to drive_capture.py; no dataset is downloaded automatically.",
+  "sources": [
+    {
+      "bucket": "nemotron-natural",
+      "source": "nvidia/Nemotron-Post-Training-Dataset-v2",
+      "target_prompts": 320
+    },
+    {
+      "bucket": "cnn-natural",
+      "source": "cnn_dailymail",
+      "target_prompts": 160
+    },
+    {
+      "bucket": "ruler-retrieval",
+      "source": "NVIDIA/RULER retrieval and multi-hop tasks",
+      "target_prompts": 128,
+      "target_context_tokens": [32768, 131072, 262144]
+    },
+    {
+      "bucket": "ruler-aggregation-qa",
+      "source": "NVIDIA/RULER aggregation and QA tasks",
+      "target_prompts": 128,
+      "target_context_tokens": [32768, 131072, 262144]
+    },
+    {
+      "bucket": "code",
+      "source": "deployment-representative permissively licensed code prompts",
+      "target_prompts": 128
+    },
+    {
+      "bucket": "multilingual",
+      "source": "deployment-representative multilingual prompts",
+      "target_prompts": 128
+    },
+    {
+      "bucket": "real-chat-heldout-compatible",
+      "source": "redacted deployment prompts with no assistant answers required",
+      "target_prompts": 64
+    }
+  ]
+}

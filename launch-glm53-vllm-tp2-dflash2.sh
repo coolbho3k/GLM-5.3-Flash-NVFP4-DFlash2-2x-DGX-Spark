@@ -57,6 +57,11 @@ PREFILL_SCHEDULE_INTERVAL="${PREFILL_SCHEDULE_INTERVAL:-4}"
 LONG_PREFILL_TOKEN_THRESHOLD="${LONG_PREFILL_TOKEN_THRESHOLD:-512}"
 EXL3_FUSED_MOE="${EXL3_FUSED_MOE:-1}"
 EXL3_MOE_ROW_TILE="${EXL3_MOE_ROW_TILE:-0}"
+NVFP4_CALIBRATION_HOST_PATH="${NVFP4_CALIBRATION_HOST_PATH:-}"
+NVFP4_MLA_SCALES_FILE="${NVFP4_MLA_SCALES_FILE:-}"
+ENABLE_NVFP4_MLA_CAPTURE="${ENABLE_NVFP4_MLA_CAPTURE:-0}"
+NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM="${NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM:-65536}"
+NVFP4_MLA_CAPTURE_GROUPS_PER_CALL="${NVFP4_MLA_CAPTURE_GROUPS_PER_CALL:-1024}"
 attention_backend_args=()
 if [[ -n "$VLLM_ATTENTION_BACKEND" ]]; then
   attention_backend_args+=( --attention-backend "$VLLM_ATTENTION_BACKEND" )
@@ -123,6 +128,44 @@ case "$ENABLE_DECODE_FIRST_SCHEDULER" in
 esac
 
 
+calibration_docker_args=()
+if [[ -n "$NVFP4_MLA_SCALES_FILE" || "$ENABLE_NVFP4_MLA_CAPTURE" == "1" ]]; then
+  [[ -n "$NVFP4_CALIBRATION_HOST_PATH" ]] || {
+    echo "NVFP4_CALIBRATION_HOST_PATH is required for scales or capture" >&2
+    exit 2
+  }
+  mkdir -p "$NVFP4_CALIBRATION_HOST_PATH"
+  calibration_docker_args+=(
+    -v "$NVFP4_CALIBRATION_HOST_PATH:/calibration"
+  )
+fi
+if [[ -n "$NVFP4_MLA_SCALES_FILE" ]]; then
+  [[ "$NVFP4_MLA_SCALES_FILE" != */* ]] || {
+    echo "NVFP4_MLA_SCALES_FILE must be a filename inside the calibration directory" >&2
+    exit 2
+  }
+  test -s "$NVFP4_CALIBRATION_HOST_PATH/$NVFP4_MLA_SCALES_FILE"
+  calibration_docker_args+=(
+    -e "VLLM_NVFP4_MLA_SCALES_FILE=/calibration/$NVFP4_MLA_SCALES_FILE"
+    -e VLLM_NVFP4_MLA_SCALES_STRICT=1
+  )
+fi
+case "$ENABLE_NVFP4_MLA_CAPTURE" in
+  0) ;;
+  1)
+    calibration_docker_args+=(
+      -e VLLM_NVFP4_MLA_CAPTURE_DIR=/calibration/captures
+      -e VLLM_NVFP4_MLA_CAPTURE_CONTROL=/calibration/control.json
+      -e "VLLM_NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM=$NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM"
+      -e "VLLM_NVFP4_MLA_CAPTURE_GROUPS_PER_CALL=$NVFP4_MLA_CAPTURE_GROUPS_PER_CALL"
+    )
+    ;;
+  *)
+    echo "ENABLE_NVFP4_MLA_CAPTURE must be 0 or 1" >&2
+    exit 2
+    ;;
+esac
+
 case "$NODE_RANK" in
   0) HOST_IP="$HEAD_IP"; HEADLESS="" ;;
   1) HOST_IP="$WORKER_IP"; HEADLESS="--headless" ;;
@@ -168,6 +211,7 @@ docker run --gpus all -d \
   -e EXL3_FUSED_MOE="$EXL3_FUSED_MOE" \
   -e EXL3_MOE_ROW_TILE="$EXL3_MOE_ROW_TILE" \
   -v "$CHAT_TEMPLATE:/models/chat_template_mm.jinja:ro" \
+  "${calibration_docker_args[@]}" \
   "$IMAGE" \
     "$MODEL_PATH" \
     --served-model-name glm-5.3-flash \

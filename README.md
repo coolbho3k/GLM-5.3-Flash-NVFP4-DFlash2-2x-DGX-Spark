@@ -462,6 +462,7 @@ Blackwell part. Upstream-ready issue drafts with receipts:
 | [SM121-CRASH-FORENSICS](docs/SM121-CRASH-FORENSICS-2026-08-27.md) | why the fleet "randomly" died: a topk kernel bug and phantom KV backing |
 | [GB10-KV-MEMORY-LADDER](docs/GB10-KV-MEMORY-LADDER.md) | why KV budgets above vLLM's suggestion die, and the driver-level mechanism |
 | [KV-HUNT-672K-TP2-RECORD](docs/KV-HUNT-672K-TP2-RECORD.md) | the 8-attempt hunt past the 507K wall |
+| [NVFP4-KV-GSCALE-CALIBRATION](docs/NVFP4-KV-GSCALE-CALIBRATION.md) | opt-in representative latent capture, MSE/G-scale fitting, held-out gates, and serving artifact |
 | **[OPEN-PROBLEMS](docs/OPEN-PROBLEMS.md)** | **everything we broke and could not fix — reproducible, with next probes. Start here if you want to contribute.** |
 
 **Debugging kit** (reusable for any day-0 model on new silicon): `probes/probe_sm121_nope_mla.py`

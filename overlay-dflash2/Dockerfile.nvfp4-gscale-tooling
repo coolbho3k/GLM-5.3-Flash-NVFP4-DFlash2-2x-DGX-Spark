@@ -1,0 +1,19 @@
+# Opt-in capture and calibrated per-layer outer scales over the known-good v13.
+# No feature is active unless its VLLM_NVFP4_MLA_* environment variable is set.
+ARG BASE_IMAGE=glm53-v13:nvfp4-four-over-six
+FROM ${BASE_IMAGE}
+
+COPY kv_calibration/runtime.py \
+     /usr/local/lib/python3.12/dist-packages/vllm/nvfp4_mla_calibration.py
+COPY overlay-dflash2/patch_b12x_nvfp4_gscale.py \
+     /tmp/patch_b12x_nvfp4_gscale.py
+COPY overlay-dflash2/patch_vllm_nvfp4_gscale.py \
+     /tmp/patch_vllm_nvfp4_gscale.py
+RUN python3 /tmp/patch_b12x_nvfp4_gscale.py && \
+    python3 /tmp/patch_vllm_nvfp4_gscale.py && \
+    python3 -m py_compile \
+      /usr/local/lib/python3.12/dist-packages/b12x/attention/_shared/mla/kv_cache.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/nvfp4_mla_calibration.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/flashinfer_mla_sparse_sm120.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/attention/mla_attention.py && \
+    rm /tmp/patch_b12x_nvfp4_gscale.py /tmp/patch_vllm_nvfp4_gscale.py

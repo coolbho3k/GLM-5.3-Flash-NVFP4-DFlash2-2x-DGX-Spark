@@ -22,6 +22,11 @@ CUDA_LAUNCH_BLOCKING="${CUDA_LAUNCH_BLOCKING:-0}"
 ENABLE_DECODE_FIRST_SCHEDULER="${ENABLE_DECODE_FIRST_SCHEDULER:-1}"
 PREFILL_SCHEDULE_INTERVAL="${PREFILL_SCHEDULE_INTERVAL:-4}"
 LONG_PREFILL_TOKEN_THRESHOLD="${LONG_PREFILL_TOKEN_THRESHOLD:-512}"
+NVFP4_CALIBRATION_HOST_PATH="${NVFP4_CALIBRATION_HOST_PATH:-}"
+NVFP4_MLA_SCALES_FILE="${NVFP4_MLA_SCALES_FILE:-}"
+ENABLE_NVFP4_MLA_CAPTURE="${ENABLE_NVFP4_MLA_CAPTURE:-0}"
+NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM="${NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM:-65536}"
+NVFP4_MLA_CAPTURE_GROUPS_PER_CALL="${NVFP4_MLA_CAPTURE_GROUPS_PER_CALL:-1024}"
 ssh_opts=(-o BatchMode=yes -o ConnectTimeout=10)
 
 cleanup_failed_start() {
@@ -70,8 +75,13 @@ runtime_paths=(
   /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/block_table.py
   /usr/local/lib/python3.12/dist-packages/vllm/models/glm5next/nvidia/kda.py
   /usr/local/lib/python3.12/dist-packages/vllm/models/glm5next/nvidia/model.py
+  /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/attention/mla_attention.py
   /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/flashinfer_mla_sparse_sm120.py
 )
+if docker run --rm --entrypoint test "$IMAGE" \
+  -f /usr/local/lib/python3.12/dist-packages/vllm/nvfp4_mla_calibration.py; then
+  runtime_paths+=(/usr/local/lib/python3.12/dist-packages/vllm/nvfp4_mla_calibration.py)
+fi
 local_runtime="$(
   docker run --rm --entrypoint sha256sum "$IMAGE" "${runtime_paths[@]}"
 )"
@@ -101,7 +111,7 @@ ssh "${ssh_opts[@]}" "$WORKER_HOST" \
 echo "Starting worker rank on $WORKER_HOST..."
 trap cleanup_failed_start ERR INT TERM
 ssh "${ssh_opts[@]}" "$WORKER_HOST" \
-  "cd $(printf '%q' "$REMOTE_DIR") && CONTAINER_NAME=$(printf '%q' "$CONTAINER_NAME") IMAGE=$(printf '%q' "$IMAGE") MODEL_HOST_PATH=$(printf '%q' "$MODEL_HOST_PATH") DRAFT_HOST_PATH=$(printf '%q' "$DRAFT_HOST_PATH") API_PORT=$(printf '%q' "$API_PORT") HEAD_IP=$(printf '%q' "$HEAD_IP") WORKER_IP=$(printf '%q' "$WORKER_IP") DCP_SIZE=$(printf '%q' "$DCP_SIZE") USE_FP4_INDEXER_CACHE=$(printf '%q' "$USE_FP4_INDEXER_CACHE") GPU_MEMORY_UTILIZATION=$(printf '%q' "$GPU_MEMORY_UTILIZATION") MAX_MODEL_LEN=$(printf '%q' "$MAX_MODEL_LEN") CUDA_LAUNCH_BLOCKING=$(printf '%q' "$CUDA_LAUNCH_BLOCKING") ENABLE_DECODE_FIRST_SCHEDULER=$(printf '%q' "$ENABLE_DECODE_FIRST_SCHEDULER") PREFILL_SCHEDULE_INTERVAL=$(printf '%q' "$PREFILL_SCHEDULE_INTERVAL") LONG_PREFILL_TOKEN_THRESHOLD=$(printf '%q' "$LONG_PREFILL_TOKEN_THRESHOLD") ./launch-glm53-vllm-tp2-dflash2.sh 1"
+  "cd $(printf '%q' "$REMOTE_DIR") && CONTAINER_NAME=$(printf '%q' "$CONTAINER_NAME") IMAGE=$(printf '%q' "$IMAGE") MODEL_HOST_PATH=$(printf '%q' "$MODEL_HOST_PATH") DRAFT_HOST_PATH=$(printf '%q' "$DRAFT_HOST_PATH") API_PORT=$(printf '%q' "$API_PORT") HEAD_IP=$(printf '%q' "$HEAD_IP") WORKER_IP=$(printf '%q' "$WORKER_IP") DCP_SIZE=$(printf '%q' "$DCP_SIZE") USE_FP4_INDEXER_CACHE=$(printf '%q' "$USE_FP4_INDEXER_CACHE") GPU_MEMORY_UTILIZATION=$(printf '%q' "$GPU_MEMORY_UTILIZATION") MAX_MODEL_LEN=$(printf '%q' "$MAX_MODEL_LEN") CUDA_LAUNCH_BLOCKING=$(printf '%q' "$CUDA_LAUNCH_BLOCKING") ENABLE_DECODE_FIRST_SCHEDULER=$(printf '%q' "$ENABLE_DECODE_FIRST_SCHEDULER") PREFILL_SCHEDULE_INTERVAL=$(printf '%q' "$PREFILL_SCHEDULE_INTERVAL") LONG_PREFILL_TOKEN_THRESHOLD=$(printf '%q' "$LONG_PREFILL_TOKEN_THRESHOLD") NVFP4_CALIBRATION_HOST_PATH=$(printf '%q' "$NVFP4_CALIBRATION_HOST_PATH") NVFP4_MLA_SCALES_FILE=$(printf '%q' "$NVFP4_MLA_SCALES_FILE") ENABLE_NVFP4_MLA_CAPTURE=$(printf '%q' "$ENABLE_NVFP4_MLA_CAPTURE") NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM=$(printf '%q' "$NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM") NVFP4_MLA_CAPTURE_GROUPS_PER_CALL=$(printf '%q' "$NVFP4_MLA_CAPTURE_GROUPS_PER_CALL") ./launch-glm53-vllm-tp2-dflash2.sh 1"
 sleep 25
 echo "Starting head rank on $(hostname)..."
 CONTAINER_NAME="$CONTAINER_NAME" IMAGE="$IMAGE" MODEL_HOST_PATH="$MODEL_HOST_PATH" API_PORT="$API_PORT" \
@@ -113,6 +123,11 @@ CONTAINER_NAME="$CONTAINER_NAME" IMAGE="$IMAGE" MODEL_HOST_PATH="$MODEL_HOST_PAT
   ENABLE_DECODE_FIRST_SCHEDULER="$ENABLE_DECODE_FIRST_SCHEDULER" \
   PREFILL_SCHEDULE_INTERVAL="$PREFILL_SCHEDULE_INTERVAL" \
   LONG_PREFILL_TOKEN_THRESHOLD="$LONG_PREFILL_TOKEN_THRESHOLD" \
+  NVFP4_CALIBRATION_HOST_PATH="$NVFP4_CALIBRATION_HOST_PATH" \
+  NVFP4_MLA_SCALES_FILE="$NVFP4_MLA_SCALES_FILE" \
+  ENABLE_NVFP4_MLA_CAPTURE="$ENABLE_NVFP4_MLA_CAPTURE" \
+  NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM="$NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM" \
+  NVFP4_MLA_CAPTURE_GROUPS_PER_CALL="$NVFP4_MLA_CAPTURE_GROUPS_PER_CALL" \
   "$SCRIPT_DIR/launch-glm53-vllm-tp2-dflash2.sh" 0
 
 deadline=$((SECONDS + READY_TIMEOUT))
