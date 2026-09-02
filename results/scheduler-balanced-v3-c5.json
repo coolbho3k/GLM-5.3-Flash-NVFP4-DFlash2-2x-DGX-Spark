@@ -1,0 +1,197 @@
+{
+  "cases": [
+    {
+      "concurrent_prefill": {
+        "aggregate_input_tokens_per_second": 351.163858,
+        "count": 1,
+        "maximum_ttft_seconds": 30.892556,
+        "streams": [
+          {
+            "completion_tokens": 2,
+            "content_preview": "OK",
+            "decode_seconds": 0.0949,
+            "decode_tokens_per_second": 21.074867,
+            "elapsed_seconds": 30.987456,
+            "input_tokens_per_second": 352.253145,
+            "max_stream_gap_seconds": 0.0,
+            "mean_stream_gap_seconds": 0.0,
+            "p95_stream_gap_seconds": 0.0,
+            "prompt_tokens": 10882,
+            "stream_events": 1,
+            "target_prompt_tokens": 8192,
+            "ttft_seconds": 30.892556
+          }
+        ],
+        "wall_seconds": 30.988383
+      },
+      "control_decode": {
+        "aggregate_tokens_per_second": 42.977293,
+        "count": 5,
+        "maximum_stream_gap_seconds": 0.367624,
+        "maximum_ttft_seconds": 0.735662,
+        "mean_per_stream_tokens_per_second": 9.611186,
+        "minimum_per_stream_tokens_per_second": 8.888874,
+        "p50_ttft_seconds": 0.735487,
+        "p95_of_stream_p95_gap_seconds": 0.245993,
+        "streams": [
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. Decoder-decoder pairing c5 shows scheduler pressure amplifying decode variance at high concurrency.\n2. Corpus B12X confirms decode-v1 latency tails widen whe",
+            "decode_seconds": 19.285656,
+            "decode_tokens_per_second": 9.955585,
+            "elapsed_seconds": 19.544224,
+            "max_stream_gap_seconds": 0.367624,
+            "mean_stream_gap_seconds": 0.235189,
+            "p95_stream_gap_seconds": 0.245992,
+            "prompt_tokens": 46,
+            "stream_events": 83,
+            "ttft_seconds": 0.258568
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "# Software-Testing Observations\n\n1. A test suite that passes 100% of the time may simply be testing the happy path nobody walks anymore.\n2. Flaky tests erode tr",
+            "decode_seconds": 20.153536,
+            "decode_tokens_per_second": 9.526864,
+            "elapsed_seconds": 20.888942,
+            "max_stream_gap_seconds": 0.255816,
+            "mean_stream_gap_seconds": 0.231648,
+            "p95_stream_gap_seconds": 0.245098,
+            "prompt_tokens": 46,
+            "stream_events": 88,
+            "ttft_seconds": 0.735406
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. Scheduler pressure tests reveal that decoder-decoder pairs amplify latency variance more than encoder-decoder pairs under identical token budgets.\n2. A decod",
+            "decode_seconds": 21.600036,
+            "decode_tokens_per_second": 8.888874,
+            "elapsed_seconds": 22.33553,
+            "max_stream_gap_seconds": 0.255624,
+            "mean_stream_gap_seconds": 0.22268,
+            "p95_stream_gap_seconds": 0.245119,
+            "prompt_tokens": 46,
+            "stream_events": 98,
+            "ttft_seconds": 0.735494
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. A test suite that passes in CI but fails locally usually points to environment drift, not flaky code.\n2. Flaky tests erode trust faster than failing tests, b",
+            "decode_seconds": 20.83058,
+            "decode_tokens_per_second": 9.217218,
+            "elapsed_seconds": 21.566242,
+            "max_stream_gap_seconds": 0.255226,
+            "mean_stream_gap_seconds": 0.228905,
+            "p95_stream_gap_seconds": 0.244658,
+            "prompt_tokens": 46,
+            "stream_events": 92,
+            "ttft_seconds": 0.735662
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. A test suite that passes on the first run deserves suspicion, not celebration.\n2. Flaky tests erode trust faster than failing tests ever will.\n3. A test that",
+            "decode_seconds": 18.342682,
+            "decode_tokens_per_second": 10.46739,
+            "elapsed_seconds": 19.078169,
+            "max_stream_gap_seconds": 0.255429,
+            "mean_stream_gap_seconds": 0.235161,
+            "p95_stream_gap_seconds": 0.245993,
+            "prompt_tokens": 46,
+            "stream_events": 79,
+            "ttft_seconds": 0.735487
+          }
+        ],
+        "wall_seconds": 22.337377
+      },
+      "decoder_count": 5,
+      "mixed_decode": {
+        "aggregate_tokens_per_second": 30.26106,
+        "count": 5,
+        "maximum_stream_gap_seconds": 0.484432,
+        "maximum_ttft_seconds": 0.733209,
+        "mean_per_stream_tokens_per_second": 7.574165,
+        "minimum_per_stream_tokens_per_second": 6.624982,
+        "p50_ttft_seconds": 0.732946,
+        "p95_of_stream_p95_gap_seconds": 0.437517,
+        "streams": [
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. The scheduler-pressure decode corpus is designed to stress the decoder path under contention, not to validate output quality.\n2. Case c5-decoder-decoder-0 pa",
+            "decode_seconds": 26.988964,
+            "decode_tokens_per_second": 7.114019,
+            "elapsed_seconds": 27.249211,
+            "max_stream_gap_seconds": 0.484432,
+            "mean_stream_gap_seconds": 0.281134,
+            "p95_stream_gap_seconds": 0.437159,
+            "prompt_tokens": 46,
+            "stream_events": 97,
+            "ttft_seconds": 0.260247
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. Test the decoder path under scheduler pressure before trusting any latency benchmark.\n2. A decode loop that passes unit tests can still fail when the schedul",
+            "decode_seconds": 28.981211,
+            "decode_tokens_per_second": 6.624982,
+            "elapsed_seconds": 29.714278,
+            "max_stream_gap_seconds": 0.484064,
+            "mean_stream_gap_seconds": 0.27601,
+            "p95_stream_gap_seconds": 0.432676,
+            "prompt_tokens": 46,
+            "stream_events": 106,
+            "ttft_seconds": 0.733066
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. A/B corpus=glm53-scheduler-pressure-decode-v1 case=c5-decoder-decoder-2.\n2. Decoder-decoder pairs amplify scheduler jitter more than encoder-decoder pairs.\n3",
+            "decode_seconds": 24.276335,
+            "decode_tokens_per_second": 7.908937,
+            "elapsed_seconds": 25.009281,
+            "max_stream_gap_seconds": 0.484399,
+            "mean_stream_gap_seconds": 0.285602,
+            "p95_stream_gap_seconds": 0.436993,
+            "prompt_tokens": 46,
+            "stream_events": 86,
+            "ttft_seconds": 0.732946
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "# Software-Testing Observations\n\n1. A test suite that passes on every retry is not necessarily stable \u2014 it may simply be masking a race condition that rarely fi",
+            "decode_seconds": 23.669406,
+            "decode_tokens_per_second": 8.111737,
+            "elapsed_seconds": 24.402615,
+            "max_stream_gap_seconds": 0.484323,
+            "mean_stream_gap_seconds": 0.285172,
+            "p95_stream_gap_seconds": 0.436646,
+            "prompt_tokens": 46,
+            "stream_events": 84,
+            "ttft_seconds": 0.733209
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. Test the boundary, not the happy path.\n2. A flaky test is a bug report wearing a costume.\n3. Coverage tells you what ran, not what was verified.\n4. Mocks lie",
+            "decode_seconds": 23.671115,
+            "decode_tokens_per_second": 8.111152,
+            "elapsed_seconds": 24.402556,
+            "max_stream_gap_seconds": 0.483696,
+            "mean_stream_gap_seconds": 0.285192,
+            "p95_stream_gap_seconds": 0.437517,
+            "prompt_tokens": 46,
+            "stream_events": 84,
+            "ttft_seconds": 0.731442
+          }
+        ],
+        "wall_seconds": 31.723939
+      },
+      "mixed_over_control_aggregate_tps": 0.704117,
+      "mixed_over_control_mean_per_stream_tps": 0.788057,
+      "prefill_count": 1,
+      "total_sessions": 6
+    }
+  ],
+  "decode_tokens": 192,
+  "label": "balanced-v3-c5",
+  "prefill_tokens": 8192,
+  "prefills_per_wave": 1,
+  "schema": 1,
+  "timestamp_utc": "2026-09-02T22:08:21.116578+00:00",
+  "url": "http://127.0.0.1:8000"
+}

@@ -1,0 +1,28 @@
+{
+  "profile_name": "interactive-adaptive-v3",
+  "global_budget": true,
+  "pure_prefill_token_threshold": 0,
+  "tiers": [
+    {
+      "max_decoders": 2,
+      "packet_tokens": 256,
+      "interval": 2,
+      "packet_tokens_per_extra_prefill": 0,
+      "max_packet_tokens": 256
+    },
+    {
+      "max_decoders": 4,
+      "packet_tokens": 256,
+      "interval": 4,
+      "packet_tokens_per_extra_prefill": 64,
+      "max_packet_tokens": 384
+    },
+    {
+      "max_decoders": 6,
+      "packet_tokens": 256,
+      "interval": 6,
+      "packet_tokens_per_extra_prefill": 0,
+      "max_packet_tokens": 256
+    }
+  ]
+}

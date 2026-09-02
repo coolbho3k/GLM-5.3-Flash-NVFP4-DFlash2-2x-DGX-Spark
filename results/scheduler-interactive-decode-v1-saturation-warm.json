@@ -1,0 +1,175 @@
+{
+  "cases": [
+    {
+      "concurrent_prefill": {
+        "aggregate_input_tokens_per_second": 278.591273,
+        "count": 3,
+        "maximum_ttft_seconds": 43.789636,
+        "streams": [
+          {
+            "completion_tokens": 2,
+            "content_preview": "OK",
+            "decode_seconds": 0.198241,
+            "decode_tokens_per_second": 10.088748,
+            "elapsed_seconds": 43.987877,
+            "input_tokens_per_second": 123.979108,
+            "max_stream_gap_seconds": 0.0,
+            "mean_stream_gap_seconds": 0.0,
+            "p95_stream_gap_seconds": 0.0,
+            "prompt_tokens": 5429,
+            "stream_events": 1,
+            "target_prompt_tokens": 4096,
+            "ttft_seconds": 43.789636
+          },
+          {
+            "completion_tokens": 2,
+            "content_preview": "OK",
+            "decode_seconds": 0.21787,
+            "decode_tokens_per_second": 9.17977,
+            "elapsed_seconds": 37.761465,
+            "input_tokens_per_second": 90.907653,
+            "max_stream_gap_seconds": 0.0,
+            "mean_stream_gap_seconds": 0.0,
+            "p95_stream_gap_seconds": 0.0,
+            "prompt_tokens": 3413,
+            "stream_events": 1,
+            "target_prompt_tokens": 4096,
+            "ttft_seconds": 37.543594
+          },
+          {
+            "completion_tokens": 2,
+            "content_preview": "OK",
+            "decode_seconds": 0.217329,
+            "decode_tokens_per_second": 9.202635,
+            "elapsed_seconds": 37.76014,
+            "input_tokens_per_second": 90.909551,
+            "max_stream_gap_seconds": 0.0,
+            "mean_stream_gap_seconds": 0.0,
+            "p95_stream_gap_seconds": 0.0,
+            "prompt_tokens": 3413,
+            "stream_events": 1,
+            "target_prompt_tokens": 4096,
+            "ttft_seconds": 37.54281
+          }
+        ],
+        "wall_seconds": 43.989174
+      },
+      "control_decode": {
+        "aggregate_tokens_per_second": 32.928864,
+        "count": 3,
+        "maximum_stream_gap_seconds": 0.23274,
+        "maximum_ttft_seconds": 0.425051,
+        "mean_per_stream_tokens_per_second": 11.621802,
+        "minimum_per_stream_tokens_per_second": 11.111624,
+        "p50_ttft_seconds": 0.424491,
+        "p95_of_stream_p95_gap_seconds": 0.196045,
+        "streams": [
+          {
+            "completion_tokens": 384,
+            "content_preview": "1. A decoder-only model under scheduler pressure tends to degrade on long-range coreference before it degrades on local syntax.\n2. Test harnesses that pin tempe",
+            "decode_seconds": 34.558406,
+            "decode_tokens_per_second": 11.111624,
+            "elapsed_seconds": 34.983457,
+            "max_stream_gap_seconds": 0.232627,
+            "mean_stream_gap_seconds": 0.179991,
+            "p95_stream_gap_seconds": 0.195448,
+            "prompt_tokens": 46,
+            "stream_events": 193,
+            "ttft_seconds": 0.425051
+          },
+          {
+            "completion_tokens": 384,
+            "content_preview": "1. A test suite that passes on every retry is not necessarily deterministic \u2014 it may simply be retrying until the flake disappears.\n2. Coverage percentage measu",
+            "decode_seconds": 32.586455,
+            "decode_tokens_per_second": 11.784037,
+            "elapsed_seconds": 33.010946,
+            "max_stream_gap_seconds": 0.23274,
+            "mean_stream_gap_seconds": 0.186207,
+            "p95_stream_gap_seconds": 0.196045,
+            "prompt_tokens": 46,
+            "stream_events": 176,
+            "ttft_seconds": 0.424491
+          },
+          {
+            "completion_tokens": 384,
+            "content_preview": "1. A test suite that passes in CI but fails locally usually points to environment drift, not flaky code.\n2. Mocking everything in a unit test often just verifie",
+            "decode_seconds": 32.080883,
+            "decode_tokens_per_second": 11.969745,
+            "elapsed_seconds": 32.504887,
+            "max_stream_gap_seconds": 0.232695,
+            "mean_stream_gap_seconds": 0.186515,
+            "p95_stream_gap_seconds": 0.196033,
+            "prompt_tokens": 46,
+            "stream_events": 173,
+            "ttft_seconds": 0.424004
+          }
+        ],
+        "wall_seconds": 34.984504
+      },
+      "decoder_count": 3,
+      "mixed_decode": {
+        "aggregate_tokens_per_second": 24.25725,
+        "count": 3,
+        "maximum_stream_gap_seconds": 0.751214,
+        "maximum_ttft_seconds": 0.432163,
+        "mean_per_stream_tokens_per_second": 8.618111,
+        "minimum_per_stream_tokens_per_second": 8.160154,
+        "p50_ttft_seconds": 0.43146,
+        "p95_of_stream_p95_gap_seconds": 0.420262,
+        "streams": [
+          {
+            "completion_tokens": 384,
+            "content_preview": "1. A decoder-only model under scheduler pressure tends to show latency spikes before throughput drops, so monitoring should trigger on p99 first.\n2. Test harnes",
+            "decode_seconds": 47.057933,
+            "decode_tokens_per_second": 8.160154,
+            "elapsed_seconds": 47.490096,
+            "max_stream_gap_seconds": 0.751214,
+            "mean_stream_gap_seconds": 0.235289,
+            "p95_stream_gap_seconds": 0.415458,
+            "prompt_tokens": 46,
+            "stream_events": 201,
+            "ttft_seconds": 0.432163
+          },
+          {
+            "completion_tokens": 384,
+            "content_preview": "1. A decoder-only model under scheduler pressure tends to fail on the *last* constraint in a multi-part prompt, not the first \u2014 the earlier items act as attenti",
+            "decode_seconds": 45.501038,
+            "decode_tokens_per_second": 8.439368,
+            "elapsed_seconds": 45.932498,
+            "max_stream_gap_seconds": 0.75092,
+            "mean_stream_gap_seconds": 0.24332,
+            "p95_stream_gap_seconds": 0.419778,
+            "prompt_tokens": 46,
+            "stream_events": 188,
+            "ttft_seconds": 0.43146
+          },
+          {
+            "completion_tokens": 384,
+            "content_preview": "1. A decoder-only model under scheduler pressure tends to fail in the decode loop, not the prompt path.\n2. Scheduler pressure is best measured as queue wait tim",
+            "decode_seconds": 41.49193,
+            "decode_tokens_per_second": 9.254812,
+            "elapsed_seconds": 41.9229,
+            "max_stream_gap_seconds": 0.750503,
+            "mean_stream_gap_seconds": 0.246975,
+            "p95_stream_gap_seconds": 0.420262,
+            "prompt_tokens": 46,
+            "stream_events": 169,
+            "ttft_seconds": 0.43097
+          }
+        ],
+        "wall_seconds": 47.490956
+      },
+      "mixed_over_control_aggregate_tps": 0.736656,
+      "mixed_over_control_mean_per_stream_tps": 0.741547,
+      "prefill_count": 3,
+      "total_sessions": 6
+    }
+  ],
+  "decode_tokens": 384,
+  "label": "interactive-decode-v1-saturation-warm",
+  "prefill_tokens": 4096,
+  "prefills_per_wave": 3,
+  "schema": 1,
+  "timestamp_utc": "2026-09-02T22:13:50.735349+00:00",
+  "url": "http://127.0.0.1:8000"
+}

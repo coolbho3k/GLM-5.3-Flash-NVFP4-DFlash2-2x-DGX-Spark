@@ -1,0 +1,413 @@
+{
+  "cases": [
+    {
+      "concurrent_prefill": {
+        "aggregate_input_tokens_per_second": 557.262391,
+        "count": 1,
+        "maximum_ttft_seconds": 19.365806,
+        "streams": [
+          {
+            "completion_tokens": 2,
+            "content_preview": "OK",
+            "decode_seconds": 0.160618,
+            "decode_tokens_per_second": 12.451877,
+            "elapsed_seconds": 19.526424,
+            "input_tokens_per_second": 561.918259,
+            "max_stream_gap_seconds": 0.0,
+            "mean_stream_gap_seconds": 0.0,
+            "p95_stream_gap_seconds": 0.0,
+            "prompt_tokens": 10882,
+            "stream_events": 1,
+            "target_prompt_tokens": 8192,
+            "ttft_seconds": 19.365806
+          }
+        ],
+        "wall_seconds": 19.527605
+      },
+      "control_decode": {
+        "aggregate_tokens_per_second": 14.495499,
+        "count": 1,
+        "maximum_stream_gap_seconds": 0.133351,
+        "maximum_ttft_seconds": 0.376479,
+        "mean_per_stream_tokens_per_second": 14.921178,
+        "minimum_per_stream_tokens_per_second": 14.921178,
+        "p50_ttft_seconds": 0.376479,
+        "p95_of_stream_p95_gap_seconds": 0.125186,
+        "streams": [
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. Test the decoder path under scheduler pressure with a small batch first, before scaling to full concurrency.\n2. A/B corpus runs should log the scheduler tick",
+            "decode_seconds": 12.867617,
+            "decode_tokens_per_second": 14.921178,
+            "elapsed_seconds": 13.244095,
+            "max_stream_gap_seconds": 0.133351,
+            "mean_stream_gap_seconds": 0.119143,
+            "p95_stream_gap_seconds": 0.125186,
+            "prompt_tokens": 46,
+            "stream_events": 109,
+            "ttft_seconds": 0.376479
+          }
+        ],
+        "wall_seconds": 13.245491
+      },
+      "decoder_count": 1,
+      "mixed_decode": {
+        "aggregate_tokens_per_second": 8.511161,
+        "count": 1,
+        "maximum_stream_gap_seconds": 0.439424,
+        "maximum_ttft_seconds": 0.361021,
+        "mean_per_stream_tokens_per_second": 8.649846,
+        "minimum_per_stream_tokens_per_second": 8.649846,
+        "p50_ttft_seconds": 0.361021,
+        "p95_of_stream_p95_gap_seconds": 0.353456,
+        "streams": [
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. A decoder-only model under scheduler pressure may emit valid JSON with truncated closing braces, so schema validators should tolerate incomplete structures a",
+            "decode_seconds": 22.196927,
+            "decode_tokens_per_second": 8.649846,
+            "elapsed_seconds": 22.557948,
+            "max_stream_gap_seconds": 0.439424,
+            "mean_stream_gap_seconds": 0.203641,
+            "p95_stream_gap_seconds": 0.353456,
+            "prompt_tokens": 46,
+            "stream_events": 110,
+            "ttft_seconds": 0.361021
+          }
+        ],
+        "wall_seconds": 22.558616
+      },
+      "mixed_over_control_aggregate_tps": 0.587159,
+      "mixed_over_control_mean_per_stream_tps": 0.579703,
+      "prefill_count": 1,
+      "total_sessions": 2
+    },
+    {
+      "concurrent_prefill": {
+        "aggregate_input_tokens_per_second": 449.510257,
+        "count": 1,
+        "maximum_ttft_seconds": 23.994985,
+        "streams": [
+          {
+            "completion_tokens": 2,
+            "content_preview": "OK",
+            "decode_seconds": 0.212076,
+            "decode_tokens_per_second": 9.430576,
+            "elapsed_seconds": 24.207061,
+            "input_tokens_per_second": 453.511432,
+            "max_stream_gap_seconds": 0.0,
+            "mean_stream_gap_seconds": 0.0,
+            "p95_stream_gap_seconds": 0.0,
+            "prompt_tokens": 10882,
+            "stream_events": 1,
+            "target_prompt_tokens": 8192,
+            "ttft_seconds": 23.994985
+          }
+        ],
+        "wall_seconds": 24.208569
+      },
+      "control_decode": {
+        "aggregate_tokens_per_second": 32.793546,
+        "count": 3,
+        "maximum_stream_gap_seconds": 0.211769,
+        "maximum_ttft_seconds": 0.432987,
+        "mean_per_stream_tokens_per_second": 11.296729,
+        "minimum_per_stream_tokens_per_second": 11.208075,
+        "p50_ttft_seconds": 0.432015,
+        "p95_of_stream_p95_gap_seconds": 0.201301,
+        "streams": [
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. A/B corpus B12X, case c3-decoder-decoder-0: two decoders under scheduler pressure diverge on token 47 only when the decode batch is flushed mid-step.\n2. Sche",
+            "decode_seconds": 17.130507,
+            "decode_tokens_per_second": 11.208075,
+            "elapsed_seconds": 17.563494,
+            "max_stream_gap_seconds": 0.211769,
+            "mean_stream_gap_seconds": 0.190337,
+            "p95_stream_gap_seconds": 0.201301,
+            "prompt_tokens": 46,
+            "stream_events": 91,
+            "ttft_seconds": 0.432987
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. Test the boundary where a decoder's output buffer meets the next decoder's input buffer \u2014 the seam is where pressure accumulates.\n2. A scheduler that never y",
+            "decode_seconds": 17.012619,
+            "decode_tokens_per_second": 11.28574,
+            "elapsed_seconds": 17.444634,
+            "max_stream_gap_seconds": 0.211585,
+            "mean_stream_gap_seconds": 0.19115,
+            "p95_stream_gap_seconds": 0.201158,
+            "prompt_tokens": 46,
+            "stream_events": 90,
+            "ttft_seconds": 0.432015
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. A test suite that passes in CI but fails locally usually has an environment dependency nobody documented.\n2. Flaky tests erode trust faster than failing test",
+            "decode_seconds": 16.847467,
+            "decode_tokens_per_second": 11.396372,
+            "elapsed_seconds": 17.279187,
+            "max_stream_gap_seconds": 0.211453,
+            "mean_stream_gap_seconds": 0.191447,
+            "p95_stream_gap_seconds": 0.201239,
+            "prompt_tokens": 46,
+            "stream_events": 89,
+            "ttft_seconds": 0.431719
+          }
+        ],
+        "wall_seconds": 17.564432
+      },
+      "decoder_count": 3,
+      "mixed_decode": {
+        "aggregate_tokens_per_second": 20.283199,
+        "count": 3,
+        "maximum_stream_gap_seconds": 0.533405,
+        "maximum_ttft_seconds": 0.831985,
+        "mean_per_stream_tokens_per_second": 7.199413,
+        "minimum_per_stream_tokens_per_second": 6.890553,
+        "p50_ttft_seconds": 0.532063,
+        "p95_of_stream_p95_gap_seconds": 0.476883,
+        "streams": [
+          {
+            "completion_tokens": 192,
+            "content_preview": "# Software-Testing Observations\n\n1. A decoder that skips the scheduler's pressure check may still pass unit tests if the pressure signal is mocked as always-low",
+            "decode_seconds": 25.755622,
+            "decode_tokens_per_second": 7.454683,
+            "elapsed_seconds": 26.01412,
+            "max_stream_gap_seconds": 0.533405,
+            "mean_stream_gap_seconds": 0.279952,
+            "p95_stream_gap_seconds": 0.476883,
+            "prompt_tokens": 46,
+            "stream_events": 93,
+            "ttft_seconds": 0.258498
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. A decoder-only model under scheduler pressure tends to fail on the boundary between \"prompt fully consumed\" and \"first generated token,\" not mid-sequence.\n2.",
+            "decode_seconds": 27.864238,
+            "decode_tokens_per_second": 6.890553,
+            "elapsed_seconds": 28.396301,
+            "max_stream_gap_seconds": 0.53288,
+            "mean_stream_gap_seconds": 0.258001,
+            "p95_stream_gap_seconds": 0.474557,
+            "prompt_tokens": 46,
+            "stream_events": 109,
+            "ttft_seconds": 0.532063
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. A decoder-only model under scheduler pressure can silently drop the final token of a batch item when the decode loop's stop condition checks the batch index ",
+            "decode_seconds": 26.471796,
+            "decode_tokens_per_second": 7.253002,
+            "elapsed_seconds": 27.303781,
+            "max_stream_gap_seconds": 0.533274,
+            "mean_stream_gap_seconds": 0.270119,
+            "p95_stream_gap_seconds": 0.476821,
+            "prompt_tokens": 46,
+            "stream_events": 99,
+            "ttft_seconds": 0.831985
+          }
+        ],
+        "wall_seconds": 28.397887
+      },
+      "mixed_over_control_aggregate_tps": 0.618512,
+      "mixed_over_control_mean_per_stream_tps": 0.637301,
+      "prefill_count": 1,
+      "total_sessions": 4
+    },
+    {
+      "concurrent_prefill": {
+        "aggregate_input_tokens_per_second": 620.992612,
+        "count": 1,
+        "maximum_ttft_seconds": 17.262733,
+        "streams": [
+          {
+            "completion_tokens": 2,
+            "content_preview": "OK",
+            "decode_seconds": 0.259874,
+            "decode_tokens_per_second": 7.696037,
+            "elapsed_seconds": 17.522607,
+            "input_tokens_per_second": 630.375271,
+            "max_stream_gap_seconds": 0.0,
+            "mean_stream_gap_seconds": 0.0,
+            "p95_stream_gap_seconds": 0.0,
+            "prompt_tokens": 10882,
+            "stream_events": 1,
+            "target_prompt_tokens": 8192,
+            "ttft_seconds": 17.262733
+          }
+        ],
+        "wall_seconds": 17.523558
+      },
+      "control_decode": {
+        "aggregate_tokens_per_second": 39.29134,
+        "count": 5,
+        "maximum_stream_gap_seconds": 0.253399,
+        "maximum_ttft_seconds": 0.485244,
+        "mean_per_stream_tokens_per_second": 8.60069,
+        "minimum_per_stream_tokens_per_second": 8.017721,
+        "p50_ttft_seconds": 0.484148,
+        "p95_of_stream_p95_gap_seconds": 0.248008,
+        "streams": [
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. Decoder-decoder pairs amplify scheduler jitter because both sides contend for the same decode slots.\n2. A stalled decoder side can mask a healthy counterpart",
+            "decode_seconds": 23.946955,
+            "decode_tokens_per_second": 8.017721,
+            "elapsed_seconds": 24.432199,
+            "max_stream_gap_seconds": 0.253075,
+            "mean_stream_gap_seconds": 0.223803,
+            "p95_stream_gap_seconds": 0.245587,
+            "prompt_tokens": 46,
+            "stream_events": 108,
+            "ttft_seconds": 0.485244
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. A test suite that passes in CI but fails locally usually has an environment dependency nobody documented.\n2. Flaky tests erode trust faster than failing test",
+            "decode_seconds": 21.115749,
+            "decode_tokens_per_second": 9.092739,
+            "elapsed_seconds": 21.600579,
+            "max_stream_gap_seconds": 0.253399,
+            "mean_stream_gap_seconds": 0.234617,
+            "p95_stream_gap_seconds": 0.247085,
+            "prompt_tokens": 46,
+            "stream_events": 91,
+            "ttft_seconds": 0.484829
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. Test the decoder path under scheduler pressure with a small batch size to expose latency spikes that vanish at larger batches.\n2. Verify that decode-only wor",
+            "decode_seconds": 20.897112,
+            "decode_tokens_per_second": 9.187872,
+            "elapsed_seconds": 21.38126,
+            "max_stream_gap_seconds": 0.253096,
+            "mean_stream_gap_seconds": 0.234797,
+            "p95_stream_gap_seconds": 0.248008,
+            "prompt_tokens": 46,
+            "stream_events": 90,
+            "ttft_seconds": 0.484148
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. Scheduler pressure tests reveal that decoder-side batching decisions can silently degrade output quality before any latency SLO is breached.\n2. A decoder tha",
+            "decode_seconds": 22.891978,
+            "decode_tokens_per_second": 8.387218,
+            "elapsed_seconds": 23.375948,
+            "max_stream_gap_seconds": 0.253395,
+            "mean_stream_gap_seconds": 0.231231,
+            "p95_stream_gap_seconds": 0.247805,
+            "prompt_tokens": 46,
+            "stream_events": 100,
+            "ttft_seconds": 0.483971
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. A decoder-only model under scheduler pressure tends to fail silently: outputs remain well-formed while semantic drift accumulates, so token-level validators ",
+            "decode_seconds": 23.082743,
+            "decode_tokens_per_second": 8.317902,
+            "elapsed_seconds": 23.565357,
+            "max_stream_gap_seconds": 0.253189,
+            "mean_stream_gap_seconds": 0.230826,
+            "p95_stream_gap_seconds": 0.245703,
+            "prompt_tokens": 46,
+            "stream_events": 101,
+            "ttft_seconds": 0.482614
+          }
+        ],
+        "wall_seconds": 24.432865
+      },
+      "decoder_count": 5,
+      "mixed_decode": {
+        "aggregate_tokens_per_second": 30.037885,
+        "count": 5,
+        "maximum_stream_gap_seconds": 0.614048,
+        "maximum_ttft_seconds": 0.478976,
+        "mean_per_stream_tokens_per_second": 6.357338,
+        "minimum_per_stream_tokens_per_second": 6.09922,
+        "p50_ttft_seconds": 0.478691,
+        "p95_of_stream_p95_gap_seconds": 0.568008,
+        "streams": [
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. Scheduler pressure tests should pin the decode loop's tick budget before asserting on output ordering.\n2. A decoder-decoder pair at case c5 often hides race ",
+            "decode_seconds": 30.679985,
+            "decode_tokens_per_second": 6.258152,
+            "elapsed_seconds": 31.158961,
+            "max_stream_gap_seconds": 0.61329,
+            "mean_stream_gap_seconds": 0.300782,
+            "p95_stream_gap_seconds": 0.567158,
+            "prompt_tokens": 46,
+            "stream_events": 103,
+            "ttft_seconds": 0.478976
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. Test the decoder path under scheduler pressure with a small batch size to expose race conditions that large batches mask.\n2. Verify that decode-time KV cache",
+            "decode_seconds": 31.479433,
+            "decode_tokens_per_second": 6.09922,
+            "elapsed_seconds": 31.958383,
+            "max_stream_gap_seconds": 0.613262,
+            "mean_stream_gap_seconds": 0.291475,
+            "p95_stream_gap_seconds": 0.566978,
+            "prompt_tokens": 46,
+            "stream_events": 109,
+            "ttft_seconds": 0.47895
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. A test suite that passes in CI but fails locally usually has an environment dependency nobody documented.\n2. Flaky tests erode trust faster than failing test",
+            "decode_seconds": 29.284149,
+            "decode_tokens_per_second": 6.556448,
+            "elapsed_seconds": 29.762839,
+            "max_stream_gap_seconds": 0.613806,
+            "mean_stream_gap_seconds": 0.308253,
+            "p95_stream_gap_seconds": 0.568008,
+            "prompt_tokens": 46,
+            "stream_events": 96,
+            "ttft_seconds": 0.478691
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. A/B corpus=glm53-scheduler-pressure-decode-v1 case=c5-decoder-decoder-3.\n2. Decoder-side scheduler pressure can flip token order without changing the sampled",
+            "decode_seconds": 28.853998,
+            "decode_tokens_per_second": 6.65419,
+            "elapsed_seconds": 29.332582,
+            "max_stream_gap_seconds": 0.612966,
+            "mean_stream_gap_seconds": 0.310257,
+            "p95_stream_gap_seconds": 0.567646,
+            "prompt_tokens": 46,
+            "stream_events": 94,
+            "ttft_seconds": 0.478583
+          },
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. Scheduler pressure tests should run with decode paths isolated so a stalled decoder cannot mask a stalled scheduler.\n2. A decoder that passes under light loa",
+            "decode_seconds": 30.874713,
+            "decode_tokens_per_second": 6.218681,
+            "elapsed_seconds": 31.352404,
+            "max_stream_gap_seconds": 0.614048,
+            "mean_stream_gap_seconds": 0.299754,
+            "p95_stream_gap_seconds": 0.567795,
+            "prompt_tokens": 46,
+            "stream_events": 104,
+            "ttft_seconds": 0.477691
+          }
+        ],
+        "wall_seconds": 31.95964
+      },
+      "mixed_over_control_aggregate_tps": 0.764491,
+      "mixed_over_control_mean_per_stream_tps": 0.739166,
+      "prefill_count": 1,
+      "total_sessions": 6
+    }
+  ],
+  "decode_tokens": 192,
+  "label": "adaptive-smooth-v1-matched",
+  "prefill_tokens": 8192,
+  "prefills_per_wave": 1,
+  "schema": 1,
+  "timestamp_utc": "2026-09-02T22:02:41.240223+00:00",
+  "url": "http://127.0.0.1:8000"
+}

@@ -1,0 +1,175 @@
+{
+  "cases": [
+    {
+      "concurrent_prefill": {
+        "aggregate_input_tokens_per_second": 379.151871,
+        "count": 3,
+        "maximum_ttft_seconds": 32.103307,
+        "streams": [
+          {
+            "completion_tokens": 2,
+            "content_preview": "OK",
+            "decode_seconds": 0.225763,
+            "decode_tokens_per_second": 8.858867,
+            "elapsed_seconds": 32.32907,
+            "input_tokens_per_second": 169.141453,
+            "max_stream_gap_seconds": 0.0,
+            "mean_stream_gap_seconds": 0.0,
+            "p95_stream_gap_seconds": 0.0,
+            "prompt_tokens": 5430,
+            "stream_events": 1,
+            "target_prompt_tokens": 4096,
+            "ttft_seconds": 32.103307
+          },
+          {
+            "completion_tokens": 2,
+            "content_preview": "OK",
+            "decode_seconds": 0.220287,
+            "decode_tokens_per_second": 9.07905,
+            "elapsed_seconds": 26.354979,
+            "input_tokens_per_second": 130.630964,
+            "max_stream_gap_seconds": 0.0,
+            "mean_stream_gap_seconds": 0.0,
+            "p95_stream_gap_seconds": 0.0,
+            "prompt_tokens": 3414,
+            "stream_events": 1,
+            "target_prompt_tokens": 4096,
+            "ttft_seconds": 26.134692
+          },
+          {
+            "completion_tokens": 2,
+            "content_preview": "OK",
+            "decode_seconds": 0.220957,
+            "decode_tokens_per_second": 9.051535,
+            "elapsed_seconds": 26.355002,
+            "input_tokens_per_second": 130.634198,
+            "max_stream_gap_seconds": 0.0,
+            "mean_stream_gap_seconds": 0.0,
+            "p95_stream_gap_seconds": 0.0,
+            "prompt_tokens": 3414,
+            "stream_events": 1,
+            "target_prompt_tokens": 4096,
+            "ttft_seconds": 26.134045
+          }
+        ],
+        "wall_seconds": 32.330053
+      },
+      "control_decode": {
+        "aggregate_tokens_per_second": 33.782911,
+        "count": 3,
+        "maximum_stream_gap_seconds": 0.317958,
+        "maximum_ttft_seconds": 0.68307,
+        "mean_per_stream_tokens_per_second": 11.644058,
+        "minimum_per_stream_tokens_per_second": 11.491419,
+        "p50_ttft_seconds": 0.682276,
+        "p95_of_stream_p95_gap_seconds": 0.208691,
+        "streams": [
+          {
+            "completion_tokens": 384,
+            "content_preview": "1. Test the decoder path under scheduler pressure with a small batch size to expose race conditions that large batches mask.\n2. Verify that decode-v1 handles ou",
+            "decode_seconds": 32.224235,
+            "decode_tokens_per_second": 11.916497,
+            "elapsed_seconds": 32.907305,
+            "max_stream_gap_seconds": 0.223662,
+            "mean_stream_gap_seconds": 0.194121,
+            "p95_stream_gap_seconds": 0.207732,
+            "prompt_tokens": 46,
+            "stream_events": 167,
+            "ttft_seconds": 0.68307
+          },
+          {
+            "completion_tokens": 384,
+            "content_preview": "1. A test suite that passes in CI but fails locally usually points to environment drift, not flaky code.\n2. Flaky tests erode trust faster than failing tests, b",
+            "decode_seconds": 33.41624,
+            "decode_tokens_per_second": 11.491419,
+            "elapsed_seconds": 34.098516,
+            "max_stream_gap_seconds": 0.223631,
+            "mean_stream_gap_seconds": 0.192046,
+            "p95_stream_gap_seconds": 0.208033,
+            "prompt_tokens": 46,
+            "stream_events": 175,
+            "ttft_seconds": 0.682276
+          },
+          {
+            "completion_tokens": 384,
+            "content_preview": "1. A decoder that skips scheduler pressure checks may pass unit tests yet fail under real contention.\n2. Test harnesses should inject artificial load to expose ",
+            "decode_seconds": 33.321013,
+            "decode_tokens_per_second": 11.524259,
+            "elapsed_seconds": 33.574841,
+            "max_stream_gap_seconds": 0.317958,
+            "mean_stream_gap_seconds": 0.193726,
+            "p95_stream_gap_seconds": 0.208691,
+            "prompt_tokens": 46,
+            "stream_events": 173,
+            "ttft_seconds": 0.253829
+          }
+        ],
+        "wall_seconds": 34.100081
+      },
+      "decoder_count": 3,
+      "mixed_decode": {
+        "aggregate_tokens_per_second": 26.202632,
+        "count": 3,
+        "maximum_stream_gap_seconds": 0.992279,
+        "maximum_ttft_seconds": 0.435616,
+        "mean_per_stream_tokens_per_second": 8.971945,
+        "minimum_per_stream_tokens_per_second": 8.821774,
+        "p50_ttft_seconds": 0.434659,
+        "p95_of_stream_p95_gap_seconds": 0.497658,
+        "streams": [
+          {
+            "completion_tokens": 384,
+            "content_preview": "# Software-Testing Observations\n\n1. A test suite that passes on the first run deserves suspicion, not celebration.\n2. Flaky tests erode trust faster than failin",
+            "decode_seconds": 41.777175,
+            "decode_tokens_per_second": 9.191622,
+            "elapsed_seconds": 42.212791,
+            "max_stream_gap_seconds": 0.992239,
+            "mean_stream_gap_seconds": 0.2472,
+            "p95_stream_gap_seconds": 0.497575,
+            "prompt_tokens": 46,
+            "stream_events": 170,
+            "ttft_seconds": 0.435616
+          },
+          {
+            "completion_tokens": 384,
+            "content_preview": "1. Test the decoder path under scheduler pressure with a small batch size to expose latency spikes that vanish at larger batches.\n2. Verify that decode-only wor",
+            "decode_seconds": 43.528659,
+            "decode_tokens_per_second": 8.821774,
+            "elapsed_seconds": 43.963318,
+            "max_stream_gap_seconds": 0.992279,
+            "mean_stream_gap_seconds": 0.241825,
+            "p95_stream_gap_seconds": 0.493044,
+            "prompt_tokens": 46,
+            "stream_events": 181,
+            "ttft_seconds": 0.434659
+          },
+          {
+            "completion_tokens": 384,
+            "content_preview": "1. A test that passes only under a specific scheduler pressure profile is documenting a race, not verifying behavior.\n2. Decoder pipelines that share a decode b",
+            "decode_seconds": 43.134252,
+            "decode_tokens_per_second": 8.902438,
+            "elapsed_seconds": 43.568714,
+            "max_stream_gap_seconds": 0.992203,
+            "mean_stream_gap_seconds": 0.243696,
+            "p95_stream_gap_seconds": 0.497658,
+            "prompt_tokens": 46,
+            "stream_events": 178,
+            "ttft_seconds": 0.434462
+          }
+        ],
+        "wall_seconds": 43.96505
+      },
+      "mixed_over_control_aggregate_tps": 0.775618,
+      "mixed_over_control_mean_per_stream_tps": 0.770517,
+      "prefill_count": 3,
+      "total_sessions": 6
+    }
+  ],
+  "decode_tokens": 384,
+  "label": "interactive-mid384-v2-saturation",
+  "prefill_tokens": 4096,
+  "prefills_per_wave": 3,
+  "schema": 1,
+  "timestamp_utc": "2026-09-02T22:16:08.428875+00:00",
+  "url": "http://127.0.0.1:8000"
+}

@@ -1,0 +1,93 @@
+{
+  "cases": [
+    {
+      "concurrent_prefill": {
+        "aggregate_input_tokens_per_second": 607.492216,
+        "count": 1,
+        "maximum_ttft_seconds": 17.764519,
+        "streams": [
+          {
+            "completion_tokens": 2,
+            "content_preview": "OK",
+            "decode_seconds": 0.14741,
+            "decode_tokens_per_second": 13.567635,
+            "elapsed_seconds": 17.911929,
+            "input_tokens_per_second": 612.569358,
+            "max_stream_gap_seconds": 0.0,
+            "mean_stream_gap_seconds": 0.0,
+            "p95_stream_gap_seconds": 0.0,
+            "prompt_tokens": 10882,
+            "stream_events": 1,
+            "target_prompt_tokens": 8192,
+            "ttft_seconds": 17.764519
+          }
+        ],
+        "wall_seconds": 17.912987
+      },
+      "control_decode": {
+        "aggregate_tokens_per_second": 18.719769,
+        "count": 1,
+        "maximum_stream_gap_seconds": 0.125724,
+        "maximum_ttft_seconds": 0.358316,
+        "mean_per_stream_tokens_per_second": 19.399183,
+        "minimum_per_stream_tokens_per_second": 19.399183,
+        "p50_ttft_seconds": 0.358316,
+        "p95_of_stream_p95_gap_seconds": 0.123428,
+        "streams": [
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. A/B corpus=glm53-scheduler-pressure-decode-v1 case=c1-decoder-decoder-0: decoder-decoder pairing under scheduler pressure shows decode-side contention domina",
+            "decode_seconds": 9.897324,
+            "decode_tokens_per_second": 19.399183,
+            "elapsed_seconds": 10.255639,
+            "max_stream_gap_seconds": 0.125724,
+            "mean_stream_gap_seconds": 0.117824,
+            "p95_stream_gap_seconds": 0.123428,
+            "prompt_tokens": 46,
+            "stream_events": 85,
+            "ttft_seconds": 0.358316
+          }
+        ],
+        "wall_seconds": 10.256537
+      },
+      "decoder_count": 1,
+      "mixed_decode": {
+        "aggregate_tokens_per_second": 9.607406,
+        "count": 1,
+        "maximum_stream_gap_seconds": 0.58637,
+        "maximum_ttft_seconds": 0.361449,
+        "mean_per_stream_tokens_per_second": 9.784685,
+        "minimum_per_stream_tokens_per_second": 9.784685,
+        "p50_ttft_seconds": 0.361449,
+        "p95_of_stream_p95_gap_seconds": 0.500504,
+        "streams": [
+          {
+            "completion_tokens": 192,
+            "content_preview": "1. A decoder-only model under scheduler pressure tends to degrade on long-range coreference before it degrades on local syntax.\n2. Test harnesses that pin tempe",
+            "decode_seconds": 19.622503,
+            "decode_tokens_per_second": 9.784685,
+            "elapsed_seconds": 19.983952,
+            "max_stream_gap_seconds": 0.58637,
+            "mean_stream_gap_seconds": 0.198206,
+            "p95_stream_gap_seconds": 0.500504,
+            "prompt_tokens": 46,
+            "stream_events": 100,
+            "ttft_seconds": 0.361449
+          }
+        ],
+        "wall_seconds": 19.984584
+      },
+      "mixed_over_control_aggregate_tps": 0.513222,
+      "mixed_over_control_mean_per_stream_tps": 0.504386,
+      "prefill_count": 1,
+      "total_sessions": 2
+    }
+  ],
+  "decode_tokens": 192,
+  "label": "static-512x4-c1-check",
+  "prefill_tokens": 8192,
+  "prefills_per_wave": 1,
+  "schema": 1,
+  "timestamp_utc": "2026-09-02T22:10:44.383703+00:00",
+  "url": "http://127.0.0.1:8000"
+}

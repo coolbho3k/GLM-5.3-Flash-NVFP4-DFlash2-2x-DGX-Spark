@@ -89,17 +89,24 @@ rendezvous.
 
 ### Decode-first mixed-workload scheduling
 
-The default `AsyncScheduler` adapter admits mixed-workload prefill once every
-four engine steps and caps each request at 512 tokens on an admitted mixed
-step. Pure-prefill batches retain the normal 8,192-token aggregate budget. It
-must inherit `AsyncScheduler`: the plain `Scheduler` experiment disabled
-DFlash speculation and fell to 11.3 tok/s.
+The default adaptive `AsyncScheduler` adapter keeps pure-prefill batches at
+the normal 8,192-token budget but bounds mixed prefill with one aggregate
+packet shared across runnable prefills. The recommended profile is 256/2 with
+one or two active decoders, 256/4 with three or four, and 256/6 with five or
+six. At three or four decoders, each additional competing prefill adds 64
+tokens to the aggregate packet, capped at 384; this recovered 36% aggregate
+prefill throughput in the measured 3-decode/3-prefill case without imposing
+that larger packet on the common single-prefill case.
 
-The current settings are `ENABLE_DECODE_FIRST_SCHEDULER=1`,
-`PREFILL_SCHEDULE_INTERVAL=4`, and `LONG_PREFILL_TOKEN_THRESHOLD=512`. Set
-`ENABLE_DECODE_FIRST_SCHEDULER=0` for a complete scheduler rollback. See
-[the current reproducible recipe](docs/CURRENT-RECIPE.md) for validation and
-rollback commands. The default image is `glm53-v14:nvfp4-gscale-tooling`.
+The JSON profile is hot-reloaded from `scheduler_profiles/adaptive.json` at
+most once per second, so packet and cadence tuning does not reload the model.
+The adapter must inherit `AsyncScheduler`: the plain `Scheduler` experiment
+disabled DFlash speculation and fell to 11.3 tok/s. Set
+`PREFILL_ADMISSION_POLICY=static` for the previous 512/4 adapter, or
+`ENABLE_DECODE_FIRST_SCHEDULER=0` for stock scheduling. See
+[the measured scheduler results](docs/ADAPTIVE-SCHEDULER-RESULTS.md) and
+[the current reproducible recipe](docs/CURRENT-RECIPE.md). The default image
+is `glm53-v14:nvfp4-gscale-tooling`.
 ### Prepared FlashInfer B12X W4A16 A/B
 
 An opt-in `glm53-v15:b12x-w4a16-ab` image is built on both cluster nodes but

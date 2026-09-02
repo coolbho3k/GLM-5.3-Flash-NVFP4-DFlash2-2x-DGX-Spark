@@ -53,8 +53,11 @@ KV_CACHE_DTYPE="${KV_CACHE_DTYPE:-fp8_e4m3}"
 ENFORCE_EAGER="${ENFORCE_EAGER:-1}"
 MAX_NUM_SEQS="${MAX_NUM_SEQS:-6}"
 ENABLE_DECODE_FIRST_SCHEDULER="${ENABLE_DECODE_FIRST_SCHEDULER:-1}"
+PREFILL_ADMISSION_POLICY="${PREFILL_ADMISSION_POLICY:-adaptive}"
 PREFILL_SCHEDULE_INTERVAL="${PREFILL_SCHEDULE_INTERVAL:-4}"
 LONG_PREFILL_TOKEN_THRESHOLD="${LONG_PREFILL_TOKEN_THRESHOLD:-512}"
+ADAPTIVE_SCHEDULER_CONFIG="${ADAPTIVE_SCHEDULER_CONFIG:-$SCRIPT_DIR/scheduler_profiles/adaptive.json}"
+ADAPTIVE_SCHEDULER_RELOAD_SECONDS="${ADAPTIVE_SCHEDULER_RELOAD_SECONDS:-1}"
 EXL3_FUSED_MOE="${EXL3_FUSED_MOE:-1}"
 EXL3_MOE_ROW_TILE="${EXL3_MOE_ROW_TILE:-0}"
 VLLM_B12X_USE_CUDA_GRAPH="${VLLM_B12X_USE_CUDA_GRAPH:-0}"
@@ -101,10 +104,36 @@ if [[ "$ENFORCE_EAGER" == "1" ]]; then
   eager_args+=( --enforce-eager )
 fi
 scheduler_mount_args=()
+scheduler_env_args=()
 scheduler_args=()
 case "$ENABLE_DECODE_FIRST_SCHEDULER" in
   0) ;;
   1)
+    case "$PREFILL_ADMISSION_POLICY" in
+      static)
+        scheduler_class="glm_decode_first_scheduler.DecodeFirstScheduler"
+        ;;
+      adaptive)
+        scheduler_class="glm_decode_first_scheduler.AdaptiveDecodeFirstScheduler"
+        test -s "$ADAPTIVE_SCHEDULER_CONFIG"
+        python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$ADAPTIVE_SCHEDULER_CONFIG"
+        adaptive_config_dir="$(
+          cd -- "$(dirname -- "$ADAPTIVE_SCHEDULER_CONFIG")" && pwd
+        )"
+        adaptive_config_name="$(basename -- "$ADAPTIVE_SCHEDULER_CONFIG")"
+        scheduler_mount_args+=(
+          -v "$adaptive_config_dir:/etc/glm53/adaptive-scheduler:ro"
+        )
+        scheduler_env_args+=(
+          -e "GLM_ADAPTIVE_PREFILL_CONFIG=/etc/glm53/adaptive-scheduler/$adaptive_config_name"
+          -e "GLM_ADAPTIVE_PREFILL_RELOAD_SECONDS=$ADAPTIVE_SCHEDULER_RELOAD_SECONDS"
+        )
+        ;;
+      *)
+        echo "PREFILL_ADMISSION_POLICY must be static or adaptive" >&2
+        exit 2
+        ;;
+    esac
     [[ "$PREFILL_SCHEDULE_INTERVAL" =~ ^[1-9][0-9]*$ ]] || {
       echo "PREFILL_SCHEDULE_INTERVAL must be a positive integer" >&2
       exit 2
@@ -118,7 +147,7 @@ case "$ENABLE_DECODE_FIRST_SCHEDULER" in
       -v "$SCHEDULER_ADAPTER:/usr/local/lib/python3.12/dist-packages/glm_decode_first_scheduler.py:ro"
     )
     scheduler_args+=(
-      --scheduler-cls glm_decode_first_scheduler.DecodeFirstScheduler
+      --scheduler-cls "$scheduler_class"
       --prefill-schedule-interval "$PREFILL_SCHEDULE_INTERVAL"
       --long-prefill-token-threshold "$LONG_PREFILL_TOKEN_THRESHOLD"
     )
@@ -208,6 +237,7 @@ docker run --gpus all -d \
   -e NCCL_CUMEM_ENABLE=0 -e NCCL_IGNORE_CPU_AFFINITY=1 -e NCCL_DEBUG=WARN \
   -e TORCH_NCCL_ASYNC_ERROR_HANDLING=1 \
   "${scheduler_mount_args[@]}" \
+  "${scheduler_env_args[@]}" \
   -v "$TOPK_PATCH:/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py:ro" \
   -v "$DRAFT_HOST_PATH:/models/dflash2-draft:ro" \
   -e EXL3_FUSED_MOE="$EXL3_FUSED_MOE" \

@@ -148,7 +148,8 @@ DRAFT_HOST_PATH="$HOME/.cache/huggingface/glm53-dflash2-bf582e4eacc1810f76656d18
 MAX_MODEL_LEN=1048576 DCP_SIZE=2 USE_FP4_INDEXER_CACHE=0 GPU_MEMORY_UTILIZATION=0.87 \
 USE_CALIBRATED_NVFP4_MLA=1 \
 ENABLE_DECODE_FIRST_SCHEDULER=1 PREFILL_SCHEDULE_INTERVAL=4 \
-LONG_PREFILL_TOKEN_THRESHOLD=512 ./start-cluster.sh
+LONG_PREFILL_TOKEN_THRESHOLD=512 PREFILL_ADMISSION_POLICY=adaptive \
+./start-cluster.sh
 ```
 
 The wrapper starts the worker first, waits for `/health`, and prints the actual
@@ -176,6 +177,13 @@ Rollback only the scheduler:
 
 ```bash
 ENABLE_DECODE_FIRST_SCHEDULER=0 ./start-cluster.sh
+```
+
+Use the previous static 512/4 adapter while retaining its `AsyncScheduler`
+lifecycle:
+
+```bash
+PREFILL_ADMISSION_POLICY=static ./start-cluster.sh
 ```
 
 Rollback to the denser native-FP4 KV profile:
