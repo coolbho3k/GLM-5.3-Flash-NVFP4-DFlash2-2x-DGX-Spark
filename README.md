@@ -1,20 +1,16 @@
 # GLM-5.3-Flash NVFP4 + DFlash2 on 2x NVIDIA DGX Spark
 
 OpenAI-compatible vLLM serving of [zai-org/GLM-5.3-Flash](https://huggingface.co/zai-org/GLM-5.3-Flash)
-(320B total / 18B active MoE) across two DGX Spark (GB10, SM121) nodes at tensor-parallel 2,
-using the [RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4)
-compressed-tensors quant (the corruption-free **default**, see below), a
-native **NVFP4 sparse-MLA + MXFP4 indexer cache** (with FP8 rollback), and the
-[`incoai/GLM-5.3-Flash-DFlash2`](https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2)
-speculative drafter. On the cluster in this checkout, a native FP4/DCP2 cache
-keeps every serving feature while providing at least **2,198,799 logical KV
-tokens** at a 262,144-token request limit and **3,561,829 logical KV tokens**
-at the model-native 1,048,576-token limit. Deployed the same day the model
-dropped.
+(320B total / 18B active MoE) across two DGX Spark (GB10, SM121) nodes at TP2.
+The current profile combines MSE-optimized routed-expert NVFP4, byte-exact
+restoration of 179 official block-FP8 non-expert weights, FP8 KV/indexer,
+DCP2, DFlash2 K=7, and an async decode-first scheduler. Its latest validated
+1M-context boot exposed **3,079,151 logical KV tokens** and measured **34.1
+tok/s** on fixed C1 decode. Native-FP4 KV remains a supported rollback.
 
 ---
 
-## ⭐ Checkpoint: `RedHatAI/GLM-5.3-Flash-NVFP4` is now the default (corruption fix)
+## ⭐ Checkpoint foundation: `RedHatAI/GLM-5.3-Flash-NVFP4`
 
 ModelOpt-quantized NVFP4 builds of GLM-5.3-Flash (`LibertAIDAI/GLM-5.3-Flash-NVFP4` and the abliterated variants) emit **intermittent corrupted token IDs** ([vLLM #54150](https://github.com/vllm-project/vllm/issues/54150)). Nearly invisible in English, but when a corrupted token lands inside a tool-call block the parser desyncs and generation can spiral into a repetition lock.
 
@@ -25,7 +21,7 @@ We reproduced and fixed it on this exact cluster (Korean-Hangul probe, `temperat
 | ModelOpt NVFP4 (LibertAIDAI / keys-ablit) | `modelopt` | 4 / 9 / 8 |
 | **[RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4)** | **`compressed-tensors`** | **0 / 0 / 0** |
 
-**Default checkpoint: `RedHatAI/GLM-5.3-Flash-NVFP4`.** Ungated, same `Glm5NextForConditionalGeneration` arch, **drop-in** — just repoint the model path. Loads ~2x faster (10 large shards vs 120 small). Although its quantization recipe contains input-activation metadata, this repository's active Marlin path is W4A16; it does not use an experimental W4A4 MoE kernel. Make sure the vision `chat_template_mm.jinja` is present in the weights dir or image requests 500.
+**Foundation checkpoint: `RedHatAI/GLM-5.3-Flash-NVFP4`.** The current default is reproducibly derived from it using the optimized-scale and FP8-passthrough recipes. No restored tensor is requantized.
 
 Corruption first flagged by [@ajclark](https://github.com/ajclark) (issue #10). Uncensored (abliterated) builds remain available but carry the ModelOpt corruption until a compressed-tensors abliteration exists.
 
@@ -35,8 +31,9 @@ Pick your weights: **same launcher, same recipe**, just point the model path at 
 
 | | HuggingFace | notes |
 |---|---|---|
-| **⭐ Default (recommended)** | [RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4) | **compressed-tensors, corruption-free** (see fix above) |
+| Red Hat foundation | [RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4) | **compressed-tensors, corruption-free** |
 | Optimized Red Hat layout | [build recipe](docs/NVFP4-WEIGHT-OPTIMIZATION.md) | Same W4A16 Marlin format and serving cost; 9.1114% → 7.7185% sampled weight RMSE |
+| **⭐ Current default** | [reproducible recipe](docs/CURRENT-RECIPE.md) | Optimized NVFP4 experts plus 179 restored W8A16 tensors |
 | Censored (legacy) | [LibertAIDAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4) | stock NVFP4 weight-only — ⚠️ ModelOpt token corruption |
 | **Uncensored (abliterated)** | [drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock](https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock) | abliterated (layers 15-45, anchor-stock), no refusals |
 
@@ -68,14 +65,11 @@ cd /home/emi/code/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark
 The command verifies that the promoted image and critical runtime files match
 on both nodes, copies the required launcher assets to `dgx1.lan`, starts the
 worker before the head, and waits for `/health`. Cold startup takes roughly
-10–15 minutes. The default is the optimized-scale checkpoint with the validated
-model-native 1,048,576-token limit. Override `MODEL_HOST_PATH` or `MAX_MODEL_LEN`
-only when selecting a different checkpoint or profile.
-
-At `gpu-memory-utilization=0.87`, the measured capacities are at least
-2,198,799 logical tokens at the 256K limit and 3,561,829 at the 1M limit. UMA
-state can move the exact block count between cold boots, so the wrapper prints
-the capacity it actually obtained.
+10–15 minutes. The default is the repaired mixed NVFP4/block-FP8 checkpoint,
+the pinned bf582e4 DFlash2 drafter, DCP2, FP8 KV/indexer, the async
+decode-first scheduler, and the model-native 1,048,576-token limit. The latest
+boot reported 3,079,151 logical KV tokens; UMA state can move the exact block
+count, so the wrapper prints the capacity it actually obtained.
 
 The OpenAI-compatible endpoint is `http://10.100.32.1:8000/v1`, and the served
 model name is `glm-5.3-flash`. Check or stop it with:
@@ -89,10 +83,19 @@ Do not launch rank scripts separately for routine operation. The wrapper also
 removes both ranks if startup fails, avoiding a stale worker joining the next
 rendezvous.
 
-The default image, `glm53-v11:kvopt-final`, is already installed on both
-cluster nodes. See [the final KV report](docs/KV-OPTIMIZATION-STATUS.md) for
-physical accounting, capacity by request length, validation, performance,
-image IDs, and rollback commands.
+### Decode-first mixed-workload scheduling
+
+The default `AsyncScheduler` adapter admits mixed-workload prefill once every
+four engine steps and caps each request at 512 tokens on an admitted mixed
+step. Pure-prefill batches retain the normal 8,192-token aggregate budget. It
+must inherit `AsyncScheduler`: the plain `Scheduler` experiment disabled
+DFlash speculation and fell to 11.3 tok/s.
+
+The current settings are `ENABLE_DECODE_FIRST_SCHEDULER=1`,
+`PREFILL_SCHEDULE_INTERVAL=4`, and `LONG_PREFILL_TOKEN_THRESHOLD=512`. Set
+`ENABLE_DECODE_FIRST_SCHEDULER=0` for a complete scheduler rollback. See
+[the current reproducible recipe](docs/CURRENT-RECIPE.md) for validation and
+rollback commands. The default image is `glm53-v12:fp8-passthrough`.
 
 ### Build the optimized image from pinned sources
 
@@ -103,6 +106,7 @@ all DCP2, KDA, page-layout, accounting, and long-context fixes in one Dockerfile
 
 ```bash
 ./build-production-image.sh
+./build-fp8-passthrough-image.sh
 ```
 
 Run that command from a checkout of this branch on both ARM64 DGX Spark nodes.
@@ -116,6 +120,7 @@ files before either rank starts.
 Model weights are deliberately not part of the image. Put the RedHat target
 checkpoint and DFlash2 draft at the launcher defaults on both nodes, or set
 `MODEL_HOST_PATH` and `DRAFT_HOST_PATH` when using the lower-level launcher.
+See [the current reproducible recipe](docs/CURRENT-RECIPE.md) for the complete checkpoint build and validation sequence.
 
 ### Original public FP8 deployment (portable fallback)
 

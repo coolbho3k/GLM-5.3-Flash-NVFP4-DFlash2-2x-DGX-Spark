@@ -1,0 +1,28 @@
+FROM glm53-v11:kv-accounting
+
+COPY --from=sparkinfer b12x /usr/local/lib/python3.12/dist-packages/b12x
+COPY overlay-dflash2/sm121_mxfp4_indexer.py /usr/local/lib/python3.12/dist-packages/b12x/attention/dsa_indexer/sm121_mxfp4.py
+COPY docker/sparse_attn_indexer_kpool_sm121.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py
+COPY overlay-dflash2/patch_b12x_nvfp4_compat.py /tmp/patch_b12x_nvfp4_compat.py
+COPY overlay-dflash2/patch_vllm_nvfp4_experiment.py /tmp/patch_vllm_nvfp4_experiment.py
+COPY overlay-dflash2/patch_vllm_sm121_fp4_indexer.py /tmp/patch_vllm_sm121_fp4_indexer.py
+RUN python3 /tmp/patch_b12x_nvfp4_compat.py \
+    && python3 /tmp/patch_vllm_nvfp4_experiment.py \
+    && python3 /tmp/patch_vllm_sm121_fp4_indexer.py \
+    && rm /tmp/patch_b12x_nvfp4_compat.py /tmp/patch_vllm_nvfp4_experiment.py /tmp/patch_vllm_sm121_fp4_indexer.py \
+    && python3 -m py_compile \
+       /usr/local/lib/python3.12/dist-packages/b12x/attention/_shared/mla/io_mg.py \
+       /usr/local/lib/python3.12/dist-packages/b12x/attention/dsa_indexer/sm121_mxfp4.py \
+       /usr/local/lib/python3.12/dist-packages/vllm/v1/kv_cache_interface.py \
+       /usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_utils.py \
+       /usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_coordinator.py \
+       /usr/local/lib/python3.12/dist-packages/vllm/v1/core/single_type_kv_cache_manager.py \
+       /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/flashinfer_mla_sparse.py \
+       /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/flashinfer_mla_sparse_sm120.py \
+       /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/spec_decode/dflash/utils.py \
+       /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/attention/mla_attention.py \
+       /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py \
+       /usr/local/lib/python3.12/dist-packages/vllm/models/glm5next/nvidia/attention.py \
+       /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/indexer.py \
+       /usr/local/lib/python3.12/dist-packages/vllm/platforms/interface.py \
+    && python3 -c 'from b12x.attention._shared.mla.kv_cache import concat_and_cache_nvfp4_mla_zero_rope'

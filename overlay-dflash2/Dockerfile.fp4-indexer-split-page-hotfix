@@ -1,0 +1,8 @@
+ARG BASE_IMAGE=glm53-v11:nvfp4-dcp2-kda-compact-exp13
+FROM ${BASE_IMAGE}
+
+COPY overlay-dflash2/sm121_mxfp4_indexer.py \
+  /usr/local/lib/python3.12/dist-packages/b12x/attention/dsa_indexer/sm121_mxfp4.py
+
+RUN python3 -m py_compile \
+  /usr/local/lib/python3.12/dist-packages/b12x/attention/dsa_indexer/sm121_mxfp4.py

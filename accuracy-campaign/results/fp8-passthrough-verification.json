@@ -1,0 +1,19 @@
+{
+  "candidate_tensor_bytes": 187587898492,
+  "family_counts": {
+    "dense_mlp": 9,
+    "mla_projection": 44,
+    "shared_expert": 126
+  },
+  "full_content_verified": true,
+  "numeric_equivalence": {
+    "max_abs_error": 0.0,
+    "status": "exact_bf16_match",
+    "values": 2617245696,
+    "weights": 179
+  },
+  "restored_scales": 179,
+  "restored_weights": 179,
+  "schema": 1,
+  "unchanged_tensors": 146566
+}

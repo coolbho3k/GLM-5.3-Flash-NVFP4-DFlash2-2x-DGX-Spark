@@ -1,0 +1,8 @@
+# Logging-only baseline image. Keep this pinned to the production image so
+# accounting measurements do not accidentally change kernels or dependencies.
+FROM ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2
+
+COPY patch_kv_accounting.py /tmp/patch_kv_accounting.py
+RUN python3 /tmp/patch_kv_accounting.py \
+    && python3 -m py_compile \
+        /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py

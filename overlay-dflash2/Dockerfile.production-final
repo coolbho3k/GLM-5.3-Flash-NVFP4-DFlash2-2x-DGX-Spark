@@ -1,0 +1,25 @@
+ARG BASE_IMAGE=glm53-v11:nvfp4-dcp2-kda-compact-exp14
+FROM ${BASE_IMAGE}
+
+COPY overlay-dflash2/patch_compact_replay_production.py \
+     /tmp/patch_compact_replay_production.py
+COPY overlay-dflash2/patch_resident_dtype_inventory.py \
+     /tmp/patch_resident_dtype_inventory.py
+COPY overlay-dflash2/patch_long_context_replicated_groups.py \
+     /tmp/patch_long_context_replicated_groups.py
+COPY overlay-dflash2/patch_long_context_indexer_workspace.py \
+     /tmp/patch_long_context_indexer_workspace.py
+
+RUN python3 /tmp/patch_compact_replay_production.py && \
+    python3 /tmp/patch_resident_dtype_inventory.py && \
+    python3 /tmp/patch_long_context_replicated_groups.py && \
+    python3 /tmp/patch_long_context_indexer_workspace.py && \
+    rm /tmp/patch_compact_replay_production.py \
+       /tmp/patch_resident_dtype_inventory.py \
+       /tmp/patch_long_context_replicated_groups.py \
+       /tmp/patch_long_context_indexer_workspace.py && \
+    python3 -m py_compile \
+      /usr/local/lib/python3.12/dist-packages/vllm/models/glm5next/nvidia/kda.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/model_runner.py

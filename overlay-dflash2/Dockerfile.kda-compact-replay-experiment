@@ -1,0 +1,24 @@
+ARG BASE_IMAGE=glm53-v11:nvfp4-dcp2-kda-fp16-exp5
+FROM ${BASE_IMAGE}
+
+COPY overlay-dflash2/compact_kda_replay.py \
+  /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/mamba/ops/compact_kda_replay.py
+COPY overlay-dflash2/patch_b12x_nvfp4_compat.py \
+  /tmp/patch_b12x_nvfp4_compat.py
+COPY overlay-dflash2/patch_vllm_compact_kda_replay.py \
+  /tmp/patch_vllm_compact_kda_replay.py
+
+RUN python3 /tmp/patch_b12x_nvfp4_compat.py && \
+    python3 /tmp/patch_vllm_compact_kda_replay.py && \
+    python3 -m py_compile \
+      /usr/local/lib/python3.12/dist-packages/b12x/attention/_shared/mla/io_mg.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/mamba/ops/compact_kda_replay.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/mamba/abstract.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/mamba/gdn/kimi_gdn_linear_attn.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/models/kimi_k3/nvidia/ops/third_party/kda/fused_recurrent.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/models/glm5next/nvidia/kda.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/third_party/flash_linear_attention/ops/fused_recurrent.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/third_party/flash_linear_attention/ops/kda.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/model_runner.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/mamba_utils.py

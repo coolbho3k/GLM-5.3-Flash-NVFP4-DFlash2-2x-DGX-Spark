@@ -1,0 +1,13 @@
+ARG BASE_IMAGE=glm53-v11:nvfp4-dcp2-kda-compact-exp14
+FROM ${BASE_IMAGE}
+
+COPY overlay-dflash2/patch_vllm_nvfp4_compat_candidate.py \
+  /tmp/patch_vllm_nvfp4_compat_candidate.py
+
+RUN python3 /tmp/patch_vllm_nvfp4_compat_candidate.py && \
+    rm /tmp/patch_vllm_nvfp4_compat_candidate.py && \
+    python3 -m py_compile \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/kv_cache_interface.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/flashinfer_mla_sparse.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/flashinfer_mla_sparse_sm120.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/platforms/interface.py

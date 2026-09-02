@@ -20,15 +20,16 @@ NODE_RANK="${1:?usage: launch-glm53-vllm-tp2-dflash2.sh <0|1>}"
 [[ "$NODE_RANK" == "0" || "$NODE_RANK" == "1" ]] || { echo "rank must be 0 or 1" >&2; exit 2; }
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-IMAGE="${IMAGE:-glm53-v11:kvopt-final}"
+IMAGE="${IMAGE:-glm53-v12:fp8-passthrough}"
 NAME="${CONTAINER_NAME:-vllm_glm53}"
-MODEL_HOST_PATH="${MODEL_HOST_PATH:-$HOME/.cache/huggingface/glm53-redhat-nvfp4-9eaeadaf026871a90640e32c0604f6ab0b2d641d}"
+MODEL_HOST_PATH="${MODEL_HOST_PATH:-$HOME/.cache/huggingface/glm53-redhat-nvfp4-fp8-passthrough-v1}"
 MODEL_PATH="/models/glm-5.3-flash-nvfp4"
 CACHE_HOST_PATH="${CACHE_HOST_PATH:-$HOME/.cache/huggingface/vllm-cache-glm53}"
 JIT_CACHE_HOST_PATH="${JIT_CACHE_HOST_PATH:-$HOME/.cache/glm53-vllm-jit}"
-DRAFT_HOST_PATH="${DRAFT_HOST_PATH:-$HOME/.cache/huggingface/glm53-dflash2-dc77ff1c99eeb2df044ee3d4f0094eb033fee410}"
+DRAFT_HOST_PATH="${DRAFT_HOST_PATH:-$HOME/.cache/huggingface/glm53-dflash2-bf582e4eacc1810f76656d1811693ff6c6737d2a}"
 TOPK_PATCH="${TOPK_PATCH:-$SCRIPT_DIR/docker/sparse_attn_indexer_kpool_sm121.py}"
 CHAT_TEMPLATE="${CHAT_TEMPLATE:-$SCRIPT_DIR/chat_template_mm.jinja}"
+SCHEDULER_ADAPTER="${SCHEDULER_ADAPTER:-$SCRIPT_DIR/docker/glm_decode_first_scheduler.py}"
 HEAD_IP="${HEAD_IP:-10.100.32.1}"
 WORKER_IP="${WORKER_IP:-10.100.32.2}"
 MPORT="${MASTER_PORT:-29521}"
@@ -36,14 +37,14 @@ PORT="${API_PORT:-8000}"
 NCCL_HCA="${NCCL_IB_HCA:-rocep1s0f1}"
 NCCL_IFACE="${NCCL_SOCKET_IFNAME:-enp1s0f1np1}"
 NCCL_SUBNET="${NCCL_IB_ADDR_RANGE:-10.100.32.0/24}"
-MAX_MODEL_LEN="${MAX_MODEL_LEN:-262144}"
+MAX_MODEL_LEN="${MAX_MODEL_LEN:-1048576}"
 CUDA_LAUNCH_BLOCKING="${CUDA_LAUNCH_BLOCKING:-0}"
 MAX_NUM_BATCHED_TOKENS="${MAX_NUM_BATCHED_TOKENS:-8192}"
 GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.87}"
 VLLM_ATTENTION_BACKEND="${VLLM_ATTENTION_BACKEND:-}"
 VLLM_LOAD_FORMAT="${VLLM_LOAD_FORMAT:-}"
 VLLM_DISABLE_FLASHINFER_AUTOTUNE="${VLLM_DISABLE_FLASHINFER_AUTOTUNE:-0}"
-USE_FP4_INDEXER_CACHE="${USE_FP4_INDEXER_CACHE:-1}"
+USE_FP4_INDEXER_CACHE="${USE_FP4_INDEXER_CACHE:-0}"
 DCP_SIZE="${DCP_SIZE:-2}"
 ENABLE_DFLASH="${ENABLE_DFLASH:-1}"
 QUANTIZATION="${QUANTIZATION:-}"
@@ -51,6 +52,9 @@ MOE_BACKEND="${MOE_BACKEND:-marlin}"
 KV_CACHE_DTYPE="${KV_CACHE_DTYPE:-fp8_e4m3}"
 ENFORCE_EAGER="${ENFORCE_EAGER:-1}"
 MAX_NUM_SEQS="${MAX_NUM_SEQS:-6}"
+ENABLE_DECODE_FIRST_SCHEDULER="${ENABLE_DECODE_FIRST_SCHEDULER:-1}"
+PREFILL_SCHEDULE_INTERVAL="${PREFILL_SCHEDULE_INTERVAL:-4}"
+LONG_PREFILL_TOKEN_THRESHOLD="${LONG_PREFILL_TOKEN_THRESHOLD:-512}"
 EXL3_FUSED_MOE="${EXL3_FUSED_MOE:-1}"
 EXL3_MOE_ROW_TILE="${EXL3_MOE_ROW_TILE:-0}"
 attention_backend_args=()
@@ -89,6 +93,34 @@ eager_args=()
 if [[ "$ENFORCE_EAGER" == "1" ]]; then
   eager_args+=( --enforce-eager )
 fi
+scheduler_mount_args=()
+scheduler_args=()
+case "$ENABLE_DECODE_FIRST_SCHEDULER" in
+  0) ;;
+  1)
+    [[ "$PREFILL_SCHEDULE_INTERVAL" =~ ^[1-9][0-9]*$ ]] || {
+      echo "PREFILL_SCHEDULE_INTERVAL must be a positive integer" >&2
+      exit 2
+    }
+    [[ "$LONG_PREFILL_TOKEN_THRESHOLD" =~ ^[0-9]+$ ]] || {
+      echo "LONG_PREFILL_TOKEN_THRESHOLD must be a non-negative integer" >&2
+      exit 2
+    }
+    test -s "$SCHEDULER_ADAPTER"
+    scheduler_mount_args+=(
+      -v "$SCHEDULER_ADAPTER:/usr/local/lib/python3.12/dist-packages/glm_decode_first_scheduler.py:ro"
+    )
+    scheduler_args+=(
+      --scheduler-cls glm_decode_first_scheduler.DecodeFirstScheduler
+      --prefill-schedule-interval "$PREFILL_SCHEDULE_INTERVAL"
+      --long-prefill-token-threshold "$LONG_PREFILL_TOKEN_THRESHOLD"
+    )
+    ;;
+  *)
+    echo "ENABLE_DECODE_FIRST_SCHEDULER must be 0 or 1" >&2
+    exit 2
+    ;;
+esac
 
 
 case "$NODE_RANK" in
@@ -130,6 +162,7 @@ docker run --gpus all -d \
   -e NCCL_NVLS_ENABLE=0 -e NCCL_CROSS_NIC=0 -e NCCL_IB_MERGE_NICS=0 \
   -e NCCL_CUMEM_ENABLE=0 -e NCCL_IGNORE_CPU_AFFINITY=1 -e NCCL_DEBUG=WARN \
   -e TORCH_NCCL_ASYNC_ERROR_HANDLING=1 \
+  "${scheduler_mount_args[@]}" \
   -v "$TOPK_PATCH:/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py:ro" \
   -v "$DRAFT_HOST_PATH:/models/dflash2-draft:ro" \
   -e EXL3_FUSED_MOE="$EXL3_FUSED_MOE" \
@@ -151,6 +184,7 @@ docker run --gpus all -d \
     --max-model-len "$MAX_MODEL_LEN" \
     --max-num-seqs "$MAX_NUM_SEQS" --block-size 2304 "${moe_backend_args[@]}" "${speculative_args[@]}" --kv-cache-dtype "$KV_CACHE_DTYPE" \
     "${eager_args[@]}" --max-num-batched-tokens "$MAX_NUM_BATCHED_TOKENS" \
+    "${scheduler_args[@]}" \
     --tool-call-parser glm47 --enable-auto-tool-choice \
     --reasoning-parser glm45 --default-chat-template-kwargs '{"enable_thinking":true,"reasoning_effort":"high"}' --chat-template /models/chat_template_mm.jinja \
     --distributed-executor-backend mp \
