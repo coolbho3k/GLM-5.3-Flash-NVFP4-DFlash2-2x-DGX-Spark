@@ -1,0 +1,10 @@
+# Add upstream-style four-over-six NVFP4 scale search to the 288-byte writer.
+ARG BASE_IMAGE=glm53-v12:fp8-passthrough
+FROM ${BASE_IMAGE}
+
+COPY overlay-dflash2/patch_b12x_nvfp4_four_over_six.py \
+     /tmp/patch_b12x_nvfp4_four_over_six.py
+RUN python3 /tmp/patch_b12x_nvfp4_four_over_six.py && \
+    rm /tmp/patch_b12x_nvfp4_four_over_six.py && \
+    python3 -m py_compile \
+      /usr/local/lib/python3.12/dist-packages/b12x/attention/_shared/mla/kv_cache.py

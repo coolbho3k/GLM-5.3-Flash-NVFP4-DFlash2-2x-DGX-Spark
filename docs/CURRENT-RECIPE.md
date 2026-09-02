@@ -2,8 +2,9 @@
 
 This branch reproduces the validated 2x DGX Spark profile on `spark-0` and
 `dgx1.lan`: optimized routed-expert NVFP4 weights, restored official block-FP8
-non-expert weights, FP8 KV/indexer cache, DCP2, DFlash2 K=7, 1M context, and
-the async decode-first scheduler.
+non-expert weights, a 288-byte native-NVFP4 MLA cache with upstream-style
+four-over-six scale search, FP8 indexer cache, DCP2, DFlash2 K=7, 1M context,
+and the async decode-first scheduler.
 
 Model weights are not stored in Git. The scripts deterministically rebuild and
 verify them from public checkpoints.
@@ -19,18 +20,20 @@ verify them from public checkpoints.
 - Image base digest and SparkInfer commit pinned in
   `build-production-image.sh`.
 
-## Build both serving images
+## Build the serving image chain
 
 Run on both ARM64 nodes:
 
 ```bash
 ./build-production-image.sh
 ./build-fp8-passthrough-image.sh
+./build-four-over-six-image.sh
 ```
 
-This creates `glm53-v11:kvopt-final` and
-`glm53-v12:fp8-passthrough`. The cluster wrapper compares the
-runtime-defining files across nodes before launch.
+This creates `glm53-v11:kvopt-final`, `glm53-v12:fp8-passthrough`, and the
+default `glm53-v13:nvfp4-four-over-six`. The last layer changes only the
+288-byte writer's scale selection; the cache ABI and readers are unchanged.
+The cluster wrapper compares runtime-defining files across nodes before launch.
 
 ## Build the checkpoint
 
@@ -60,7 +63,7 @@ The adapter must inherit `AsyncScheduler`. The unit test catches the plain
 docker run --rm --entrypoint python3 \
   -v "$PWD/docker/glm_decode_first_scheduler.py:/workspace/glm_decode_first_scheduler.py:ro" \
   -v "$PWD/probes/test_decode_first_scheduler.py:/workspace/test_decode_first_scheduler.py:ro" \
-  -w /workspace glm53-v12:fp8-passthrough \
+  -w /workspace glm53-v13:nvfp4-four-over-six \
   test_decode_first_scheduler.py
 ```
 
@@ -75,7 +78,7 @@ On `spark-0`:
 That is equivalent to:
 
 ```bash
-IMAGE=glm53-v12:fp8-passthrough \
+IMAGE=glm53-v13:nvfp4-four-over-six \
 MODEL_HOST_PATH="$HOME/.cache/huggingface/glm53-redhat-nvfp4-fp8-passthrough-v1" \
 DRAFT_HOST_PATH="$HOME/.cache/huggingface/glm53-dflash2-bf582e4eacc1810f76656d1811693ff6c6737d2a" \
 MAX_MODEL_LEN=1048576 DCP_SIZE=2 USE_FP4_INDEXER_CACHE=0 \
@@ -86,9 +89,19 @@ LONG_PREFILL_TOKEN_THRESHOLD=512 ./start-cluster.sh
 The wrapper starts the worker first, waits for `/health`, and prints the actual
 boot KV capacity. API base: `http://10.100.32.1:8000/v1`.
 
-Latest validated boot: 3,079,151 logical KV tokens, 34.1 tok/s fixed C1 decode,
-and 45.4% DFlash acceptance. Results vary with prompts, cache state, and UMA
-state.
+Latest validated boot: 3,270,558 logical KV tokens. The fixed two-round C1
+harness measured 37.2 tok/s with 50.4% DFlash token acceptance and zero
+failures. Results vary with prompts, cache state, and UMA state; these serving
+numbers establish no regression, not a statistically isolated speedup.
+
+The numerical and writer-reader validation is recorded in
+[NVFP4-KV-FOUR-OVER-SIX.md](NVFP4-KV-FOUR-OVER-SIX.md).
+
+Rollback only four-over-six:
+
+```bash
+IMAGE=glm53-v12:fp8-passthrough ./start-cluster.sh
+```
 
 Rollback only the scheduler:
 

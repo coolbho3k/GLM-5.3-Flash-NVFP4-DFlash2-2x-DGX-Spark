@@ -4,7 +4,7 @@
 # Defaults select the validated compact native-FP4 KV-cache image.
 #
 # Prerequisites (see README Quickstart):
-#   1. image glm53-v11:kvopt-final present on BOTH nodes (or set IMAGE)
+#   1. image glm53-v13:nvfp4-four-over-six present on BOTH nodes (or set IMAGE)
 #   2. weights at $MODEL_HOST_PATH on BOTH nodes
 #   3. drafter (2.2 GB) at /var/tmp/models/GLM-5.3-Flash-DFlash2 on BOTH nodes
 #   4. cp docker/sparse_attn_indexer_kpool_sm121.py $HOME/patches/sparse_attn_indexer_kpool.py
@@ -20,7 +20,7 @@ NODE_RANK="${1:?usage: launch-glm53-vllm-tp2-dflash2.sh <0|1>}"
 [[ "$NODE_RANK" == "0" || "$NODE_RANK" == "1" ]] || { echo "rank must be 0 or 1" >&2; exit 2; }
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-IMAGE="${IMAGE:-glm53-v12:fp8-passthrough}"
+IMAGE="${IMAGE:-glm53-v13:nvfp4-four-over-six}"
 NAME="${CONTAINER_NAME:-vllm_glm53}"
 MODEL_HOST_PATH="${MODEL_HOST_PATH:-$HOME/.cache/huggingface/glm53-redhat-nvfp4-fp8-passthrough-v1}"
 MODEL_PATH="/models/glm-5.3-flash-nvfp4"

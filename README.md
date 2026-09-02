@@ -3,10 +3,12 @@
 OpenAI-compatible vLLM serving of [zai-org/GLM-5.3-Flash](https://huggingface.co/zai-org/GLM-5.3-Flash)
 (320B total / 18B active MoE) across two DGX Spark (GB10, SM121) nodes at TP2.
 The current profile combines MSE-optimized routed-expert NVFP4, byte-exact
-restoration of 179 official block-FP8 non-expert weights, FP8 KV/indexer,
-DCP2, DFlash2 K=7, and an async decode-first scheduler. Its latest validated
-1M-context boot exposed **3,079,151 logical KV tokens** and measured **34.1
-tok/s** on fixed C1 decode. Native-FP4 KV remains a supported rollback.
+restoration of 179 official block-FP8 non-expert weights, a 288-byte
+native-NVFP4 MLA cache with four-over-six scale search, an FP8 indexer, DCP2,
+DFlash2 K=7, and an async decode-first scheduler. Its latest validated
+1M-context boot exposed **3,270,558 logical KV tokens** and measured **37.2
+tok/s** on the fixed two-round C1 harness. The amax/6 writer remains a
+one-variable rollback.
 
 ---
 
@@ -68,7 +70,7 @@ worker before the head, and waits for `/health`. Cold startup takes roughly
 10–15 minutes. The default is the repaired mixed NVFP4/block-FP8 checkpoint,
 the pinned bf582e4 DFlash2 drafter, DCP2, FP8 KV/indexer, the async
 decode-first scheduler, and the model-native 1,048,576-token limit. The latest
-boot reported 3,079,151 logical KV tokens; UMA state can move the exact block
+boot reported 3,270,558 logical KV tokens; UMA state can move the exact block
 count, so the wrapper prints the capacity it actually obtained.
 
 The OpenAI-compatible endpoint is `http://10.100.32.1:8000/v1`, and the served
@@ -95,7 +97,7 @@ The current settings are `ENABLE_DECODE_FIRST_SCHEDULER=1`,
 `PREFILL_SCHEDULE_INTERVAL=4`, and `LONG_PREFILL_TOKEN_THRESHOLD=512`. Set
 `ENABLE_DECODE_FIRST_SCHEDULER=0` for a complete scheduler rollback. See
 [the current reproducible recipe](docs/CURRENT-RECIPE.md) for validation and
-rollback commands. The default image is `glm53-v12:fp8-passthrough`.
+rollback commands. The default image is `glm53-v13:nvfp4-four-over-six`.
 
 ### Build the optimized image from pinned sources
 
@@ -107,6 +109,7 @@ all DCP2, KDA, page-layout, accounting, and long-context fixes in one Dockerfile
 ```bash
 ./build-production-image.sh
 ./build-fp8-passthrough-image.sh
+./build-four-over-six-image.sh
 ```
 
 Run that command from a checkout of this branch on both ARM64 DGX Spark nodes.
