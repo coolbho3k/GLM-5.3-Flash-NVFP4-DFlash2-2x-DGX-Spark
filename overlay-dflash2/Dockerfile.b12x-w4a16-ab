@@ -1,0 +1,32 @@
+# Derived, opt-in B12X W4A16 MoE experiment. Building this image does not run it.
+ARG BASE_IMAGE=glm53-v14:nvfp4-gscale-tooling
+FROM ${BASE_IMAGE}
+
+LABEL org.opencontainers.image.title="GLM-5.3 Flash B12X W4A16 A/B candidate"
+LABEL ai.glm53.experiment="flashinfer-b12x-w4a16-moe"
+
+COPY b12x_experiment/patch_b12x_swiglu_limit.py /tmp/
+COPY b12x_experiment/patch_b12x_workspace_mode.py /tmp/
+COPY b12x_experiment/patch_b12x_w4a16_ep.py /tmp/
+COPY b12x_experiment/verify_b12x_w4a16_install.py /tmp/
+COPY b12x_experiment/tests/test_b12x_swiglu_limit.py /tmp/
+COPY b12x_experiment/tests/test_b12x_w4a16_ep.py \
+     /opt/glm53-tests/test_b12x_w4a16_ep.py
+
+RUN python3 /tmp/patch_b12x_swiglu_limit.py && \
+    python3 /tmp/patch_b12x_workspace_mode.py && \
+    python3 /tmp/patch_b12x_w4a16_ep.py && \
+    python3 -m py_compile \
+      /usr/local/lib/python3.12/dist-packages/flashinfer/fused_moe/cute_dsl/b12x_moe.py \
+      /usr/local/lib/python3.12/dist-packages/flashinfer/fused_moe/cute_dsl/blackwell_sm12x/moe_dispatch.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/fused_moe/experts/flashinfer_b12x_moe.py \
+      /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/fused_moe/oracle/nvfp4.py \
+      /opt/glm53-tests/test_b12x_w4a16_ep.py && \
+    python3 /tmp/test_b12x_swiglu_limit.py && \
+    python3 /tmp/verify_b12x_w4a16_install.py && \
+    rm \
+      /tmp/patch_b12x_swiglu_limit.py \
+      /tmp/patch_b12x_workspace_mode.py \
+      /tmp/patch_b12x_w4a16_ep.py \
+      /tmp/test_b12x_swiglu_limit.py \
+      /tmp/verify_b12x_w4a16_install.py

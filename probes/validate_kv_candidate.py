@@ -155,6 +155,11 @@ def main() -> None:
         help="Require at least this many prompt tokens in the retrieval probe.",
     )
     parser.add_argument(
+        "--filler-phrase",
+        default="granite willow cobalt river ",
+        help="Repeated text for the long-context probe; change it for a cold prefix.",
+    )
+    parser.add_argument(
         "--video-path",
         help="Optional MP4 path; when set, validate the model's video input path.",
     )
@@ -300,7 +305,7 @@ def main() -> None:
         run_case(results, "video_mp4", video_case)
 
     if not args.skip_long:
-        filler = "granite willow cobalt river " * args.long_repetitions
+        filler = args.filler_phrase * args.long_repetitions
         midpoint = len(filler) // 2
         context = (
             filler[:midpoint]

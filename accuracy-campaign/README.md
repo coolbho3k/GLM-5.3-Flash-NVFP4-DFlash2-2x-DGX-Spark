@@ -41,6 +41,21 @@ projections. Its 72 matrices improved from 9.1114% to 7.7185% mean relative
 weight RMSE. The random-input projection output RMSE improved from 9.1182% to
 7.7231%.
 
+## Global-divisor result
+
+The 16-phase, 32-row global-divisor search reduced representative weight RMSE
+from 7.7185% to 7.6630% (0.7187% relative) and random-input output RMSE from
+7.7211% to 7.6633% (0.7482% relative). The cumulative representative reduction
+from raw Red Hat is 15.8968% for weight RMSE and 29.2665% for weight MSE.
+
+The full two-node build covered 36,288/36,288 matrices and
+304,405,807,104 values. Weighted MSE fell 1.7383% and RMSE 0.8730% relative
+to the group-scale checkpoint. It selected new divisors for 36,271 matrices,
+with 8 held-out and 4 full-matrix safety fallbacks. All ten shard SHA-256
+hashes matched across nodes, and the structural/semantic verifier passed.
+Exact representative and full summaries are
+`results/global-divisor-representative-v1-summary.json` and
+
 Generated `optimized.safetensors` files are intentionally gitignored because
 the largest representative artifact is 340 MB. Regenerate them with
 `probes/optimize_nvfp4_rounding.py`; the JSON reports and pinned source revision

@@ -5,13 +5,13 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-IMAGE="${IMAGE:-glm53-v11:kvopt-final}"
+IMAGE="${IMAGE:-glm53-v14:nvfp4-gscale-tooling}"
 SOURCE_HOST_PATH="${SOURCE_HOST_PATH:?set SOURCE_HOST_PATH to the pinned official FP8 checkpoint}"
 TARGET_HOST_PATH="${TARGET_HOST_PATH:-$HOME/.cache/huggingface/glm53-redhat-nvfp4-9eaeadaf026871a90640e32c0604f6ab0b2d641d}"
 OUTPUT_HOST_PATH="${OUTPUT_HOST_PATH:?set OUTPUT_HOST_PATH to the optimized checkpoint directory}"
 TARGET_SHARDS="${TARGET_SHARDS:?set TARGET_SHARDS to comma-separated Red Hat shard basenames}"
 ROW_CHUNK="${ROW_CHUNK:-256}"
-GLOBAL_DIVISOR_STEPS_PER_OCTAVE="${GLOBAL_DIVISOR_STEPS_PER_OCTAVE:-0}"
+GLOBAL_DIVISOR_STEPS_PER_OCTAVE="${GLOBAL_DIVISOR_STEPS_PER_OCTAVE:-16}"
 GLOBAL_DIVISOR_SEARCH_ROWS="${GLOBAL_DIVISOR_SEARCH_ROWS:-32}"
 GLOBAL_DIVISOR_HELDOUT_TOLERANCE="${GLOBAL_DIVISOR_HELDOUT_TOLERANCE:-0.0}"
 NAME="${CONTAINER_NAME:-glm53_nvfp4_checkpoint_builder}"

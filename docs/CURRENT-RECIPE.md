@@ -28,31 +28,95 @@ Run on both ARM64 nodes:
 ./build-production-image.sh
 ./build-fp8-passthrough-image.sh
 ./build-four-over-six-image.sh
+./build-gscale-tooling-image.sh
 ```
 
-This creates `glm53-v11:kvopt-final`, `glm53-v12:fp8-passthrough`, and the
-default `glm53-v13:nvfp4-four-over-six`. The last layer changes only the
-288-byte writer's scale selection; the cache ABI and readers are unchanged.
-The cluster wrapper compares runtime-defining files across nodes before launch.
+This creates `glm53-v11:kvopt-final`, `glm53-v12:fp8-passthrough`,
+`glm53-v13:nvfp4-four-over-six`, and the default
+`glm53-v14:nvfp4-gscale-tooling`. The v13 layer changes the 288-byte writer's
+scale selection; v14 adds the calibrated per-layer outer-scale loader and
+offline calibration tools without changing the cache ABI. The cluster wrapper
+compares runtime-defining files across nodes before launch.
 
 ## Build the checkpoint
 
-First build all ten optimized NVFP4 shards using
-[NVFP4-WEIGHT-OPTIMIZATION.md](NVFP4-WEIGHT-OPTIMIZATION.md). Then:
+The exact validated artifact uses two weight-optimization phases. Phase one
+optimizes each group-16 E4M3 scale with the original tensor divisor. The repair
+then restores 179 official block-FP8 tensors. Phase two searches the global
+divisor's E4M3-grid phase and retains the phase-one tensor whenever either
+safety gate rejects a candidate.
+
+Set these paths on both nodes:
 
 ```bash
-SOURCE_HOST_PATH=/path/to/zai-org-GLM-5.3-Flash-03eb536 \
-BASE_HOST_PATH="$HOME/.cache/huggingface/glm53-redhat-nvfp4-optimized-scales-v1" \
-OUTPUT_HOST_PATH="$HOME/.cache/huggingface/glm53-redhat-nvfp4-fp8-passthrough-v1" \
-./build-fp8-passthrough-checkpoint.sh
+SOURCE=/path/to/zai-org-GLM-5.3-Flash-03eb536
+REDHAT=/path/to/RedHatAI-GLM-5.3-Flash-NVFP4
+SCALE="$HOME/.cache/huggingface/glm53-redhat-nvfp4-optimized-scales-v1"
+FIXED="$HOME/.cache/huggingface/glm53-redhat-nvfp4-fp8-passthrough-v1"
+FINAL="$HOME/.cache/huggingface/glm53-nvfp4-global-divisor-v1"
 ```
 
-The repair is byte-preserving, not a new quantization pass. It leaves the
-optimized routed experts unchanged and restores 179 official block-FP8 weights
-plus scales. Its verifier checks the source hash, every tensor byte, and
-numeric equivalence. The completed artifact left 146,566 tensors unchanged and
-matched all 2,617,245,696 checked BF16 values exactly. Copy the resulting
-checkpoint and pinned drafter to the same absolute paths on both nodes.
+For each optimization phase, assign shards 1–5 to the head and 6–10 to the
+worker through the comma-separated `TARGET_SHARDS` variable:
+
+```bash
+# Head node:
+TARGET_SHARDS=model-00001-of-00010.safetensors,model-00002-of-00010.safetensors,model-00003-of-00010.safetensors,model-00004-of-00010.safetensors,model-00005-of-00010.safetensors
+
+# dgx1:
+TARGET_SHARDS=model-00006-of-00010.safetensors,model-00007-of-00010.safetensors,model-00008-of-00010.safetensors,model-00009-of-00010.safetensors,model-00010-of-00010.safetensors
+```
+Run the group-scale phase on both nodes:
+
+```bash
+SOURCE_HOST_PATH="$SOURCE" TARGET_HOST_PATH="$REDHAT" \
+OUTPUT_HOST_PATH="$SCALE" TARGET_SHARDS="$TARGET_SHARDS" \
+GLOBAL_DIVISOR_STEPS_PER_OCTAVE=0 IMAGE=glm53-v14:nvfp4-gscale-tooling \
+./build-optimized-nvfp4-shards.sh
+```
+
+Exchange the five completed shards so `SCALE` is complete on both nodes, then
+restore the official FP8 tensors on each:
+
+```bash
+SOURCE_HOST_PATH="$SOURCE" BASE_HOST_PATH="$SCALE" \
+OUTPUT_HOST_PATH="$FIXED" ./build-fp8-passthrough-checkpoint.sh
+```
+
+Now run the global-divisor phase, again splitting the ten shards across the two
+nodes:
+
+```bash
+SOURCE_HOST_PATH="$SOURCE" TARGET_HOST_PATH="$FIXED" \
+OUTPUT_HOST_PATH="$FINAL" TARGET_SHARDS="$TARGET_SHARDS" \
+GLOBAL_DIVISOR_STEPS_PER_OCTAVE=16 GLOBAL_DIVISOR_SEARCH_ROWS=32 \
+GLOBAL_DIVISOR_HELDOUT_TOLERANCE=0 IMAGE=glm53-v14:nvfp4-gscale-tooling \
+./build-optimized-nvfp4-shards.sh
+```
+
+Before exchanging final shards, preserve each node's generic JSONL report as
+`nvfp4-build-tensors-head.jsonl` or
+`nvfp4-build-tensors-dgx1.jsonl`. Assemble all ten final shards and both
+reports on both nodes, then verify:
+
+```bash
+docker run --rm --entrypoint /usr/bin/python3 \
+  -v "$PWD/probes:/workspace/probes:ro" \
+  -v "$FIXED:/base:ro" -v "$FINAL:/candidate" \
+  glm53-v14:nvfp4-gscale-tooling \
+  /workspace/probes/verify_nvfp4_checkpoint.py \
+    --base-root /base --candidate-root /candidate \
+    --build-report /candidate/nvfp4-build-tensors-head.jsonl \
+    --build-report /candidate/nvfp4-build-tensors-dgx1.jsonl \
+    --allow-global-divisor-changes \
+    --output /candidate/global-divisor-full-verification.json
+```
+
+The verified build covered all 36,288 matrices. Weighted MSE fell 1.7383% and
+weighted RMSE 0.8730%; 8 held-out and 4 full-matrix gates safely fell back.
+Both nodes' ten shard hashes matched. See
+`accuracy-campaign/results/global-divisor-full-v1-summary.json` and
+[NVFP4-WEIGHT-OPTIMIZATION.md](NVFP4-WEIGHT-OPTIMIZATION.md).
 
 ## Validate the scheduler
 
@@ -63,7 +127,7 @@ The adapter must inherit `AsyncScheduler`. The unit test catches the plain
 docker run --rm --entrypoint python3 \
   -v "$PWD/docker/glm_decode_first_scheduler.py:/workspace/glm_decode_first_scheduler.py:ro" \
   -v "$PWD/probes/test_decode_first_scheduler.py:/workspace/test_decode_first_scheduler.py:ro" \
-  -w /workspace glm53-v13:nvfp4-four-over-six \
+  -w /workspace glm53-v14:nvfp4-gscale-tooling \
   test_decode_first_scheduler.py
 ```
 
@@ -78,10 +142,11 @@ On `spark-0`:
 That is equivalent to:
 
 ```bash
-IMAGE=glm53-v13:nvfp4-four-over-six \
-MODEL_HOST_PATH="$HOME/.cache/huggingface/glm53-redhat-nvfp4-fp8-passthrough-v1" \
+IMAGE=glm53-v14:nvfp4-gscale-tooling \
+MODEL_HOST_PATH="$HOME/.cache/huggingface/glm53-nvfp4-global-divisor-v1" \
 DRAFT_HOST_PATH="$HOME/.cache/huggingface/glm53-dflash2-bf582e4eacc1810f76656d1811693ff6c6737d2a" \
-MAX_MODEL_LEN=1048576 DCP_SIZE=2 USE_FP4_INDEXER_CACHE=0 \
+MAX_MODEL_LEN=1048576 DCP_SIZE=2 USE_FP4_INDEXER_CACHE=0 GPU_MEMORY_UTILIZATION=0.87 \
+USE_CALIBRATED_NVFP4_MLA=1 \
 ENABLE_DECODE_FIRST_SCHEDULER=1 PREFILL_SCHEDULE_INTERVAL=4 \
 LONG_PREFILL_TOKEN_THRESHOLD=512 ./start-cluster.sh
 ```
@@ -89,10 +154,14 @@ LONG_PREFILL_TOKEN_THRESHOLD=512 ./start-cluster.sh
 The wrapper starts the worker first, waits for `/health`, and prints the actual
 boot KV capacity. API base: `http://10.100.32.1:8000/v1`.
 
-Latest validated boot: 3,270,558 logical KV tokens. The fixed two-round C1
+Latest validated 0.87 boot: 3,020,897 logical KV tokens. A cold 176,041-token
+retrieval completed correctly in 123.10 seconds, about 1,430 input tok/s; its
+follow-up reused 163,840 prefix tokens. The preceding fixed two-round C1
 harness measured 37.2 tok/s with 50.4% DFlash token acceptance and zero
 failures. Results vary with prompts, cache state, and UMA state; these serving
 numbers establish no regression, not a statistically isolated speedup.
+
+The prepared but unlaunched B12X W4A16 A/B is in [../b12x_experiment](../b12x_experiment/README.md).
 
 The numerical and writer-reader validation is recorded in
 [NVFP4-KV-FOUR-OVER-SIX.md](NVFP4-KV-FOUR-OVER-SIX.md).

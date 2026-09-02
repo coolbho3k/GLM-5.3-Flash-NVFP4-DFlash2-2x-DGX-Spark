@@ -6,9 +6,10 @@ The current profile combines MSE-optimized routed-expert NVFP4, byte-exact
 restoration of 179 official block-FP8 non-expert weights, a 288-byte
 native-NVFP4 MLA cache with four-over-six scale search, an FP8 indexer, DCP2,
 DFlash2 K=7, and an async decode-first scheduler. Its latest validated
-1M-context boot exposed **3,270,558 logical KV tokens** and measured **37.2
-tok/s** on the fixed two-round C1 harness. The amax/6 writer remains a
-one-variable rollback.
+0.87/1M-context boot exposed **3,020,897 logical KV tokens**; a cold
+176,041-token retrieval measured **about 1,430 input tok/s** and returned the
+correct sentinel. The latest fixed two-round C1 harness measured **37.2
+tok/s**. The amax/6 writer remains a one-variable rollback.
 
 ---
 
@@ -34,7 +35,7 @@ Pick your weights: **same launcher, same recipe**, just point the model path at 
 | | HuggingFace | notes |
 |---|---|---|
 | Red Hat foundation | [RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4) | **compressed-tensors, corruption-free** |
-| Optimized Red Hat layout | [build recipe](docs/NVFP4-WEIGHT-OPTIMIZATION.md) | Same W4A16 Marlin format and serving cost; 9.1114% → 7.7185% sampled weight RMSE |
+| Optimized Red Hat layout | [build recipe](docs/NVFP4-WEIGHT-OPTIMIZATION.md) | Same W4A16 Marlin format and serving cost; group-scale plus global-divisor optimization |
 | **⭐ Current default** | [reproducible recipe](docs/CURRENT-RECIPE.md) | Optimized NVFP4 experts plus 179 restored W8A16 tensors |
 | Censored (legacy) | [LibertAIDAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4) | stock NVFP4 weight-only — ⚠️ ModelOpt token corruption |
 | **Uncensored (abliterated)** | [drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock](https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock) | abliterated (layers 15-45, anchor-stock), no refusals |
@@ -67,11 +68,12 @@ cd /home/emi/code/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark
 The command verifies that the promoted image and critical runtime files match
 on both nodes, copies the required launcher assets to `dgx1.lan`, starts the
 worker before the head, and waits for `/health`. Cold startup takes roughly
-10–15 minutes. The default is the repaired mixed NVFP4/block-FP8 checkpoint,
-the pinned bf582e4 DFlash2 drafter, DCP2, FP8 KV/indexer, the async
-decode-first scheduler, and the model-native 1,048,576-token limit. The latest
-boot reported 3,270,558 logical KV tokens; UMA state can move the exact block
-count, so the wrapper prints the capacity it actually obtained.
+10–15 minutes. The default is the repaired and globally optimized mixed
+NVFP4/block-FP8 checkpoint, the pinned bf582e4 DFlash2 drafter, DCP2,
+native-NVFP4 MLA KV, an FP8 indexer, the async decode-first scheduler, and the
+model-native 1,048,576-token limit. The latest
+0.87 boot reported 3,020,897 logical KV tokens; UMA state can move the exact
+block count, so the wrapper prints the capacity it actually obtained.
 
 The OpenAI-compatible endpoint is `http://10.100.32.1:8000/v1`, and the served
 model name is `glm-5.3-flash`. Check or stop it with:
@@ -97,7 +99,18 @@ The current settings are `ENABLE_DECODE_FIRST_SCHEDULER=1`,
 `PREFILL_SCHEDULE_INTERVAL=4`, and `LONG_PREFILL_TOKEN_THRESHOLD=512`. Set
 `ENABLE_DECODE_FIRST_SCHEDULER=0` for a complete scheduler rollback. See
 [the current reproducible recipe](docs/CURRENT-RECIPE.md) for validation and
-rollback commands. The default image is `glm53-v13:nvfp4-four-over-six`.
+rollback commands. The default image is `glm53-v14:nvfp4-gscale-tooling`.
+### Prepared FlashInfer B12X W4A16 A/B
+
+An opt-in `glm53-v15:b12x-w4a16-ab` image is built on both cluster nodes but
+has not been launched. It derives from the exact v14 production image and adds
+the proven expert-map, SwiGLU-clamp, and bounded-workspace fixes. The guarded
+harness compares cold 8K/32K/128K prefill plus decode with and without an
+overlapping 32K prefill. See
+[the B12X experiment recipe](b12x_experiment/README.md). No backend is promoted
+automatically.
+
+
 
 ### Build the optimized image from pinned sources
 
@@ -110,6 +123,7 @@ all DCP2, KDA, page-layout, accounting, and long-context fixes in one Dockerfile
 ./build-production-image.sh
 ./build-fp8-passthrough-image.sh
 ./build-four-over-six-image.sh
+./build-gscale-tooling-image.sh
 ```
 
 Run that command from a checkout of this branch on both ARM64 DGX Spark nodes.
@@ -120,10 +134,12 @@ directory. Set `SPARKINFER_REPO=/path/to/sparkinfer` to use another clone or
 have different image IDs; `start-cluster.sh` compares the runtime-defining
 files before either rank starts.
 
-Model weights are deliberately not part of the image. Put the RedHat target
-checkpoint and DFlash2 draft at the launcher defaults on both nodes, or set
-`MODEL_HOST_PATH` and `DRAFT_HOST_PATH` when using the lower-level launcher.
-See [the current reproducible recipe](docs/CURRENT-RECIPE.md) for the complete checkpoint build and validation sequence.
+Model weights are deliberately not part of the image. Put the derived checkpoint
+at `~/.cache/huggingface/glm53-nvfp4-global-divisor-v1` and the DFlash2 draft
+at the launcher defaults on both nodes, or set `MODEL_HOST_PATH` and
+`DRAFT_HOST_PATH`. See
+[the current reproducible recipe](docs/CURRENT-RECIPE.md) for the complete
+checkpoint build and validation sequence.
 
 ### Original public FP8 deployment (portable fallback)
 

@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "method": "group16_e2m1_mse_scale_and_global_divisor_search",
+  "source_revision": "03eb5366286afd40d2221b1d9c63a6dd1ba4832e",
+  "baseline_checkpoint": "glm53-redhat-nvfp4-fp8-passthrough-v1",
+  "sample": {
+    "layers": [
+      3,
+      23,
+      43
+    ],
+    "experts": [
+      0,
+      1,
+      17,
+      63,
+      127,
+      191,
+      255,
+      287
+    ],
+    "projections": [
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "matrices": 72
+  },
+  "search": {
+    "scale_code_offsets": [
+      -16,
+      8
+    ],
+    "global_divisor_steps_per_octave": 16,
+    "global_divisor_search_rows": 32,
+    "heldout_tolerance": 0
+  },
+  "results": {
+    "baseline_weight_relative_rmse": 0.07718490871290366,
+    "selected_weight_relative_rmse": 0.07663014396611187,
+    "weight_rmse_relative_reduction": 0.007187476879130461,
+    "weight_mse_relative_reduction": 0.014323293934372927,
+    "baseline_output_relative_rmse": 0.0772110376920965,
+    "selected_output_relative_rmse": 0.07663334740532769,
+    "output_rmse_relative_reduction": 0.00748196506660781,
+    "output_mse_relative_reduction": 0.014907950331957687,
+    "raw_redhat_weight_relative_rmse": 0.09111443130920331,
+    "raw_redhat_to_selected_weight_rmse_relative_reduction": 0.15896809248512989,
+    "raw_redhat_to_selected_weight_mse_relative_reduction": 0.2926653305418989,
+    "raw_redhat_output_relative_rmse": 0.09118229864786069,
+    "raw_redhat_to_selected_output_rmse_relative_reduction": 0.15955894354802325,
+    "global_divisors_changed": 72,
+    "heldout_gate_fallbacks": 0
+  }
+}

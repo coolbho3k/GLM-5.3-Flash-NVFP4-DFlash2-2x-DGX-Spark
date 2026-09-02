@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "method": "group16_e2m1_mse_scale_and_global_divisor_search",
+  "source_revision": "03eb5366286afd40d2221b1d9c63a6dd1ba4832e",
+  "baseline_checkpoint": "glm53-redhat-nvfp4-fp8-passthrough-v1",
+  "candidate_checkpoint": "glm53-nvfp4-global-divisor-v1",
+  "search": {
+    "scale_code_offsets": [
+      -16,
+      8
+    ],
+    "global_divisor_steps_per_octave": 16,
+    "global_divisor_search_rows": 32,
+    "heldout_tolerance": 0
+  },
+  "verification": {
+    "status": "PASS",
+    "shards": 10,
+    "cross_node_sha256_match": true,
+    "expected_matrices": 36288,
+    "unique_matrices": 36288,
+    "report_rows": 36297,
+    "duplicate_matrix_report_rows": 9,
+    "duplicate_packed_report_rows": 0,
+    "expected_replacement_tensors": 108864,
+    "unchanged_content_samples": 30
+  },
+  "results": {
+    "values": 304405807104,
+    "baseline_weighted_mse": 2.146012720397682e-06,
+    "selected_weighted_mse": 2.1087078527848907e-06,
+    "weighted_mse_relative_reduction": 0.017383339464026037,
+    "weighted_rmse_relative_reduction": 0.00872977421089971,
+    "global_divisors_changed": 36271,
+    "heldout_gate_fallbacks": 8,
+    "full_matrix_gate_fallbacks": 4
+  }
+}

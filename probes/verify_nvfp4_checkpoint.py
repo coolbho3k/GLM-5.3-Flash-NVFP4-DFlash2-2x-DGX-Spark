@@ -6,8 +6,11 @@ from __future__ import annotations
 import argparse
 import filecmp
 import json
+import math
 import re
-from collections import defaultdict
+import statistics
+import struct
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -61,6 +64,19 @@ def matrix_key(packed_name: str) -> tuple[int, int, str]:
     )
 
 
+def safetensors_payload_size(path: Path) -> int:
+    """Return tensor-data bytes, excluding the variable-length JSON header."""
+    with path.open("rb") as handle:
+        encoded_header_size = handle.read(8)
+    if len(encoded_header_size) != 8:
+        raise AssertionError(f"truncated safetensors header: {path}")
+    header_size = struct.unpack("<Q", encoded_header_size)[0]
+    serialized_size = path.stat().st_size
+    if header_size > serialized_size - 8:
+        raise AssertionError(f"invalid safetensors header size: {path}")
+    return serialized_size - 8 - header_size
+
+
 def tensor_contract_and_samples(
     base_root: Path,
     candidate_root: Path,
@@ -83,8 +99,10 @@ def tensor_contract_and_samples(
         candidate_path = candidate_root / shard
         if not candidate_path.is_file():
             raise FileNotFoundError(candidate_path)
-        if base_path.stat().st_size != candidate_path.stat().st_size:
-            raise AssertionError(f"serialized shard size changed: {shard}")
+        base_payload_size = safetensors_payload_size(base_path)
+        candidate_payload_size = safetensors_payload_size(candidate_path)
+        if base_payload_size != candidate_payload_size:
+            raise AssertionError(f"tensor payload size changed: {shard}")
         with safe_open(base_path, framework="pt", device="cpu") as base, safe_open(
             candidate_path, framework="pt", device="cpu"
         ) as candidate:
@@ -158,6 +176,7 @@ def tensor_contract_and_samples(
                     raise AssertionError(f"non-target tensor changed: {name}")
             result[shard] = {
                 "bytes": candidate_path.stat().st_size,
+                "payload_bytes": candidate_payload_size,
                 "tensors": len(base_names),
                 "sampled_target_matrices": len(changed_samples),
                 "changed_packed_samples": changed_packed_samples,
@@ -173,7 +192,10 @@ def verify_reports(
     expected_matrices: set[tuple[int, int, str]],
 ) -> dict[str, Any]:
     reported: set[tuple[int, int, str]] = set()
+    matrix_rows: dict[tuple[int, int, str], dict[str, Any]] = {}
+    packed_rows: dict[tuple[int, int, str], dict[str, Any]] = {}
     rows = 0
+    packed_report_rows = 0
     lower_boundary_max = 0.0
     upper_boundary_max = 0.0
     for path in report_paths:
@@ -181,7 +203,27 @@ def verify_reports(
             for line in handle:
                 row = json.loads(line)
                 rows += 1
-                reported.add((row["layer"], row["expert"], row["projection"]))
+                key = (row["layer"], row["expert"], row["projection"])
+                previous = matrix_rows.get(key)
+                if previous is not None:
+                    stable_fields = (
+                        "shape",
+                        "groups",
+                        "values",
+                        "original_global_divisor",
+                        "selected_global_divisor",
+                        "global_divisor_multiplier",
+                        "global_divisor_search",
+                        "search",
+                    )
+                    if any(previous[field] != row[field] for field in stable_fields):
+                        raise AssertionError(f"inconsistent build-report rows for {key}")
+                else:
+                    matrix_rows[key] = row
+                reported.add(key)
+                if row.get("replace_packed"):
+                    packed_report_rows += 1
+                    packed_rows[key] = row
                 lower_boundary_max = max(
                     lower_boundary_max, float(row["search"]["lower_boundary_fraction"])
                 )
@@ -192,12 +234,85 @@ def verify_reports(
         missing = sorted(expected_matrices - reported)[:20]
         extra = sorted(reported - expected_matrices)[:20]
         raise AssertionError(f"build-report coverage mismatch: missing={missing}, extra={extra}")
-    return {
+    result = {
         "report_rows": rows,
         "unique_matrices": len(reported),
+        "duplicate_matrix_report_rows": rows - len(matrix_rows),
+        "packed_report_rows": packed_report_rows,
+        "duplicate_packed_report_rows": (
+            packed_report_rows - len(packed_rows)
+        ),
         "lower_boundary_fraction_max": lower_boundary_max,
         "upper_boundary_fraction_max": upper_boundary_max,
     }
+    if set(packed_rows) != expected_matrices:
+        missing = sorted(expected_matrices - set(packed_rows))[:20]
+        extra = sorted(set(packed_rows) - expected_matrices)[:20]
+        raise AssertionError(
+            "packed build-report coverage mismatch: "
+            f"missing={missing}, extra={extra}"
+        )
+
+    gates = [
+        row.get("global_divisor_search", {}).get("full_matrix_gate")
+        for row in packed_rows.values()
+    ]
+    if all(gate is not None for gate in gates):
+        baseline_sse = 0.0
+        selected_pre_gate_sse = 0.0
+        selected_sse = 0.0
+        full_gate_fallbacks = 0
+        heldout_fallbacks = 0
+        changed_divisors = 0
+        matrix_improvements: list[float] = []
+        multiplier_histogram: Counter[str] = Counter()
+        values = 0
+        for row, gate in zip(packed_rows.values(), gates, strict=True):
+            assert gate is not None
+            count = int(row["values"])
+            baseline_mse = float(gate["baseline_mse"])
+            selected_pre_gate_mse = float(gate["selected_mse_before_gate"])
+            full_fallback = bool(gate["fell_back"])
+            selected_mse = baseline_mse if full_fallback else selected_pre_gate_mse
+            multiplier = float(
+                row["global_divisor_search"]["selected_multiplier"]
+            )
+
+            values += count
+            baseline_sse += baseline_mse * count
+            selected_pre_gate_sse += selected_pre_gate_mse * count
+            selected_sse += selected_mse * count
+            full_gate_fallbacks += int(full_fallback)
+            heldout_fallbacks += int(
+                bool(row["global_divisor_search"].get("fell_back"))
+            )
+            changed_divisors += int(multiplier != 1.0)
+            multiplier_histogram[f"{multiplier:.12g}"] += 1
+            matrix_improvements.append(1.0 - selected_mse / baseline_mse)
+
+        mse_ratio = selected_sse / baseline_sse
+        result["global_divisor_optimization"] = {
+            "matrices": len(packed_rows),
+            "values": values,
+            "changed_divisors": changed_divisors,
+            "heldout_gate_fallbacks": heldout_fallbacks,
+            "full_matrix_gate_fallbacks": full_gate_fallbacks,
+            "baseline_weighted_mse": baseline_sse / values,
+            "selected_pre_gate_weighted_mse": selected_pre_gate_sse / values,
+            "selected_weighted_mse": selected_sse / values,
+            "weighted_mse_relative_reduction": 1.0 - mse_ratio,
+            "weighted_rmse_relative_reduction": 1.0 - math.sqrt(mse_ratio),
+            "per_matrix_mse_relative_reduction": {
+                "minimum": min(matrix_improvements),
+                "median": statistics.median(matrix_improvements),
+                "mean": statistics.fmean(matrix_improvements),
+                "maximum": max(matrix_improvements),
+            },
+            "selected_multiplier_histogram": dict(
+                sorted(multiplier_histogram.items(), key=lambda item: float(item[0]))
+            ),
+        }
+    return result
 
 
 def verify_reference_replacements(
