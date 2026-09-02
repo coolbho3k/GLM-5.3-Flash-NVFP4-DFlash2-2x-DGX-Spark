@@ -15,7 +15,12 @@ import numpy as np
 import torch
 
 import kv_calibration.runtime as runtime
-from kv_calibration.fit import fit_layer, load_capture, split_layer
+from kv_calibration.fit import (
+    apply_cross_validation_gate,
+    fit_layer,
+    load_capture,
+    split_layer,
+)
 from kv_calibration.numerics import (
     E4M3_POSITIVE,
     evaluate_groups,
@@ -42,6 +47,28 @@ B12X_PATCH = _module(
 VLLM_PATCH = _module(
     "gscale_vllm_patch", ROOT / "overlay-dflash2/patch_vllm_nvfp4_gscale.py"
 )
+
+
+class SelectedArtifactTest(unittest.TestCase):
+    def test_checked_in_v1_artifact_loads_strictly(self) -> None:
+        artifact = ROOT / "kv_calibration/results/nvfp4-gscale-v1.json"
+        with mock.patch.dict(
+            os.environ,
+            {"VLLM_NVFP4_MLA_SCALES_FILE": str(artifact)},
+        ), mock.patch.object(
+            runtime, "_SCALE_PATH", None
+        ), mock.patch.object(
+            runtime, "_SCALE_LAYERS", None
+        ):
+            layers = runtime._load_scale_layers()
+        self.assertEqual(len(layers), 11)
+        self.assertEqual(
+            layers["language_model.model.layers.43.self_attn.attn"], 1.0
+        )
+        self.assertAlmostEqual(
+            layers["language_model.model.layers.19.self_attn.attn"],
+            2.0**-0.5,
+        )
 
 
 class NumericsTest(unittest.TestCase):
@@ -156,6 +183,41 @@ class ArtifactAndFitTest(unittest.TestCase):
                 result["heldout"]["selected"]["mse"],
                 result["heldout"]["baseline"]["mse"],
             )
+
+    def test_cross_validation_gate_falls_back_on_independent_regression(self) -> None:
+        rng = np.random.default_rng(19)
+        heldout = rng.normal(size=(256, 16)).astype(np.float32)
+        baseline = evaluate_groups(heldout, latent_scale=1.0)
+        deliberately_bad = evaluate_groups(heldout, latent_scale=1e6)
+        result = {
+            "global_scale": 1e-6,
+            "latent_scale": 1e6,
+            "train": {
+                "baseline": baseline,
+                "selected": deliberately_bad,
+            },
+            "heldout": {
+                "baseline": baseline,
+                "selected": deliberately_bad,
+            },
+        }
+        passed = apply_cross_validation_gate(
+            result,
+            [("independent-node", heldout)],
+            objective="mse",
+            blend_relative_weight=0.1,
+            chunk_rows=64,
+            minimum_improvement_percent=0.0,
+        )
+        self.assertFalse(passed)
+        self.assertEqual(result["global_scale"], 1.0)
+        self.assertEqual(result["latent_scale"], 1.0)
+        self.assertTrue(result["cross_validation_gate_fell_back_to_one"])
+        self.assertFalse(result["cross_validation"][0]["passed"])
+        self.assertEqual(
+            result["train"]["selected"]["mse"],
+            result["train"]["baseline"]["mse"],
+        )
 
 
 class PatcherTest(unittest.TestCase):

@@ -13,12 +13,18 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import sys
 
+import numpy as np
 import torch
 
 from b12x.attention._shared.mla.kv_cache import (
     concat_and_cache_nvfp4_mla_zero_rope,
 )
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from kv_calibration.numerics import quantize_groups_four_over_six
 
 
 E2M1 = torch.tensor(
@@ -97,6 +103,20 @@ def main() -> None:
     group_sse = squared.sum(dim=-1)
     payload = records.cpu().numpy().tobytes()
     scale_payload = records[:, 256:288].cpu().numpy().tobytes()
+    source_numpy = source_groups.cpu().numpy().reshape(-1, 16)
+    reconstructed_numpy = reconstructed.cpu().numpy().reshape(-1, 16)
+    reference = quantize_groups_four_over_six(
+        source_numpy, latent_scale=args.latent_scale
+    )
+    reference_error = reference.reconstruction - source_numpy
+    gpu_cpu_difference = reconstructed_numpy - reference.reconstruction
+    gpu_scale_codes = records[:, 256:288].cpu().numpy().reshape(-1)
+    scale_code_mismatches = int(
+        np.count_nonzero(gpu_scale_codes != reference.scale_codes)
+    )
+    reconstruction_mismatch_groups = int(
+        np.count_nonzero(np.any(gpu_cpu_difference != 0.0, axis=1))
+    )
     if args.dump is not None:
         torch.save(
             {
@@ -147,6 +167,17 @@ def main() -> None:
                 "mean_group_sse": float(group_sse.mean().item()),
                 "max_group_sse": float(group_sse.max().item()),
                 "zero_scale_groups": int((scales == 0).sum().item()),
+                "cpu_reference_mse": float(np.mean(reference_error**2)),
+                "gpu_cpu_mse_delta": float(
+                    squared.mean().item() - np.mean(reference_error**2)
+                ),
+                "gpu_cpu_scale_code_mismatches": scale_code_mismatches,
+                "gpu_cpu_reconstruction_mismatch_groups": (
+                    reconstruction_mismatch_groups
+                ),
+                "gpu_cpu_reconstruction_max_abs_difference": float(
+                    np.max(np.abs(gpu_cpu_difference))
+                ),
                 "payload_sha256": hashlib.sha256(payload).hexdigest(),
                 "scale_sha256": hashlib.sha256(scale_payload).hexdigest(),
                 "writer_timings": timings,

@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 WORKER_HOST="${WORKER_HOST:-dgx1.lan}"
 REMOTE_DIR="${REMOTE_DIR:-$HOME/.cache/glm53-tp2-deploy}"
 CONTAINER_NAME="${CONTAINER_NAME:-vllm_glm53}"
-IMAGE="${IMAGE:-glm53-v13:nvfp4-four-over-six}"
+IMAGE="${IMAGE:-glm53-v14:nvfp4-gscale-tooling}"
 MODEL_HOST_PATH="${MODEL_HOST_PATH:-$HOME/.cache/huggingface/glm53-redhat-nvfp4-fp8-passthrough-v1}"
 DRAFT_HOST_PATH="${DRAFT_HOST_PATH:-$HOME/.cache/huggingface/glm53-dflash2-bf582e4eacc1810f76656d1811693ff6c6737d2a}"
 API_PORT="${API_PORT:-8000}"
@@ -22,8 +22,18 @@ CUDA_LAUNCH_BLOCKING="${CUDA_LAUNCH_BLOCKING:-0}"
 ENABLE_DECODE_FIRST_SCHEDULER="${ENABLE_DECODE_FIRST_SCHEDULER:-1}"
 PREFILL_SCHEDULE_INTERVAL="${PREFILL_SCHEDULE_INTERVAL:-4}"
 LONG_PREFILL_TOKEN_THRESHOLD="${LONG_PREFILL_TOKEN_THRESHOLD:-512}"
-NVFP4_CALIBRATION_HOST_PATH="${NVFP4_CALIBRATION_HOST_PATH:-}"
-NVFP4_MLA_SCALES_FILE="${NVFP4_MLA_SCALES_FILE:-}"
+USE_CALIBRATED_NVFP4_MLA="${USE_CALIBRATED_NVFP4_MLA:-1}"
+if [[ "$USE_CALIBRATED_NVFP4_MLA" == "1" ]]; then
+  NVFP4_CALIBRATION_HOST_PATH="${NVFP4_CALIBRATION_HOST_PATH:-$SCRIPT_DIR/kv_calibration/results}"
+  NVFP4_MLA_SCALES_FILE="${NVFP4_MLA_SCALES_FILE:-nvfp4-gscale-v1.json}"
+elif [[ "$USE_CALIBRATED_NVFP4_MLA" == "0" ]]; then
+  NVFP4_CALIBRATION_HOST_PATH="${NVFP4_CALIBRATION_HOST_PATH:-}"
+  NVFP4_MLA_SCALES_FILE=""
+else
+  echo "USE_CALIBRATED_NVFP4_MLA must be 0 or 1" >&2
+  exit 2
+fi
+REMOTE_NVFP4_CALIBRATION_HOST_PATH="${REMOTE_NVFP4_CALIBRATION_HOST_PATH:-$REMOTE_DIR/nvfp4-calibration}"
 ENABLE_NVFP4_MLA_CAPTURE="${ENABLE_NVFP4_MLA_CAPTURE:-0}"
 NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM="${NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM:-65536}"
 NVFP4_MLA_CAPTURE_GROUPS_PER_CALL="${NVFP4_MLA_CAPTURE_GROUPS_PER_CALL:-1024}"
@@ -94,6 +104,20 @@ remote_runtime="$(ssh "${ssh_opts[@]}" "$WORKER_HOST" "$remote_checksum_command"
   exit 1
 }
 
+worker_calibration_host_path="$NVFP4_CALIBRATION_HOST_PATH"
+if [[ -n "$NVFP4_MLA_SCALES_FILE" ]]; then
+  scale_artifact="$NVFP4_CALIBRATION_HOST_PATH/$NVFP4_MLA_SCALES_FILE"
+  test -s "$scale_artifact" || {
+    echo "Missing NVFP4 MLA scale artifact: $scale_artifact" >&2
+    exit 1
+  }
+  worker_calibration_host_path="$REMOTE_NVFP4_CALIBRATION_HOST_PATH"
+  ssh "${ssh_opts[@]}" "$WORKER_HOST" \
+    "mkdir -p $(printf '%q' "$worker_calibration_host_path")"
+  scp "${ssh_opts[@]}" "$scale_artifact" \
+    "$WORKER_HOST:$worker_calibration_host_path/$NVFP4_MLA_SCALES_FILE"
+fi
+
 ssh "${ssh_opts[@]}" "$WORKER_HOST" "mkdir -p $(printf '%q' "$REMOTE_DIR/docker")"
 scp "${ssh_opts[@]}" \
   "$SCRIPT_DIR/launch-glm53-vllm-tp2-dflash2.sh" \
@@ -111,7 +135,7 @@ ssh "${ssh_opts[@]}" "$WORKER_HOST" \
 echo "Starting worker rank on $WORKER_HOST..."
 trap cleanup_failed_start ERR INT TERM
 ssh "${ssh_opts[@]}" "$WORKER_HOST" \
-  "cd $(printf '%q' "$REMOTE_DIR") && CONTAINER_NAME=$(printf '%q' "$CONTAINER_NAME") IMAGE=$(printf '%q' "$IMAGE") MODEL_HOST_PATH=$(printf '%q' "$MODEL_HOST_PATH") DRAFT_HOST_PATH=$(printf '%q' "$DRAFT_HOST_PATH") API_PORT=$(printf '%q' "$API_PORT") HEAD_IP=$(printf '%q' "$HEAD_IP") WORKER_IP=$(printf '%q' "$WORKER_IP") DCP_SIZE=$(printf '%q' "$DCP_SIZE") USE_FP4_INDEXER_CACHE=$(printf '%q' "$USE_FP4_INDEXER_CACHE") GPU_MEMORY_UTILIZATION=$(printf '%q' "$GPU_MEMORY_UTILIZATION") MAX_MODEL_LEN=$(printf '%q' "$MAX_MODEL_LEN") CUDA_LAUNCH_BLOCKING=$(printf '%q' "$CUDA_LAUNCH_BLOCKING") ENABLE_DECODE_FIRST_SCHEDULER=$(printf '%q' "$ENABLE_DECODE_FIRST_SCHEDULER") PREFILL_SCHEDULE_INTERVAL=$(printf '%q' "$PREFILL_SCHEDULE_INTERVAL") LONG_PREFILL_TOKEN_THRESHOLD=$(printf '%q' "$LONG_PREFILL_TOKEN_THRESHOLD") NVFP4_CALIBRATION_HOST_PATH=$(printf '%q' "$NVFP4_CALIBRATION_HOST_PATH") NVFP4_MLA_SCALES_FILE=$(printf '%q' "$NVFP4_MLA_SCALES_FILE") ENABLE_NVFP4_MLA_CAPTURE=$(printf '%q' "$ENABLE_NVFP4_MLA_CAPTURE") NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM=$(printf '%q' "$NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM") NVFP4_MLA_CAPTURE_GROUPS_PER_CALL=$(printf '%q' "$NVFP4_MLA_CAPTURE_GROUPS_PER_CALL") ./launch-glm53-vllm-tp2-dflash2.sh 1"
+  "cd $(printf '%q' "$REMOTE_DIR") && CONTAINER_NAME=$(printf '%q' "$CONTAINER_NAME") IMAGE=$(printf '%q' "$IMAGE") MODEL_HOST_PATH=$(printf '%q' "$MODEL_HOST_PATH") DRAFT_HOST_PATH=$(printf '%q' "$DRAFT_HOST_PATH") API_PORT=$(printf '%q' "$API_PORT") HEAD_IP=$(printf '%q' "$HEAD_IP") WORKER_IP=$(printf '%q' "$WORKER_IP") DCP_SIZE=$(printf '%q' "$DCP_SIZE") USE_FP4_INDEXER_CACHE=$(printf '%q' "$USE_FP4_INDEXER_CACHE") GPU_MEMORY_UTILIZATION=$(printf '%q' "$GPU_MEMORY_UTILIZATION") MAX_MODEL_LEN=$(printf '%q' "$MAX_MODEL_LEN") CUDA_LAUNCH_BLOCKING=$(printf '%q' "$CUDA_LAUNCH_BLOCKING") ENABLE_DECODE_FIRST_SCHEDULER=$(printf '%q' "$ENABLE_DECODE_FIRST_SCHEDULER") PREFILL_SCHEDULE_INTERVAL=$(printf '%q' "$PREFILL_SCHEDULE_INTERVAL") LONG_PREFILL_TOKEN_THRESHOLD=$(printf '%q' "$LONG_PREFILL_TOKEN_THRESHOLD") NVFP4_CALIBRATION_HOST_PATH=$(printf '%q' "$worker_calibration_host_path") NVFP4_MLA_SCALES_FILE=$(printf '%q' "$NVFP4_MLA_SCALES_FILE") ENABLE_NVFP4_MLA_CAPTURE=$(printf '%q' "$ENABLE_NVFP4_MLA_CAPTURE") NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM=$(printf '%q' "$NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM") NVFP4_MLA_CAPTURE_GROUPS_PER_CALL=$(printf '%q' "$NVFP4_MLA_CAPTURE_GROUPS_PER_CALL") ./launch-glm53-vllm-tp2-dflash2.sh 1"
 sleep 25
 echo "Starting head rank on $(hostname)..."
 CONTAINER_NAME="$CONTAINER_NAME" IMAGE="$IMAGE" MODEL_HOST_PATH="$MODEL_HOST_PATH" API_PORT="$API_PORT" \

@@ -230,6 +230,75 @@ def fit_layer(
     }
 
 
+def apply_cross_validation_gate(
+    result: dict[str, Any],
+    validation_holdouts: list[tuple[str, np.ndarray]],
+    *,
+    objective: str,
+    blend_relative_weight: float,
+    chunk_rows: int,
+    minimum_improvement_percent: float,
+) -> bool:
+    """Fall back to G=1 unless every independent holdout clears the gate."""
+    candidate_latent_scale = float(result["latent_scale"])
+    validations: list[dict[str, Any]] = []
+    passed = True
+    for label, heldout in validation_holdouts:
+        baseline = evaluate_groups(
+            heldout, latent_scale=1.0, chunk_rows=chunk_rows
+        )
+        selected = evaluate_groups(
+            heldout,
+            latent_scale=candidate_latent_scale,
+            chunk_rows=chunk_rows,
+        )
+        baseline_objective = _objective(
+            baseline,
+            kind=objective,
+            baseline=baseline,
+            blend_relative_weight=blend_relative_weight,
+        )
+        selected_objective = _objective(
+            selected,
+            kind=objective,
+            baseline=baseline,
+            blend_relative_weight=blend_relative_weight,
+        )
+        improvement = 100.0 * (
+            baseline_objective - selected_objective
+        ) / max(abs(baseline_objective), 1e-300)
+        source_passed = (
+            candidate_latent_scale == 1.0
+            or improvement >= minimum_improvement_percent
+        )
+        passed = passed and source_passed
+        validations.append(
+            {
+                "label": label,
+                "heldout_groups": int(len(heldout)),
+                "baseline": baseline,
+                "candidate": selected,
+                "objective_improvement_percent": improvement,
+                "passed": source_passed,
+            }
+        )
+
+    result["cross_validation"] = validations
+    result["cross_validation_gate_fell_back_to_one"] = (
+        bool(validation_holdouts)
+        and candidate_latent_scale != 1.0
+        and not passed
+    )
+    if result["cross_validation_gate_fell_back_to_one"]:
+        result["pre_cross_validation_global_scale"] = result["global_scale"]
+        result["pre_cross_validation_latent_scale"] = result["latent_scale"]
+        result["global_scale"] = 1.0
+        result["latent_scale"] = 1.0
+        result["train"]["selected"] = result["train"]["baseline"]
+        result["heldout"]["selected"] = result["heldout"]["baseline"]
+    return passed
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("captures", nargs="+", type=Path)
@@ -244,6 +313,21 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=20260902)
     parser.add_argument("--chunk-rows", type=int, default=32768)
     parser.add_argument("--allow-heldout-regression", action="store_true")
+    parser.add_argument(
+        "--cross-validation-root",
+        action="append",
+        default=[],
+        type=Path,
+        help=(
+            "independently gate the merged candidate on this capture root; "
+            "repeat for each node or capture population"
+        ),
+    )
+    parser.add_argument(
+        "--minimum-cross-validation-improvement-percent",
+        type=float,
+        default=0.0,
+    )
     args = parser.parse_args()
 
     if args.steps_per_octave <= 0:
@@ -252,6 +336,8 @@ def main() -> None:
         parser.error("--holdout-fraction must be between zero and one")
     if args.per_stratum_limit <= 1:
         parser.error("--per-stratum-limit must exceed one")
+    if args.minimum_cross_validation_improvement_percent < 0.0:
+        parser.error("--minimum-cross-validation-improvement-percent must be nonnegative")
     exponent_count = int(
         round((args.log2_global_max - args.log2_global_min) * args.steps_per_octave)
     )
@@ -261,6 +347,15 @@ def main() -> None:
     capture, sources = load_capture(
         args.captures, per_stratum_limit=args.per_stratum_limit
     )
+    cross_captures: list[tuple[str, dict[str, dict[str, np.ndarray]], int]] = []
+    for root in args.cross_validation_root:
+        cross_capture, cross_sources = load_capture(
+            [root], per_stratum_limit=args.per_stratum_limit
+        )
+        cross_captures.append(
+            (str(root), cross_capture, len(cross_sources))
+        )
+
     layers: dict[str, Any] = {}
     for layer, strata in sorted(capture.items()):
         train, heldout, coverage = split_layer(
@@ -278,6 +373,28 @@ def main() -> None:
             heldout_gate=not args.allow_heldout_regression,
         )
         result["coverage"] = coverage
+        validation_holdouts: list[tuple[str, np.ndarray]] = []
+        for label, cross_capture, _ in cross_captures:
+            if layer not in cross_capture:
+                raise ValueError(
+                    f"cross-validation root {label!r} has no data for {layer}"
+                )
+            _, cross_heldout, _ = split_layer(
+                cross_capture[layer],
+                holdout_fraction=args.holdout_fraction,
+                seed=_stable_seed(args.seed, layer),
+            )
+            validation_holdouts.append((label, cross_heldout))
+        apply_cross_validation_gate(
+            result,
+            validation_holdouts,
+            objective=args.objective,
+            blend_relative_weight=args.blend_relative_weight,
+            chunk_rows=args.chunk_rows,
+            minimum_improvement_percent=(
+                args.minimum_cross_validation_improvement_percent
+            ),
+        )
         layers[layer] = result
         print(
             f"{layer}: G={result['global_scale']:.8g} "
@@ -303,6 +420,15 @@ def main() -> None:
             "holdout_fraction": args.holdout_fraction,
             "seed": args.seed,
             "heldout_gate": not args.allow_heldout_regression,
+        },
+        "cross_validation_gate": {
+            "roots": [
+                {"path": label, "source_shards": source_count}
+                for label, _, source_count in cross_captures
+            ],
+            "minimum_improvement_percent": (
+                args.minimum_cross_validation_improvement_percent
+            ),
         },
         "sources": sources,
         "layers": layers,

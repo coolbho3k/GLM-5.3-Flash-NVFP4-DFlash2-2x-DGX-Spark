@@ -1,8 +1,9 @@
 # NVFP4 KV outer-scale calibration tooling
 
-Status: not calibrated yet. An uncalibrated `G=1` v14 boot and GPU writer
-probe pass, but no model capture or fit has run and no scale artifact has been
-served. The known-good v13 state remains the rollback baseline.
+Status: calibrated and validated on 2026-09-02. The cross-node-gated v1
+artifact is checked in at `kv_calibration/results/nvfp4-gscale-v1.json`
+and is the default for the v14 cluster launcher. Set
+`USE_CALIBRATED_NVFP4_MLA=0` for the exact `G=1` rollback.
 
 ## What it calibrates
 
@@ -25,6 +26,35 @@ quiet groups disproportionate weight. Every report includes MSE, NMSE,
 mean/p95/p99 group-relative MSE, `/4` selection rate, zero-scale rate, and
 saturation rate.
 
+## Selected v1 result
+
+The fit used 330 capture shards from both DCP ranks, 15 prefill/decode strata,
+and 196 prompts. The final grid searched `G=1 ... 2` at 32 steps per
+octave. Candidates were fit on the merged population, held out by stratum, and
+then independently required not to regress on either node. Layer 43 failed the
+independent worker gate and reverted to `G=1`.
+
+| layer | G | reader L |
+|---:|---:|---:|
+| 3 | 1.090508 | 0.917004 |
+| 7 | 1.114387 | 0.897355 |
+| 11 | 1.000000 | 1.000000 |
+| 15 | 1.138789 | 0.878126 |
+| 19 | 1.414214 | 0.707107 |
+| 23 | 1.383910 | 0.722590 |
+| 27 | 1.090508 | 0.917004 |
+| 31 | 1.414214 | 0.707107 |
+| 35 | 1.044274 | 0.957603 |
+| 39 | 1.414214 | 0.707107 |
+| 43 | 1.000000 | 1.000000 |
+
+Merged held-out MSE improves 0.24171%; independent head and worker holdouts
+improve 0.16250% and 0.20658%. All seven distinct selected `L` values
+produced exactly the CPU-reference E4M3 scale codes in the real SM121 writer;
+GPU/reference MSE differed by at most `8.4e-9`. The serving gate passed
+exact text, arithmetic, tools, vision, a 390,042-token retrieval, and a
+378,880-token prefix-cache replay. The record remains exactly 288 bytes/token.
+
 ## Public corpus recipe
 
 Start with NVIDIA ModelOpt's public calibration blend: `cnn_dailymail` plus
@@ -32,6 +62,12 @@ Start with NVIDIA ModelOpt's public calibration blend: `cnn_dailymail` plus
 128K, and 256K for retrieval, multi-hop, aggregation, and QA. Finally add code,
 multilingual, and redacted deployment-representative chat. See
 `kv_calibration/corpus-plan.example.json` for suggested counts.
+
+The selected v1 corpus contains 48 natural-chat, 48 summarization, 32 code, 32
+math-reasoning, and 30 multilingual-NLI prompts, plus three retrieval and three
+aggregation prompts spanning approximately 32K, 128K, and 256K. Prompts are
+calibration inputs only; reference answers are not captured or used to fit the
+scale.
 
 The checked-in public builder caches source rows, excludes reference answers,
 and sizes the long prompts with the exact deployed tokenizer:
@@ -73,7 +109,7 @@ This creates `glm53-v14:nvfp4-gscale-tooling`. Merely building it does not
 touch the live server. With no calibration environment variables, its runtime
 defaults to `L=1` and capture disabled.
 
-## Capture (do not run until approved)
+## Capture
 
 The future capture launch must mount a host directory at the same path on all
 ranks and set:
@@ -120,17 +156,26 @@ explicit calibration mode and can reduce serving performance; do not enable it
 for normal traffic. Shards are atomically checkpointed and are mergeable across
 both ranks and worker processes by their random reservoir priorities.
 
-## Fit (do not run until capture is approved and complete)
+## Fit
 
 ```bash
-python3 -m kv_calibration.fit /path/to/captures \
+python3 -m kv_calibration.fit \
+  /path/to/captures-head /path/to/captures-worker \
   --output /path/to/nvfp4-gscale.json \
-  --objective mse
+  --objective mse \
+  --log2-global-min 0 --log2-global-max 1 \
+  --steps-per-octave 32 \
+  --per-stratum-limit 8192 \
+  --cross-validation-root /path/to/captures-head \
+  --cross-validation-root /path/to/captures-worker \
+  --minimum-cross-validation-improvement-percent 0
 ```
 
-The default grid searches `G=2^-4 ... 2^16` in 1/8-octave increments, balances
-the bounded strata, reserves 20% held out, and falls back to `G=1` for a layer
-if its chosen scale regresses on held-out data. Alternate exploratory fits:
+The selected recipe canonicalizes power-of-two-equivalent scale phases to
+`G >= 1`, balances bounded strata, reserves 20% held out, and falls back to
+`G=1` if a layer regresses on either the merged holdout or an independent
+capture root. The broader default grid remains useful for exploration.
+Alternate objectives:
 
 ```bash
 python3 -m kv_calibration.fit /path/to/captures \
@@ -140,35 +185,42 @@ python3 -m kv_calibration.fit /path/to/captures \
   --blend-relative-weight 0.10
 ```
 
-## Serve a validated artifact (do not run until approved)
+## Serve the validated artifact
 
-Mount the JSON into both ranks and set:
+Build v14 on both nodes. The checked-in cluster wrapper copies the selected
+artifact to the worker and mounts the local copy into the head automatically:
 
 ```bash
-VLLM_NVFP4_MLA_SCALES_FILE=/calibration/nvfp4-gscale.json
-VLLM_NVFP4_MLA_SCALES_STRICT=1
+./build-gscale-tooling-image.sh
+./start-cluster.sh
 ```
 
-With the project launcher, place the artifact under the same absolute host
-directory on both nodes and use its filename:
+To serve another fit:
 
 ```bash
 IMAGE=glm53-v14:nvfp4-gscale-tooling \
-NVFP4_CALIBRATION_HOST_PATH="$HOME/.cache/glm53-nvfp4-calibration" \
+NVFP4_CALIBRATION_HOST_PATH="$HOME/.cache/glm53-nvfp4-calibration/custom" \
 NVFP4_MLA_SCALES_FILE=nvfp4-gscale.json ./start-cluster.sh
 ```
 
 Strict mode rejects a malformed schema, wrong algorithm/layout, invalid scale,
 or a missing MLA layer entry during model initialization. Writer and reader use
-the same `L`. No environment variable means the known-good `L=1` behavior.
+the same `L`. Roll back only the outer scales with:
 
-## Required validation before keeping it
+```bash
+USE_CALIBRATED_NVFP4_MLA=0 ./start-cluster.sh
+```
 
-1. Compare CPU emulation to the GPU writer/reader at every selected layer scale.
-2. Require held-out MSE/NMSE improvement with acceptable relative-tail metrics.
-3. Boot at 1M context and verify the exact 288-byte accounting/KV capacity.
-4. Run deterministic short, coding, multilingual, 32K/128K/256K RULER, and
-   long-chat continuation checks against v13.
-5. Benchmark warmed C1 decode, prefill, and mixed load. A static outer scale is
-   not expected to impose meaningful steady-state overhead, but it must be
-   measured rather than assumed.
+## Completed validation
+
+- CPU fit: merged and per-node held-out non-regression gates passed.
+- GPU writer: every distinct selected scale matched all 12,288 reference scale
+  codes; MSE parity passed.
+- Capacity: the 288-byte layout and accounting are unchanged. A temporary 0.85
+  validation boot exposed 2,063,863 logical tokens (1.97x at 1M); UMA state
+  controls the exact number of allocated blocks.
+- End to end: all short functional and 390K retrieval/prefix cases passed.
+- Serving: the first matched two-request C1 run measured 35.6 tok/s versus 36.2
+  tok/s at `G=1`. The stochastic benchmark's acceptance varies enough that
+  this is treated as no isolated speed claim; the static scale adds no record
+  bytes or additional kernel stage.

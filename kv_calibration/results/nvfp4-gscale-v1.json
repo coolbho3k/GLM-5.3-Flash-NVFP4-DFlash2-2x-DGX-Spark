@@ -1,0 +1,61 @@
+{
+  "algorithm": "nvfp4-e2m1-e4m3-four-over-six",
+  "calibration": {
+    "capture_shards": 330,
+    "corpus_prompts": 196,
+    "cross_validation_head_mse_improvement_percent": 0.16249980276002343,
+    "cross_validation_worker_mse_improvement_percent": 0.20658259460654596,
+    "date": "2026-09-02",
+    "heldout_mse_improvement_percent": 0.24170993661410436,
+    "per_stratum_limit": 8192,
+    "seed": 20260902
+  },
+  "layers": {
+    "language_model.model.layers.11.self_attn.attn": {
+      "global_scale": 1.0,
+      "latent_scale": 1.0
+    },
+    "language_model.model.layers.15.self_attn.attn": {
+      "global_scale": 1.1387886347566916,
+      "latent_scale": 0.8781260801866498
+    },
+    "language_model.model.layers.19.self_attn.attn": {
+      "global_scale": 1.4142135623730951,
+      "latent_scale": 0.7071067811865475
+    },
+    "language_model.model.layers.23.self_attn.attn": {
+      "global_scale": 1.383909881963832,
+      "latent_scale": 0.7225904034885233
+    },
+    "language_model.model.layers.27.self_attn.attn": {
+      "global_scale": 1.0905077326652577,
+      "latent_scale": 0.9170040432046712
+    },
+    "language_model.model.layers.3.self_attn.attn": {
+      "global_scale": 1.0905077326652577,
+      "latent_scale": 0.9170040432046712
+    },
+    "language_model.model.layers.31.self_attn.attn": {
+      "global_scale": 1.4142135623730951,
+      "latent_scale": 0.7071067811865475
+    },
+    "language_model.model.layers.35.self_attn.attn": {
+      "global_scale": 1.0442737824274138,
+      "latent_scale": 0.9576032806985737
+    },
+    "language_model.model.layers.39.self_attn.attn": {
+      "global_scale": 1.4142135623730951,
+      "latent_scale": 0.7071067811865475
+    },
+    "language_model.model.layers.43.self_attn.attn": {
+      "global_scale": 1.0,
+      "latent_scale": 1.0
+    },
+    "language_model.model.layers.7.self_attn.attn": {
+      "global_scale": 1.1143867425958924,
+      "latent_scale": 0.8973545375015537
+    }
+  },
+  "record_layout": "glm-zero-rope-288b",
+  "schema": "glm-nvfp4-mla-gscale-v1"
+}
