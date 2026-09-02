@@ -1,8 +1,8 @@
 # NVFP4 KV outer-scale calibration tooling
 
-Status: tooling candidate only. It has not been used to capture the model,
-fit scales, or launch a calibrated server. The known-good v13 server remains
-the production state.
+Status: not calibrated yet. An uncalibrated `G=1` v14 boot and GPU writer
+probe pass, but no model capture or fit has run and no scale artifact has been
+served. The known-good v13 state remains the rollback baseline.
 
 ## What it calibrates
 
@@ -32,6 +32,19 @@ Start with NVIDIA ModelOpt's public calibration blend: `cnn_dailymail` plus
 128K, and 256K for retrieval, multi-hop, aggregation, and QA. Finally add code,
 multilingual, and redacted deployment-representative chat. See
 `kv_calibration/corpus-plan.example.json` for suggested counts.
+
+The checked-in public builder caches source rows, excludes reference answers,
+and sizes the long prompts with the exact deployed tokenizer:
+
+```bash
+python3 -m kv_calibration.prepare_corpus \
+  --cache-dir "$HOME/.cache/glm53-nvfp4-calibration/corpus-v1/sources" \
+  --output "$HOME/.cache/glm53-nvfp4-calibration/corpus-v1/corpus.jsonl"
+```
+
+After the first download, add `--offline` for a network-independent rebuild.
+The tokenizer endpoint must be healthy unless `--skip-long` is used.
+
 
 The corpus driver accepts JSONL rows containing either:
 
@@ -93,8 +106,14 @@ Then drive requests sequentially so the sidecar control label is unambiguous:
 ```bash
 python3 -m kv_calibration.drive_capture corpus.jsonl \
   --control /path/shared-with-server/control.json \
+  --remote-control dgx1.lan:/same/absolute/path/control.json \
   --model MODEL_SERVED_BY_VLLM
 ```
+
+After the corpus, the driver advances a two-node `flush_epoch` and sends one
+one-token request. Each layer checkpoints its reservoir before sampling that
+request, so even the final long-context stratum is durable. Use
+`--no-final-flush` only when intentionally driving an older tooling image.
 
 Capture copies only a bounded sample of 16-value groups to CPU. It is an
 explicit calibration mode and can reduce serving performance; do not enable it

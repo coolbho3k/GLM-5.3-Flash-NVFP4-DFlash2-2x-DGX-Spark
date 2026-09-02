@@ -92,7 +92,12 @@ class _Control:
     _lock = threading.Lock()
     _checked_at = 0.0
     _mtime_ns = -1
-    _value: dict[str, Any] = {"bucket": "unlabeled", "phase": "auto", "enabled": True}
+    _value: dict[str, Any] = {
+        "bucket": "unlabeled",
+        "phase": "auto",
+        "enabled": True,
+        "flush_epoch": 0,
+    }
 
     @classmethod
     def get(cls) -> dict[str, Any]:
@@ -113,10 +118,14 @@ class _Control:
                     phase = str(value.get("phase", "auto"))
                     if phase not in ("auto", "prefill", "decode", "mixed"):
                         raise ValueError(f"invalid capture phase: {phase}")
+                    flush_epoch = int(value.get("flush_epoch", 0))
+                    if flush_epoch < 0:
+                        raise ValueError("flush_epoch must be non-negative")
                     cls._value = {
                         "bucket": bucket,
                         "phase": phase,
                         "enabled": bool(value.get("enabled", True)),
+                        "flush_epoch": flush_epoch,
                     }
                     cls._mtime_ns = mtime
             except FileNotFoundError:
@@ -182,6 +191,7 @@ class LayerCollector:
         self._sample_offset = 0
         self._lock = threading.Lock()
         self._reservoirs: dict[str, _PriorityReservoir] = {}
+        self._flush_epoch = 0
 
     def _reservoir(self, stratum: str) -> _PriorityReservoir:
         existing = self._reservoirs.get(stratum)
@@ -199,6 +209,10 @@ class LayerCollector:
     @torch.no_grad()
     def observe(self, kv_c: torch.Tensor, slot_mapping: torch.Tensor) -> None:
         control = _Control.get()
+        flush_epoch = int(control["flush_epoch"])
+        if flush_epoch != self._flush_epoch:
+            self._flush_epoch = flush_epoch
+            self.flush()
         if not control["enabled"] or kv_c.numel() == 0:
             return
         token_count = min(int(kv_c.shape[0]), int(slot_mapping.numel()))

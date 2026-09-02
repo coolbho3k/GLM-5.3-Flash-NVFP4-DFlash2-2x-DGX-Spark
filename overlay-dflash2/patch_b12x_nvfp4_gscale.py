@@ -161,18 +161,6 @@ REPLACEMENTS = [
 """,
     ),
     (
-        "compile labels",
-        """            "per_token_scale",
-            "zero_rope",
-        ),
-""",
-        """            "per_token_scale",
-            "zero_rope",
-            "latent_scale",
-        ),
-""",
-    ),
-    (
         "zero-rope op signature",
         """def _concat_and_cache_nvfp4_mla_zero_rope_op(
     kv_c: torch.Tensor,

@@ -12,6 +12,7 @@ import unittest
 from unittest import mock
 
 import numpy as np
+import torch
 
 import kv_calibration.runtime as runtime
 from kv_calibration.fit import fit_layer, load_capture, split_layer
@@ -79,6 +80,43 @@ class NumericsTest(unittest.TestCase):
         self.assertLess(scaled["zero_scale_fraction"], baseline["zero_scale_fraction"])
 
 
+class CaptureRuntimeTest(unittest.TestCase):
+    def test_flush_epoch_persists_once_while_disabled(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with mock.patch.dict(
+                os.environ,
+                {
+                    "VLLM_NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM": "8",
+                    "VLLM_NVFP4_MLA_CAPTURE_GROUPS_PER_CALL": "2",
+                },
+            ):
+                collector = runtime.LayerCollector("layer.3", Path(directory))
+                collector._reservoir("natural__prefill").add(
+                    np.ones((3, 16), np.float32)
+                )
+                control = {
+                    "bucket": "disabled",
+                    "phase": "auto",
+                    "enabled": False,
+                    "flush_epoch": 1,
+                }
+                with mock.patch.object(
+                    runtime._Control, "get", return_value=control
+                ), mock.patch.object(
+                    collector, "flush", wraps=collector.flush
+                ) as flush:
+                    empty_values = torch.empty((0, 512))
+                    empty_slots = torch.empty((0,), dtype=torch.int64)
+                    collector.observe(empty_values, empty_slots)
+                    collector.observe(empty_values, empty_slots)
+                    self.assertEqual(flush.call_count, 1)
+                paths = list(Path(directory).rglob("*.npz"))
+                self.assertEqual(len(paths), 1)
+                with np.load(paths[0], allow_pickle=False) as shard:
+                    metadata = json.loads(str(shard["metadata"].item()))
+                    self.assertEqual(metadata["rows"], 3)
+
+
 class ArtifactAndFitTest(unittest.TestCase):
     def test_load_split_and_fit(self) -> None:
         rng = np.random.default_rng(11)
@@ -132,6 +170,10 @@ class PatcherTest(unittest.TestCase):
             self.assertIn(B12X_PATCH.MARKER, result)
             self.assertIn("latent_scale=latent_scale", result)
             self.assertIn("\n        6,\n", result)
+            descriptions = {
+                description for description, _, _ in B12X_PATCH.REPLACEMENTS
+            }
+            self.assertNotIn("compile labels", descriptions)
             self.assertFalse(B12X_PATCH.patch(target))
             self.assertEqual(result, target.read_text())
 
