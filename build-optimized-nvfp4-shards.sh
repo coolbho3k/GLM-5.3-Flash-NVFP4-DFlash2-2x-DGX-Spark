@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Rebuild selected Red Hat NVFP4 safetensor shards with MSE-optimal group-16
-# E4M3 scales while preserving the compressed-tensors/Marlin serving contract.
+# E4M3 scales and optional FP32 global divisors while preserving the
+# compressed-tensors/Marlin serving contract.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,6 +11,9 @@ TARGET_HOST_PATH="${TARGET_HOST_PATH:-$HOME/.cache/huggingface/glm53-redhat-nvfp
 OUTPUT_HOST_PATH="${OUTPUT_HOST_PATH:?set OUTPUT_HOST_PATH to the optimized checkpoint directory}"
 TARGET_SHARDS="${TARGET_SHARDS:?set TARGET_SHARDS to comma-separated Red Hat shard basenames}"
 ROW_CHUNK="${ROW_CHUNK:-256}"
+GLOBAL_DIVISOR_STEPS_PER_OCTAVE="${GLOBAL_DIVISOR_STEPS_PER_OCTAVE:-0}"
+GLOBAL_DIVISOR_SEARCH_ROWS="${GLOBAL_DIVISOR_SEARCH_ROWS:-32}"
+GLOBAL_DIVISOR_HELDOUT_TOLERANCE="${GLOBAL_DIVISOR_HELDOUT_TOLERANCE:-0.0}"
 NAME="${CONTAINER_NAME:-glm53_nvfp4_checkpoint_builder}"
 
 test -f "$SOURCE_HOST_PATH/model.safetensors.index.json"
@@ -40,4 +44,7 @@ docker run --gpus all --rm \
     --target-shards "$TARGET_SHARDS" \
     --scale-radius-below 16 \
     --scale-radius-above 8 \
-    --row-chunk "$ROW_CHUNK"
+    --row-chunk "$ROW_CHUNK" \
+    --global-divisor-steps-per-octave "$GLOBAL_DIVISOR_STEPS_PER_OCTAVE" \
+    --global-divisor-search-rows "$GLOBAL_DIVISOR_SEARCH_ROWS" \
+    --global-divisor-heldout-tolerance "$GLOBAL_DIVISOR_HELDOUT_TOLERANCE"

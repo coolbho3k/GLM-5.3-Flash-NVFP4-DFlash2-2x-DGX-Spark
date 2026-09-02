@@ -3,9 +3,10 @@
 
 This is the streaming/full-checkpoint companion to
 ``optimize_nvfp4_rounding.py``.  It rewrites selected Red Hat safetensor
-shards one at a time, replacing only routed-expert ``weight_packed`` and
-``weight_scale`` tensors.  Tensor names, shapes, dtypes, global divisors,
-configuration, and the serving kernel contract remain unchanged.
+shards one at a time, replacing routed-expert ``weight_packed``,
+``weight_scale``, and optionally ``weight_global_scale`` tensors. Tensor
+names, shapes, dtypes, serialized size, configuration, and the serving kernel
+contract remain unchanged.
 
 The output directory should first be a copy-on-write clone of the Red Hat
 checkpoint.  Shard-level state makes interrupted builds resumable and allows
@@ -29,9 +30,11 @@ from safetensors.torch import save_file
 
 from optimize_nvfp4_rounding import (
     dequant_source,
+    dequant_target,
     load_index,
     load_tensor,
     optimize_groups,
+    select_global_divisor,
     source_names,
     target_names,
 )
@@ -65,6 +68,8 @@ def shard_number(name: str) -> int:
 def packed_plan(
     source_index: dict[str, str],
     target_index: dict[str, str],
+    *,
+    include_global_divisor: bool,
 ) -> dict[str, list[dict[str, Any]]]:
     by_shard: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for packed_name, target_shard in target_index.items():
@@ -99,12 +104,20 @@ def packed_plan(
         }
         packed_shard = target_index[packed_name]
         scale_shard = target_index[target_scale]
-        for destination_shard in {packed_shard, scale_shard}:
+        global_shard = target_index[global_scale]
+        destination_shards = {packed_shard, scale_shard}
+        if include_global_divisor:
+            destination_shards.add(global_shard)
+        for destination_shard in destination_shards:
             by_shard[destination_shard].append(
                 {
                     **entry,
                     "replace_packed": destination_shard == packed_shard,
                     "replace_scale": destination_shard == scale_shard,
+                    "replace_global": (
+                        include_global_divisor
+                        and destination_shard == global_shard
+                    ),
                 }
             )
     for entries in by_shard.values():
@@ -135,6 +148,9 @@ def plan_summary(plan: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
             "matrix_computations": len(entries),
             "packed_replacements": sum(bool(row["replace_packed"]) for row in entries),
             "scale_replacements": sum(bool(row["replace_scale"]) for row in entries),
+            "global_divisor_replacements": sum(
+                bool(row["replace_global"]) for row in entries
+            ),
             "layers": sorted({row["layer"] for row in entries}),
             "source_shards": source_shards,
         }
@@ -199,6 +215,9 @@ def build_shard(
     scale_radius_below: int,
     scale_radius_above: int,
     row_chunk: int,
+    global_divisor_steps_per_octave: int,
+    global_divisor_search_rows: int,
+    global_divisor_heldout_tolerance: float,
     report_handle,
 ) -> dict[str, Any]:
     base_path = target_root / target_shard
@@ -237,14 +256,69 @@ def build_shard(
                 entry["global_scale_name"],
                 device=device,
             )
-        candidate_packed, candidate_scale, search = optimize_groups(
+        selected_divisor, divisor_search = select_global_divisor(
             reference,
             global_divisor,
+            steps_per_octave=global_divisor_steps_per_octave,
+            search_rows=global_divisor_search_rows,
+            heldout_tolerance=global_divisor_heldout_tolerance,
+            scale_radius_below=scale_radius_below,
+            scale_radius_above=scale_radius_above,
+            row_chunk=row_chunk,
+        )
+        candidate_packed, candidate_scale, search = optimize_groups(
+            reference,
+            selected_divisor,
             scale_radius_below=scale_radius_below,
             scale_radius_above=scale_radius_above,
             row_chunk=row_chunk,
             input_second_moment=None,
         )
+        if global_divisor_steps_per_octave > 0:
+            target_packed = load_tensor(
+                target_root,
+                target_index,
+                entry["packed_name"],
+                device=device,
+            )
+            target_scale = load_tensor(
+                target_root,
+                target_index,
+                entry["target_scale_name"],
+                device=device,
+            )
+            baseline_reconstruction = dequant_target(
+                target_packed, target_scale, global_divisor
+            )
+            selected_reconstruction = dequant_target(
+                candidate_packed.to(device),
+                candidate_scale.to(device),
+                selected_divisor,
+            )
+            baseline_mse = float(
+                (baseline_reconstruction - reference).square().mean()
+            )
+            selected_mse = float(
+                (selected_reconstruction - reference).square().mean()
+            )
+            full_gate_fell_back = selected_mse > baseline_mse
+            divisor_search["full_matrix_gate"] = {
+                "baseline_mse": baseline_mse,
+                "selected_mse_before_gate": selected_mse,
+                "fell_back": full_gate_fell_back,
+            }
+            if full_gate_fell_back:
+                candidate_packed = target_packed.cpu().contiguous()
+                candidate_scale = target_scale.cpu().contiguous()
+                selected_divisor = global_divisor.detach().clone()
+                divisor_search["selected_divisor"] = float(selected_divisor)
+                divisor_search["selected_multiplier"] = 1.0
+            del (
+                target_packed,
+                target_scale,
+                baseline_reconstruction,
+                selected_reconstruction,
+            )
         if entry["replace_packed"]:
             if tuple(candidate_packed.shape) != tuple(
                 tensors[entry["packed_name"]].shape
@@ -257,13 +331,31 @@ def build_shard(
             ):
                 raise ValueError(f"shape changed for {entry['target_scale_name']}")
             tensors[entry["target_scale_name"]] = candidate_scale.contiguous()
+        if entry["replace_global"]:
+            candidate_global = selected_divisor.cpu().contiguous()
+            if (
+                candidate_global.shape
+                != tensors[entry["global_scale_name"]].shape
+                or candidate_global.dtype
+                != tensors[entry["global_scale_name"]].dtype
+            ):
+                raise ValueError(
+                    f"global divisor contract changed for "
+                    f"{entry['global_scale_name']}"
+                )
+            tensors[entry["global_scale_name"]] = candidate_global
         row = {
             **entry,
             "target_shard": target_shard,
             "shape": list(reference.shape),
             "groups": reference.numel() // 16,
             "values": reference.numel(),
-            "global_divisor": float(global_divisor),
+            "original_global_divisor": float(global_divisor),
+            "selected_global_divisor": float(selected_divisor),
+            "global_divisor_multiplier": (
+                float(selected_divisor) / float(global_divisor)
+            ),
+            "global_divisor_search": divisor_search,
             "elapsed_seconds": time.time() - matrix_started,
             "search": search,
         }
@@ -285,7 +377,13 @@ def build_shard(
             ),
             flush=True,
         )
-        del source_weight, source_scale, reference, global_divisor
+        del (
+            source_weight,
+            source_scale,
+            reference,
+            selected_divisor,
+            global_divisor,
+        )
 
     save_file(tensors, temporary, metadata=metadata)
     if device.type == "cuda":
@@ -313,6 +411,16 @@ def main() -> None:
     parser.add_argument("--scale-radius-below", type=int, default=16)
     parser.add_argument("--scale-radius-above", type=int, default=8)
     parser.add_argument("--row-chunk", type=int, default=64)
+    parser.add_argument(
+        "--global-divisor-steps-per-octave",
+        type=int,
+        default=0,
+        help="Search this many divisor phases in one octave; 0 disables it.",
+    )
+    parser.add_argument("--global-divisor-search-rows", type=int, default=32)
+    parser.add_argument(
+        "--global-divisor-heldout-tolerance", type=float, default=0.0
+    )
     parser.add_argument("--device", default="cuda")
     parser.add_argument(
         "--matrix-limit-per-shard",
@@ -324,7 +432,11 @@ def main() -> None:
 
     source_index = load_index(args.source_root)
     target_index = load_index(args.target_root)
-    plan = packed_plan(source_index, target_index)
+    plan = packed_plan(
+        source_index,
+        target_index,
+        include_global_divisor=args.global_divisor_steps_per_octave > 0,
+    )
     if args.target_shards:
         unknown = set(args.target_shards) - set(plan)
         if unknown:
@@ -354,6 +466,13 @@ def main() -> None:
     state["scale_radius_below"] = args.scale_radius_below
     state["scale_radius_above"] = args.scale_radius_above
     state["row_chunk"] = args.row_chunk
+    state["global_divisor_steps_per_octave"] = (
+        args.global_divisor_steps_per_octave
+    )
+    state["global_divisor_search_rows"] = args.global_divisor_search_rows
+    state["global_divisor_heldout_tolerance"] = (
+        args.global_divisor_heldout_tolerance
+    )
     state["plan"] = summary
     atomic_json(state_path, state)
 
@@ -388,6 +507,13 @@ def main() -> None:
                 scale_radius_below=args.scale_radius_below,
                 scale_radius_above=args.scale_radius_above,
                 row_chunk=args.row_chunk,
+                global_divisor_steps_per_octave=(
+                    args.global_divisor_steps_per_octave
+                ),
+                global_divisor_search_rows=args.global_divisor_search_rows,
+                global_divisor_heldout_tolerance=(
+                    args.global_divisor_heldout_tolerance
+                ),
                 report_handle=report_handle,
             )
             state["completed_shards"][target_shard] = result

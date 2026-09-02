@@ -226,6 +226,116 @@ def optimize_groups(
     return output_packed, output_scale, stats
 
 
+@torch.no_grad()
+def select_global_divisor(
+    weight: torch.Tensor,
+    global_divisor: torch.Tensor,
+    *,
+    steps_per_octave: int,
+    search_rows: int,
+    heldout_tolerance: float,
+    scale_radius_below: int,
+    scale_radius_above: int,
+    row_chunk: int,
+) -> tuple[torch.Tensor, dict[str, Any]]:
+    """Select the E4M3-grid phase of a matrix's FP32 global divisor.
+
+    Multiplying the divisor by powers of two is nearly redundant because E4M3
+    repeats by octave. Searching one octave therefore finds the useful phase
+    without changing the tensor layout. Alternating, evenly spread rows form
+    deterministic train/held-out sets; a held-out regression falls back to the
+    checkpoint divisor.
+    """
+    original = global_divisor.detach().clone()
+    if steps_per_octave <= 0:
+        return original, {
+            "enabled": False,
+            "original_divisor": float(original),
+            "selected_divisor": float(original),
+            "selected_multiplier": 1.0,
+            "fell_back": False,
+        }
+    if search_rows < 2:
+        raise ValueError("global-divisor search needs at least two rows")
+    if heldout_tolerance < 0:
+        raise ValueError("held-out tolerance must be non-negative")
+
+    count = min(weight.shape[0], search_rows)
+    indices = torch.linspace(
+        0, weight.shape[0] - 1, count, device=weight.device
+    ).round().long().unique()
+    train = weight.index_select(0, indices[::2])
+    heldout_indices = indices[1::2]
+    heldout = (
+        weight.index_select(0, heldout_indices)
+        if heldout_indices.numel()
+        else train
+    )
+    phase_start = -(steps_per_octave // 2)
+    exponents = range(phase_start, phase_start + steps_per_octave)
+    multipliers = sorted(
+        {1.0, *(2.0 ** (offset / steps_per_octave) for offset in exponents)}
+    )
+
+    def score(rows: torch.Tensor, divisor: torch.Tensor) -> dict[str, float]:
+        packed, scale, _ = optimize_groups(
+            rows,
+            divisor,
+            scale_radius_below=scale_radius_below,
+            scale_radius_above=scale_radius_above,
+            row_chunk=min(row_chunk, rows.shape[0]),
+            input_second_moment=None,
+        )
+        reconstructed = dequant_target(
+            packed.to(weight.device), scale.to(weight.device), divisor
+        )
+        delta_power = (reconstructed - rows.float()).square().mean()
+        reference_power = rows.float().square().mean()
+        result = {
+            "mse": float(delta_power),
+            "relative_mse": float(delta_power / reference_power),
+        }
+        del packed, scale, reconstructed
+        return result
+
+    train_curve: list[dict[str, float]] = []
+    for multiplier in multipliers:
+        divisor = original * multiplier
+        metrics = score(train, divisor)
+        train_curve.append({"multiplier": multiplier, **metrics})
+    selected_train = min(
+        train_curve,
+        key=lambda row: (row["mse"], abs(math.log2(row["multiplier"]))),
+    )
+    selected_multiplier = float(selected_train["multiplier"])
+    original_heldout = score(heldout, original)
+    selected_heldout = score(heldout, original * selected_multiplier)
+    fell_back = (
+        selected_multiplier != 1.0
+        and selected_heldout["mse"]
+        > original_heldout["mse"] * (1.0 + heldout_tolerance)
+    )
+    if fell_back:
+        selected_multiplier = 1.0
+        selected_heldout = original_heldout
+    selected = original * selected_multiplier
+    return selected, {
+        "enabled": True,
+        "steps_per_octave": steps_per_octave,
+        "sample_rows": int(indices.numel()),
+        "train_rows": int(train.shape[0]),
+        "heldout_rows": int(heldout.shape[0]),
+        "heldout_tolerance": heldout_tolerance,
+        "original_divisor": float(original),
+        "selected_divisor": float(selected),
+        "selected_multiplier": selected_multiplier,
+        "fell_back": fell_back,
+        "train_curve": train_curve,
+        "original_heldout": original_heldout,
+        "selected_heldout": selected_heldout,
+    }
+
+
 def error_metrics(reference: torch.Tensor, candidate: torch.Tensor) -> dict[str, float]:
     ref = reference.float()
     got = candidate.float()
@@ -281,6 +391,16 @@ def main() -> None:
     parser.add_argument("--scale-radius-below", type=int, default=16)
     parser.add_argument("--scale-radius-above", type=int, default=8)
     parser.add_argument("--row-chunk", type=int, default=64)
+    parser.add_argument(
+        "--global-divisor-steps-per-octave",
+        type=int,
+        default=0,
+        help="Search this many divisor phases in one octave; 0 disables it.",
+    )
+    parser.add_argument("--global-divisor-search-rows", type=int, default=32)
+    parser.add_argument(
+        "--global-divisor-heldout-tolerance", type=float, default=0.0
+    )
     parser.add_argument("--output-tokens", type=int, default=64)
     parser.add_argument("--seed", type=int, default=20260901)
     parser.add_argument("--device", default="cuda")
@@ -339,9 +459,19 @@ def main() -> None:
                 baseline = dequant_target(
                     target_packed, target_scale, global_divisor
                 )
-                candidate_packed, candidate_scale, search_stats = optimize_groups(
+                selected_divisor, divisor_search = select_global_divisor(
                     reference,
                     global_divisor,
+                    steps_per_octave=args.global_divisor_steps_per_octave,
+                    search_rows=args.global_divisor_search_rows,
+                    heldout_tolerance=args.global_divisor_heldout_tolerance,
+                    scale_radius_below=args.scale_radius_below,
+                    scale_radius_above=args.scale_radius_above,
+                    row_chunk=args.row_chunk,
+                )
+                candidate_packed, candidate_scale, search_stats = optimize_groups(
+                    reference,
+                    selected_divisor,
                     scale_radius_below=args.scale_radius_below,
                     scale_radius_above=args.scale_radius_above,
                     row_chunk=args.row_chunk,
@@ -350,7 +480,7 @@ def main() -> None:
                 candidate = dequant_target(
                     candidate_packed.to(device),
                     candidate_scale.to(device),
-                    global_divisor,
+                    selected_divisor,
                 )
                 baseline_weight_error = error_metrics(reference, baseline)
                 candidate_weight_error = error_metrics(reference, candidate)
@@ -373,7 +503,12 @@ def main() -> None:
                     "shape": list(reference.shape),
                     "source_shard": source_index[source_weight_name],
                     "target_shard": target_index[packed_name],
-                    "global_divisor": float(global_divisor),
+                    "original_global_divisor": float(global_divisor),
+                    "selected_global_divisor": float(selected_divisor),
+                    "global_divisor_multiplier": (
+                        float(selected_divisor) / float(global_divisor)
+                    ),
+                    "global_divisor_search": divisor_search,
                     "baseline_weight_error": baseline_weight_error,
                     "candidate_weight_error": candidate_weight_error,
                     "baseline_output_error": baseline_output_error,
@@ -393,6 +528,8 @@ def main() -> None:
                 rows.append(row)
                 replacements[packed_name] = candidate_packed.contiguous()
                 replacements[target_scale_name] = candidate_scale.contiguous()
+                if args.global_divisor_steps_per_octave > 0:
+                    replacements[global_name] = selected_divisor.cpu().contiguous()
                 print(json.dumps(row, sort_keys=True), flush=True)
                 del (
                     reference,
@@ -400,25 +537,31 @@ def main() -> None:
                     candidate,
                     target_packed,
                     target_scale,
+                    selected_divisor,
                     global_divisor,
                 )
                 if device.type == "cuda":
                     torch.cuda.empty_cache()
 
+    method = (
+        "group16_e2m1_mse_scale_and_global_divisor_search"
+        if args.global_divisor_steps_per_octave > 0
+        else "group16_e2m1_mse_scale_search"
+    )
     tensor_path = args.output_dir / "optimized.safetensors"
     save_file(
         replacements,
         tensor_path,
         metadata={
             "format": "pt",
-            "method": "group16_e2m1_mse_scale_search",
+            "method": method,
             "source": str(args.source_root),
             "target": str(args.target_root),
         },
     )
     report = {
-        "schema": 1,
-        "method": "group16_e2m1_mse_scale_search",
+        "schema": 2,
+        "method": method,
         "source_root": str(args.source_root),
         "target_root": str(args.target_root),
         "layers": args.layers,
@@ -426,12 +569,21 @@ def main() -> None:
         "projections": projections,
         "scale_radius_below": args.scale_radius_below,
         "scale_radius_above": args.scale_radius_above,
+        "global_divisor_steps_per_octave": args.global_divisor_steps_per_octave,
+        "global_divisor_search_rows": args.global_divisor_search_rows,
+        "global_divisor_heldout_tolerance": args.global_divisor_heldout_tolerance,
         "output_tokens": args.output_tokens,
         "seed": args.seed,
         "elapsed_seconds": time.time() - started,
         "replacement_tensors": sorted(replacements),
         "summary": {
             "tensors": len(rows),
+            "global_divisors_changed": sum(
+                row["global_divisor_multiplier"] != 1.0 for row in rows
+            ),
+            "global_divisor_search_fallbacks": sum(
+                bool(row["global_divisor_search"]["fell_back"]) for row in rows
+            ),
             "baseline_weight_relative_rmse_mean": aggregate(
                 [row["baseline_weight_error"] for row in rows], "relative_rmse"
             ),

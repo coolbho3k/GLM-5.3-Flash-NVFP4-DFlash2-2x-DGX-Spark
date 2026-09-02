@@ -24,6 +24,11 @@ OPTIMIZED_PATTERN = re.compile(
     r"^model\.language_model\.layers\.\d+\.mlp\.experts\.\d+\."
     r"(?:gate_proj|up_proj|down_proj)\.(?:weight_packed|weight_scale)$"
 )
+OPTIMIZED_WITH_GLOBAL_PATTERN = re.compile(
+    r"^model\.language_model\.layers\.\d+\.mlp\.experts\.\d+\."
+    r"(?:gate_proj|up_proj|down_proj)\."
+    r"(?:weight_packed|weight_scale|weight_global_scale)$"
+)
 
 
 def load_index(root: Path) -> dict[str, str]:
@@ -61,11 +66,18 @@ def tensor_contract_and_samples(
     candidate_root: Path,
     index: dict[str, str],
     samples_per_shard: int,
+    *,
+    allow_global_divisor_changes: bool,
 ) -> dict[str, Any]:
     names_by_shard: dict[str, list[str]] = defaultdict(list)
     for name, shard in index.items():
         names_by_shard[shard].append(name)
     result: dict[str, Any] = {}
+    optimized_pattern = (
+        OPTIMIZED_WITH_GLOBAL_PATTERN
+        if allow_global_divisor_changes
+        else OPTIMIZED_PATTERN
+    )
     for shard, indexed_names in sorted(names_by_shard.items()):
         base_path = base_root / shard
         candidate_path = candidate_root / shard
@@ -92,16 +104,29 @@ def tensor_contract_and_samples(
 
             packed_names = [name for name in base_names if PACKED_PATTERN.match(name)]
             changed_samples = evenly_spaced(packed_names, samples_per_shard)
+            changed_packed_samples = 0
+            changed_scale_samples = 0
+            changed_global_samples = 0
             for packed_name in changed_samples:
                 scale_name, global_name = companion_names(packed_name)
-                if torch.equal(
+                packed_equal = torch.equal(
                     base.get_tensor(packed_name), candidate.get_tensor(packed_name)
-                ):
-                    raise AssertionError(f"packed tensor did not change: {packed_name}")
-                if torch.equal(
+                )
+                scale_equal = torch.equal(
                     base.get_tensor(scale_name), candidate.get_tensor(scale_name)
-                ):
-                    raise AssertionError(f"scale tensor did not change: {scale_name}")
+                )
+                if allow_global_divisor_changes:
+                    changed_packed_samples += int(not packed_equal)
+                    changed_scale_samples += int(not scale_equal)
+                else:
+                    if packed_equal:
+                        raise AssertionError(
+                            f"packed tensor did not change: {packed_name}"
+                        )
+                    if scale_equal:
+                        raise AssertionError(
+                            f"scale tensor did not change: {scale_name}"
+                        )
                 global_shard = index[global_name]
                 if global_shard == shard:
                     global_equal = torch.equal(
@@ -119,11 +144,13 @@ def tensor_contract_and_samples(
                             global_base.get_tensor(global_name),
                             global_candidate.get_tensor(global_name),
                         )
-                if not global_equal:
+                if allow_global_divisor_changes:
+                    changed_global_samples += int(not global_equal)
+                elif not global_equal:
                     raise AssertionError(f"global divisor changed: {global_name}")
 
             unchanged_names = [
-                name for name in base_names if not OPTIMIZED_PATTERN.match(name)
+                name for name in base_names if not optimized_pattern.match(name)
             ]
             unchanged_samples = evenly_spaced(unchanged_names, samples_per_shard)
             for name in unchanged_samples:
@@ -132,7 +159,10 @@ def tensor_contract_and_samples(
             result[shard] = {
                 "bytes": candidate_path.stat().st_size,
                 "tensors": len(base_names),
-                "changed_content_samples": len(changed_samples) * 2,
+                "sampled_target_matrices": len(changed_samples),
+                "changed_packed_samples": changed_packed_samples,
+                "changed_scale_samples": changed_scale_samples,
+                "changed_global_divisor_samples": changed_global_samples,
                 "unchanged_content_samples": len(unchanged_samples),
             }
     return result
@@ -199,6 +229,7 @@ def main() -> None:
     parser.add_argument("--build-report", type=Path, action="append", default=[])
     parser.add_argument("--reference-replacements", type=Path)
     parser.add_argument("--content-samples-per-shard", type=int, default=3)
+    parser.add_argument("--allow-global-divisor-changes", action="store_true")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
 
@@ -227,14 +258,23 @@ def main() -> None:
         "base_root": str(args.base_root),
         "candidate_root": str(args.candidate_root),
         "expected_matrices": len(expected_matrices),
+        "allow_global_divisor_changes": args.allow_global_divisor_changes,
         "tensor_contract": tensor_contract_and_samples(
             args.base_root,
             args.candidate_root,
             base_index,
             args.content_samples_per_shard,
+            allow_global_divisor_changes=args.allow_global_divisor_changes,
         ),
         "expected_replacement_tensors": sum(
-            bool(OPTIMIZED_PATTERN.match(name)) for name in base_index
+            bool(
+                (
+                    OPTIMIZED_WITH_GLOBAL_PATTERN
+                    if args.allow_global_divisor_changes
+                    else OPTIMIZED_PATTERN
+                ).match(name)
+            )
+            for name in base_index
         ),
     }
     if args.build_report:
