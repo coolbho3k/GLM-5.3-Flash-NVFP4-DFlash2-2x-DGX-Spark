@@ -6,7 +6,7 @@ The current profile combines MSE-optimized routed-expert NVFP4, byte-exact
 restoration of 179 official block-FP8 non-expert weights, a 288-byte
 native-NVFP4 MLA cache with four-over-six scale search, an FP8 indexer, DCP2,
 DFlash2 K=7, and an async decode-first scheduler. Its latest validated
-0.87/1M-context boot exposed **3,020,897 logical KV tokens**; a cold
+0.87/1M-context boot exposed **3,212,304 logical KV tokens**; a cold
 176,041-token retrieval measured **about 1,430 input tok/s** and returned the
 correct sentinel. The latest fixed two-round C1 harness measured **37.2
 tok/s**. The amax/6 writer remains a one-variable rollback.
@@ -72,7 +72,7 @@ worker before the head, and waits for `/health`. Cold startup takes roughly
 NVFP4/block-FP8 checkpoint, the pinned bf582e4 DFlash2 drafter, DCP2,
 native-NVFP4 MLA KV, an FP8 indexer, the async decode-first scheduler, and the
 model-native 1,048,576-token limit. The latest
-0.87 boot reported 3,020,897 logical KV tokens; UMA state can move the exact
+0.87 boot reported 3,212,304 logical KV tokens; UMA state can move the exact
 block count, so the wrapper prints the capacity it actually obtained.
 
 The OpenAI-compatible endpoint is `http://10.100.32.1:8000/v1`, and the served

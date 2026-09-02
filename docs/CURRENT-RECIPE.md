@@ -175,7 +175,7 @@ LONG_PREFILL_TOKEN_THRESHOLD=512 PREFILL_ADMISSION_POLICY=adaptive \
 The wrapper starts the worker first, waits for `/health`, and prints the actual
 boot KV capacity. API base: `http://10.100.32.1:8000/v1`.
 
-Latest validated 0.87 boot: 3,020,897 logical KV tokens. A cold 176,041-token
+Latest validated 0.87 boot: 3,212,304 logical KV tokens. A cold 176,041-token
 retrieval completed correctly in 123.10 seconds, about 1,430 input tok/s; its
 follow-up reused 163,840 prefix tokens. The preceding fixed two-round C1
 harness measured 37.2 tok/s with 50.4% DFlash token acceptance and zero
