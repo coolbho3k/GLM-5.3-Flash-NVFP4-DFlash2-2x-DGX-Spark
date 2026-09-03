@@ -4,9 +4,11 @@ set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 EXL3_MODEL_REVISION="25a44fdbf16862a46b7cc9921142c6c81350af2f"
+NVFP4_MODEL_REVISION="b919a80ec2fa8959737d37062fb13e7f6a3d11df"
 NVFP4_MODEL_DEFAULT="$HOME/.cache/huggingface/glm53-nvfp4-marlin-shared-w13-v1"
 EXL3_MODEL_DEFAULT="$HOME/.cache/huggingface/glm53-exl3-tr3-4bpw-$EXL3_MODEL_REVISION"
-DRAFT_DEFAULT="$HOME/.cache/huggingface/glm53-dflash2-bf582e4eacc1810f76656d1811693ff6c6737d2a"
+DFLASH_MODEL_REVISION="bf582e4eacc1810f76656d1811693ff6c6737d2a"
+DRAFT_DEFAULT="$HOME/.cache/huggingface/glm53-dflash2-$DFLASH_MODEL_REVISION"
 
 usage() {
   cat <<'EOF'
@@ -105,6 +107,7 @@ configure_profile() {
   esac
 
   default_var DRAFT_HOST_PATH "$DRAFT_DEFAULT"
+  default_var DRAFT_REVISION "$DFLASH_MODEL_REVISION"
   default_var DCP_SIZE 2
   default_var USE_FP4_INDEXER_CACHE 0
   default_var BLOCK_SIZE 2304
@@ -164,12 +167,7 @@ prepare_profile() {
   local profile="$1"
   case "$profile" in
     exl3-*) "$SCRIPT_DIR/prepare-exl3-weights.sh" ;;
-    nvfp4-*)
-      test -f "$MODEL_HOST_PATH/config.json"
-      test -f "$MODEL_HOST_PATH/model.safetensors.index.json"
-      test -f "$DRAFT_HOST_PATH/model.safetensors"
-      printf 'NVFP4 target and DFlash2 draft are present.\n'
-      ;;
+    nvfp4-*) "$SCRIPT_DIR/prepare-nvfp4-weights.sh" ;;
   esac
 }
 

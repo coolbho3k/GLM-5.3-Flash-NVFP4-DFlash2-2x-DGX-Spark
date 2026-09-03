@@ -114,6 +114,22 @@ def test_fp8_block_size_selects_exact_fit_draft_geometry() -> None:
     assert old_draft_block_size % 32 != 0
 
 
+def test_nvfp4_prepare_uses_published_checkpoint() -> None:
+    selector = (ROOT / "serve-profile.sh").read_text()
+    preparer = (ROOT / "prepare-nvfp4-weights.sh").read_text()
+    assert 'nvfp4-*) "$SCRIPT_DIR/prepare-nvfp4-weights.sh"' in selector
+    assert "coolbho3k/GLM-5.3-Flash-NVFP4-Optimized" in preparer
+    assert "b919a80ec2fa8959737d37062fb13e7f6a3d11df" in preparer
+    assert "b919a80ec2fa8959737d37062fb13e7f6a3d11df" in selector
+    assert "glm53-nvfp4-marlin-shared-w13-v1" in preparer
+    assert "bf582e4eacc1810f76656d1811693ff6c6737d2a" in preparer
+    assert "bf582e4eacc1810f76656d1811693ff6c6737d2a" in (ROOT / "prepare-exl3-weights.sh").read_text()
+    assert 'EXPECTED_SHARDS="${EXPECTED_SHARDS:-10}"' in preparer
+    assert "54a2a07227b26e9e5930d3546fb64258076d514f8fde15740ba30c5113690502" in preparer
+    assert '"${hf_cmd[@]}" download "$MODEL_ID"' in preparer
+    assert 'HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"' in preparer
+
+
 def main() -> None:
     tests = [value for name, value in sorted(globals().items()) if name.startswith("test_")]
     for test in tests:

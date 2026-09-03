@@ -81,9 +81,20 @@ rsyncs the target and DFlash2 draft to `dgx1.lan` by default:
 
 ```bash
 python3 -m pip install --user -U 'huggingface_hub[cli]'
-./prepare-exl3-weights.sh
+./serve-profile.sh prepare exl3-fp8-dcp2
 ./serve-profile.sh build exl3-fp8-dcp2
 ./serve-profile.sh start exl3-fp8-dcp2
+```
+
+To use the
+[published optimized NVFP4 checkpoint](https://huggingface.co/coolbho3k/GLM-5.3-Flash-NVFP4-Optimized)
+instead, select either NVFP4 profile. Preparation downloads the pinned
+checkpoint rather than rebuilding the quantization:
+
+```bash
+./serve-profile.sh prepare nvfp4-fp4-dcp2
+./serve-profile.sh build nvfp4-fp4-dcp2
+./serve-profile.sh start nvfp4-fp4-dcp2
 ```
 
 The starter verifies runtime-file hashes across ranks, streams a missing image
