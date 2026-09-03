@@ -1,0 +1,836 @@
+diff --git a/b12x/attention/_shared/mla/api.py b/b12x/attention/_shared/mla/api.py
+index 9dc229a..26d5a31 100644
+--- a/b12x/attention/_shared/mla/api.py
++++ b/b12x/attention/_shared/mla/api.py
+@@ -25,7 +25,10 @@ _MLA_FORCE_SINGLE_PASS_ENV = "B12X_MLA_FORCE_SINGLE_PASS"
+ _MLA_FORCE_SPLIT_ENV = "B12X_MLA_FORCE_SPLIT"
+ _MLA_SM120_BACKEND = "sm120"
+ # GLM_NSA uncompressed decode contract (q_head_dim = d_nope+d_rope = 512+64).
++# GLM-5.3's zero-RoPE contract is 512 and is disambiguated from DSV4 by the
++# strict 288-byte NVFP4 cache record.
+ _MLA_UNIFIED_GLM_Q_HEAD_DIM = 576
++_MLA_ZERO_ROPE_Q_HEAD_DIM = 512
+ _MLA_SINGLE_PASS_TARGET_Q_ROWS = 2048
+ _MLA_SINGLE_PASS_TARGET_TOPK = 2048
+ _LN2 = math.log(2.0)
+@@ -592,12 +595,22 @@ def _run_sparse_mla(
+         if scale_format is not None
+         else getattr(workspace, "scale_format", None)
+     )
+-    if int(scale_format_for_call or -1) == 2 and fp8_rope is None:
++    q_head_dim = int(q_all.shape[-1])
++    record_bytes = int(kv_cache.shape[-1])
++    zero_rope_nvfp4 = (
++        int(scale_format_for_call or -1) == 2
++        and q_head_dim == _MLA_ZERO_ROPE_Q_HEAD_DIM
++        and record_bytes == 288
++    )
++    if zero_rope_nvfp4:
++        if fp8_rope:
++            raise ValueError("288-byte zero-RoPE NVFP4 cache cannot enable fp8_rope")
++        fp8_rope_for_call = False
++    elif int(scale_format_for_call or -1) == 2 and fp8_rope is None:
+         # Normal vLLM calls arrive through b12x.integration.mla, whose stable
+         # public signature does not carry this new option. The allocated record
+         # is therefore the authoritative process-lifetime ABI at this boundary;
+         # derive the specialization from it instead of rereading a mutable env.
+-        record_bytes = int(kv_cache.shape[-1])
+         if record_bytes not in (368, 432):
+             raise ValueError(
+                 "NVFP4 sparse MLA cache record must be 368 or 432 bytes, got "
+@@ -607,7 +620,9 @@ def _run_sparse_mla(
+     else:
+         fp8_rope_for_call = _resolve_kv_fp8_rope(fp8_rope)
+     if int(scale_format_for_call or -1) == 2:
+-        expected_record_bytes = 368 if fp8_rope_for_call else 432
++        expected_record_bytes = (
++            288 if zero_rope_nvfp4 else (368 if fp8_rope_for_call else 432)
++        )
+         if int(kv_cache.shape[-1]) != expected_record_bytes:
+             raise ValueError(
+                 "NVFP4 sparse MLA cache record disagrees with KV_FP8_ROPE: "
+@@ -683,11 +698,15 @@ def _run_sparse_mla(
+             f"q_all head_dim {q_all.shape[-1]} does not match workspace head_dim {workspace.head_dim}"
+         )
+     if _sm120_route:
+-        q_head_dim = int(q_all.shape[-1])
+-        if q_head_dim != _MLA_UNIFIED_GLM_Q_HEAD_DIM:
++        expected_q_head_dim = (
++            _MLA_ZERO_ROPE_Q_HEAD_DIM
++            if zero_rope_nvfp4
++            else _MLA_UNIFIED_GLM_Q_HEAD_DIM
++        )
++        if q_head_dim != expected_q_head_dim:
+             raise ValueError(
+-                f"SM120 sparse MLA decode requires the GLM_NSA contract "
+-                f"(q_head_dim={_MLA_UNIFIED_GLM_Q_HEAD_DIM}); got q_head_dim={q_head_dim}"
++                "SM120 sparse MLA decode requires the cache layout's GLM contract "
++                f"(q_head_dim={expected_q_head_dim}); got q_head_dim={q_head_dim}"
+             )
+         if workspace.mode in ("extend", "verify", "draft_extend"):
+             return _run_sm120_prefill(
+diff --git a/b12x/attention/_shared/mla/io.py b/b12x/attention/_shared/mla/io.py
+index 57af0e9..11d70eb 100644
+--- a/b12x/attention/_shared/mla/io.py
++++ b/b12x/attention/_shared/mla/io.py
+@@ -166,7 +166,13 @@ def io_issue_gather(
+         _ROPE_SRC = Int64(_DSV4_NOPE_BYTES)  # rope follows nope in the record
+     elif cutlass.const_expr(scale_format == 2):
+         _NOPE = Int32(_NVFP4_NOPE_SCALE_BYTES)
+-        if cutlass.const_expr(fp8_rope):
++        if cutlass.const_expr(rope_smem_stride == 0):
++            # GLM-5.3 zero-RoPE ABI: the complete record is exactly the packed
++            # latent plus its group scales. There is no second transaction.
++            _IOS = Int64(_NVFP4_NOPE_SCALE_BYTES)
++            _ROPE = Int32(0)
++            _ROPE_SRC = Int64(0)
++        elif cutlass.const_expr(fp8_rope):
+             _IOS = Int64(_NVFP4_FP8_ROPE_GMEM_STRIDE)
+             # Stage scale+pad+FP8 payload contiguously in the existing 128-byte
+             # BF16-rope smem row. decode_math interprets scale at +0 and E4M3 at +16.
+@@ -214,12 +220,13 @@ def io_issue_gather(
+                 _NOPE,
+                 full_mbar_u32,
+             )
+-            cp_async_bulk_g2s_mbar(
+-                kv_rope_dst_addr + entry * Int32(rope_smem_stride * 2),
+-                data_base_i64 + _ROPE_SRC,
+-                _ROPE,
+-                full_mbar_u32,
+-            )
++            if cutlass.const_expr(rope_smem_stride > 0):
++                cp_async_bulk_g2s_mbar(
++                    kv_rope_dst_addr + entry * Int32(rope_smem_stride * 2),
++                    data_base_i64 + _ROPE_SRC,
++                    _ROPE,
++                    full_mbar_u32,
++                )
+
+     def _issue_payload():
+         eo = Int32(0)
+diff --git a/b12x/attention/_shared/mla/io_mg.py b/b12x/attention/_shared/mla/io_mg.py
+index 2ace3ee..eac8e7a 100644
+--- a/b12x/attention/_shared/mla/io_mg.py
++++ b/b12x/attention/_shared/mla/io_mg.py
+@@ -146,6 +146,7 @@ def io_issue_gather_glm_mg(
+     io_threads: cutlass.Constexpr = _IO_THREADS,
+     scale_format: cutlass.Constexpr = 1,
+     fp8_rope: cutlass.Constexpr = False,
++    zero_rope: cutlass.Constexpr = False,
+     per_token_latent_scale: cutlass.Constexpr = False,
+     kv_sc_dst_addr: Int32 = Int32(0),
+ ):
+@@ -160,15 +161,23 @@ def io_issue_gather_glm_mg(
+     MG convention): the leader arrives + expect_tx over the BI 528B bulks.
+
+     ``scale_format`` (const_expr): ARBITRARY_FP32 (1, GLM 656B/528B) or
+-    NVFP4_E4M3 (2, NVFP4 432B/288B) record geometry."""
++    NVFP4_E4M3 (2, GLM 432B/288B or zero-RoPE 288B/288B geometry)."""
+     if cutlass.const_expr(scale_format == 2):
+-        if cutlass.const_expr(fp8_rope):
++        if cutlass.const_expr(kv_smem_stride == 288):
++            _ios = Int64(288)
++        elif cutlass.const_expr(fp8_rope):
+             _ios = Int64(_NVFP4_FP8_ROPE_IO_STRIDE)
+         else:
+             _ios = Int64(_NVFP4_IO_STRIDE)
+         _nope = Int32(_NVFP4_NOPE_SCALE_BYTES)
+     else:
+-        _ios = Int64(_GLM_IO_STRIDE)
++        # GLM-5.3 NoPE stores only the 512-byte E4M3 latent and four
++        # inline FP32 scales. Other GLM NSA models retain the 128-byte RoPE
++        # tail and therefore use the historical 656-byte stride.
++        if cutlass.const_expr(zero_rope):
++            _ios = Int64(_GLM_NOPE_SCALE_BYTES)
++        else:
++            _ios = Int64(_GLM_IO_STRIDE)
+         _nope = Int32(_GLM_NOPE_SCALE_BYTES)
+
+     if cutlass.const_expr(
+diff --git a/b12x/attention/_shared/mla/kernel.py b/b12x/attention/_shared/mla/kernel.py
+index 66d148d..33f1581 100644
+--- a/b12x/attention/_shared/mla/kernel.py
++++ b/b12x/attention/_shared/mla/kernel.py
+@@ -57,6 +57,7 @@ from .decode_math import (
+ from .io import io_issue_gather
+ from .smem import get_unified_shared_storage_cls, make_smem_layout
+ from .traits import (
++    ComputeMode,
+     ModelType,
+     ScaleFormat,
+     infer_model_type,
+@@ -2322,14 +2323,20 @@ def _cache_block_stride_bytes(
+         COMPRESSED_SPARSE_MLA_BYTES_PER_TOKEN,
+     )
+
+-    if int(model_type) == int(ModelType.GLM_NSA):
++    if int(model_type) in (
++        int(ModelType.GLM_NSA),
++        int(ModelType.GLM_ZERO_ROPE),
++    ):
+         # GLM-family per-token contiguous record: 656B (ARBITRARY_FP32) or
+         # 432B (NVFP4_E4M3). ``record_bytes`` comes from traits.kv_gmem_stride.
+         rec = int(record_bytes) if record_bytes is not None else _GLM_KV_GMEM_STRIDE
+         expected = int(page_size) * rec
+     else:
+         expected = int(page_size) * COMPRESSED_SPARSE_MLA_BYTES_PER_TOKEN
+-    if int(model_type) == int(ModelType.GLM_NSA) and cache.is_contiguous():
++    if int(model_type) in (
++        int(ModelType.GLM_NSA),
++        int(ModelType.GLM_ZERO_ROPE),
++    ) and cache.is_contiguous():
+         return expected
+     # Use the tensor's physical page stride for padded views.
+     if cache.ndim >= 2:
+@@ -2850,8 +2857,19 @@ def run_unified_decode(
+     )
+     if scale_format_override is not None:
+         scale_format = int(scale_format_override)
++    record_bytes = int(swa_k_cache.shape[-1])
++    zero_rope_nvfp4 = (
++        q_head_dim == _DSV4_HEAD_DIM
++        and scale_format == ScaleFormat.NVFP4_E4M3
++        and record_bytes == 288
++    )
++    if zero_rope_nvfp4:
++        model_type = ModelType.GLM_ZERO_ROPE
++        compute_mode = ComputeMode.BF16
++        if fp8_rope_override:
++            raise ValueError("288-byte zero-RoPE NVFP4 cache cannot enable fp8_rope")
++        fp8_rope_override = False
+     if scale_format == ScaleFormat.NVFP4_E4M3 and fp8_rope_override is None:
+-        record_bytes = int(swa_k_cache.shape[-1])
+         if record_bytes not in (368, 432):
+             raise ValueError(
+                 f"NVFP4 cache record must be 368 or 432 bytes, got {record_bytes}"
+@@ -2877,6 +2895,10 @@ def run_unified_decode(
+         fp8_rope=fp8_rope_override,
+         latent_scale_per_token=bool(latent_scale_per_token),
+     )
++    if has_extra and model_type != ModelType.DSV4:
++        raise ValueError(
++            "SM120 sparse MLA decode dual-cache (extra tokens) is DSV4-only"
++        )
+     if scale_format == ScaleFormat.NVFP4_E4M3 and int(swa_k_cache.shape[-1]) != int(
+         traits.kv_gmem_stride
+     ):
+diff --git a/b12x/attention/_shared/mla/kv_cache.py b/b12x/attention/_shared/mla/kv_cache.py
+index feaf7ad..e66939a 100644
+--- a/b12x/attention/_shared/mla/kv_cache.py
++++ b/b12x/attention/_shared/mla/kv_cache.py
+@@ -98,6 +98,7 @@ _PAD_OFFSET = _ROPE_SCALE_OFFSET + 4  # 292
+ _PAD_BYTES = 12
+ _ROPE_OFFSET = _PAD_OFFSET + _PAD_BYTES  # 304
+ _RECORD_BYTES = _ROPE_OFFSET + _PE_DIM  # 368
++_ZERO_ROPE_RECORD_BYTES = _NOPE_BYTES + _SCALE_BYTES  # 288
+ _THREADS = 128
+ # E4M3 rope scale: exact compile-time f32 constant (double 1/448 rounded to
+ # f32 once), NOT a runtime rcp.approx -- torch references must mirror this.
+@@ -166,10 +167,17 @@ class ConcatAndCacheNvfp4MlaFp8RopeKernel:
+     32 quantizes the RoPE lane to E4M3 with one fp32 per-token scale.
+     """
+
+-    def __init__(self, block_size: int, is_bf16: bool, per_token_scale: bool = False):
++    def __init__(
++        self,
++        block_size: int,
++        is_bf16: bool,
++        per_token_scale: bool = False,
++        zero_rope: bool = False,
++    ):
+         self.block_size = int(block_size)
+         self.is_bf16 = bool(is_bf16)
+         self.per_token_scale = bool(per_token_scale)
++        self.zero_rope = bool(zero_rope)
+
+     @cute.jit
+     def __call__(
+@@ -307,65 +315,71 @@ class ConcatAndCacheNvfp4MlaFp8RopeKernel:
+                         cutlass.Uint8(scale_u32 & Uint32(0xFF)),
+                     )
+
+-            # --- Zero pad: [292, 304) in static mode; [296, 304) when the
+-            # per-token latent scale occupies [292, 296).
+-            if cutlass.const_expr(self.per_token_scale):
+-                if tid < Int32(_PAD_BYTES - _LATENT_SCALE_BYTES):
+-                    st_global_u8(
+-                        dst + Int64(_PAD_OFFSET + _LATENT_SCALE_BYTES) + tid.to(Int64),
+-                        cutlass.Uint8(0),
+-                    )
+-            else:
+-                if tid < Int32(_PAD_BYTES):
+-                    st_global_u8(
+-                        dst + Int64(_PAD_OFFSET) + tid.to(Int64),
+-                        cutlass.Uint8(0),
+-                    )
+-
+-            # --- RoPE lane: amax -> fp32 scale at [288, 292) -> satfinite
+-            # E4M3 bytes at [304, 368).
+-            if tid == Int32(_NUM_GROUPS):
+-                rope_vals = cute.make_rmem_tensor((_PE_DIM,), Float32)
+-                for i in cutlass.range_constexpr(_PE_DIM // 2):
+-                    pair = _ld_global_u32(
+-                        get_ptr_as_int64(k_pe, token * k_pe_stride + Int32(2 * i))
+-                    )
+-                    if cutlass.const_expr(self.is_bf16):
+-                        f0, f1 = _bf16x2_to_f32x2(pair)
+-                    else:
+-                        f0, f1 = f16x2_to_f32x2(pair)
+-                    rope_vals[2 * i] = f0
+-                    rope_vals[2 * i + 1] = f1
+-                rope_amax = Float32(0.0)
+-                for i in cutlass.range_constexpr(_PE_DIM):
+-                    rope_amax = fmax_f32(rope_amax, fabs_f32(rope_vals[i]))
+-                rope_scale = rope_amax * Float32(_E4M3_MAX_RCP)
+-                st_global_f32(dst + Int64(_ROPE_SCALE_OFFSET), rope_scale)
+-                for w in cutlass.range_constexpr(_PE_DIM // 8):
+-                    q8 = Uint64(0)
+-                    if rope_scale != Float32(0.0):
+-                        inv = rcp_approx_ftz(rope_scale)
+-                        lo = cvt_f32x4_to_e4m3x4(
+-                            rope_vals[8 * w + 0] * inv,
+-                            rope_vals[8 * w + 1] * inv,
+-                            rope_vals[8 * w + 2] * inv,
+-                            rope_vals[8 * w + 3] * inv,
++            if cutlass.const_expr(not self.zero_rope):
++                # --- Zero pad: [292, 304) in static mode; [296, 304) when the
++                # per-token latent scale occupies [292, 296).
++                if cutlass.const_expr(self.per_token_scale):
++                    if tid < Int32(_PAD_BYTES - _LATENT_SCALE_BYTES):
++                        st_global_u8(
++                            dst + Int64(_PAD_OFFSET + _LATENT_SCALE_BYTES) + tid.to(Int64),
++                            cutlass.Uint8(0),
+                         )
+-                        hi = cvt_f32x4_to_e4m3x4(
+-                            rope_vals[8 * w + 4] * inv,
+-                            rope_vals[8 * w + 5] * inv,
+-                            rope_vals[8 * w + 6] * inv,
+-                            rope_vals[8 * w + 7] * inv,
++                else:
++                    if tid < Int32(_PAD_BYTES):
++                        st_global_u8(
++                            dst + Int64(_PAD_OFFSET) + tid.to(Int64),
++                            cutlass.Uint8(0),
+                         )
+-                        q8 = lo.to(Uint64) | (hi.to(Uint64) << Uint64(32))
+-                    st_global_u64(dst + Int64(_ROPE_OFFSET + 8 * w), q8)
++
++                # --- RoPE lane: amax -> fp32 scale at [288, 292) -> satfinite
++                # E4M3 bytes at [304, 368).
++                if tid == Int32(_NUM_GROUPS):
++                    rope_vals = cute.make_rmem_tensor((_PE_DIM,), Float32)
++                    for i in cutlass.range_constexpr(_PE_DIM // 2):
++                        pair = _ld_global_u32(
++                            get_ptr_as_int64(k_pe, token * k_pe_stride + Int32(2 * i))
++                        )
++                        if cutlass.const_expr(self.is_bf16):
++                            f0, f1 = _bf16x2_to_f32x2(pair)
++                        else:
++                            f0, f1 = f16x2_to_f32x2(pair)
++                        rope_vals[2 * i] = f0
++                        rope_vals[2 * i + 1] = f1
++                    rope_amax = Float32(0.0)
++                    for i in cutlass.range_constexpr(_PE_DIM):
++                        rope_amax = fmax_f32(rope_amax, fabs_f32(rope_vals[i]))
++                    rope_scale = rope_amax * Float32(_E4M3_MAX_RCP)
++                    st_global_f32(dst + Int64(_ROPE_SCALE_OFFSET), rope_scale)
++                    for w in cutlass.range_constexpr(_PE_DIM // 8):
++                        q8 = Uint64(0)
++                        if rope_scale != Float32(0.0):
++                            inv = rcp_approx_ftz(rope_scale)
++                            lo = cvt_f32x4_to_e4m3x4(
++                                rope_vals[8 * w + 0] * inv,
++                                rope_vals[8 * w + 1] * inv,
++                                rope_vals[8 * w + 2] * inv,
++                                rope_vals[8 * w + 3] * inv,
++                            )
++                            hi = cvt_f32x4_to_e4m3x4(
++                                rope_vals[8 * w + 4] * inv,
++                                rope_vals[8 * w + 5] * inv,
++                                rope_vals[8 * w + 6] * inv,
++                                rope_vals[8 * w + 7] * inv,
++                            )
++                            q8 = lo.to(Uint64) | (hi.to(Uint64) << Uint64(32))
++                        st_global_u64(dst + Int64(_ROPE_OFFSET + 8 * w), q8)
+
+
+ @lru_cache(maxsize=None)
+ def _build_concat_and_cache_nvfp4_mla_fp8_rope_kernel(
+-    block_size: int, is_bf16: bool, per_token_scale: bool = False
++    block_size: int,
++    is_bf16: bool,
++    per_token_scale: bool = False,
++    zero_rope: bool = False,
+ ) -> ConcatAndCacheNvfp4MlaFp8RopeKernel:
+-    return ConcatAndCacheNvfp4MlaFp8RopeKernel(block_size, is_bf16, per_token_scale)
++    return ConcatAndCacheNvfp4MlaFp8RopeKernel(
++        block_size, is_bf16, per_token_scale, zero_rope
++    )
+
+
+ def clear_nvfp4_mla_fp8_rope_kv_cache_kernel_cache() -> None:
+@@ -401,6 +415,7 @@ def _concat_and_cache_nvfp4_mla_fp8_rope_flat_launch(
+     kv_cache: torch.Tensor,
+     slot_mapping: torch.Tensor,
+     per_token_scale: bool = False,
++    zero_rope: bool = False,
+ ) -> None:
+     num_tokens = int(slot_mapping.shape[0])
+     if num_tokens == 0:
+@@ -409,7 +424,7 @@ def _concat_and_cache_nvfp4_mla_fp8_rope_flat_launch(
+     slot_capacity = int(kv_cache.shape[0]) * block_size
+     is_bf16 = kv_c.dtype == torch.bfloat16
+     kernel = _build_concat_and_cache_nvfp4_mla_fp8_rope_kernel(
+-        block_size, is_bf16, per_token_scale
++        block_size, is_bf16, per_token_scale, zero_rope
+     )
+
+     args = (
+@@ -438,12 +453,13 @@ def _concat_and_cache_nvfp4_mla_fp8_rope_flat_launch(
+         str(kv_c.dtype),
+         block_size,
+         bool(per_token_scale),
++        bool(zero_rope),
+     )
+     # Version 3: per_token_scale joined the record semantics (fp32 second-level
+     # scale at [292, 296)); a v2 cubin must never run against v3 records.
+     spec = KernelCompileSpec.from_key(
+         "attention.mla.nvfp4_fp8_rope_kv_cache",
+-        3,
++        4,
+         cache_key,
+         labels=(
+             "kv_c",
+@@ -453,6 +469,7 @@ def _concat_and_cache_nvfp4_mla_fp8_rope_flat_launch(
+             "kv_dtype",
+             "block_size",
+             "per_token_scale",
++            "zero_rope",
+         ),
+     )
+     b12x_launch(
+@@ -576,3 +593,97 @@ def concat_and_cache_nvfp4_mla_fp8_rope(
+     torch.ops.b12x.concat_and_cache_nvfp4_mla_fp8_rope(
+         kv_c, k_pe, kv_cache, slot_mapping, per_token_scale
+     )
++
++
++@torch.library.custom_op(
++    "b12x::concat_and_cache_nvfp4_mla_zero_rope",
++    mutates_args=("kv_cache",),
++)
++def _concat_and_cache_nvfp4_mla_zero_rope_op(
++    kv_c: torch.Tensor,
++    kv_cache: torch.Tensor,
++    slot_mapping: torch.Tensor,
++) -> None:
++    # The writer signature retains a k_pe tensor internally so the established
++    # compiled-kernel ABI stays stable. zero_rope=True const-expr-elides every
++    # read of that argument, making kv_c a safe alias.
++    _concat_and_cache_nvfp4_mla_fp8_rope_flat_launch(
++        kv_c,
++        kv_c,
++        kv_cache,
++        slot_mapping,
++        per_token_scale=False,
++        zero_rope=True,
++    )
++
++
++@_concat_and_cache_nvfp4_mla_zero_rope_op.register_fake
++def _concat_and_cache_nvfp4_mla_zero_rope_fake(
++    kv_c: torch.Tensor,
++    kv_cache: torch.Tensor,
++    slot_mapping: torch.Tensor,
++) -> None:
++    return None
++
++
++def concat_and_cache_nvfp4_mla_zero_rope(
++    kv_c: torch.Tensor,
++    kv_cache: torch.Tensor,
++    slot_mapping: torch.Tensor,
++    scale: torch.Tensor | None = None,
++) -> None:
++    """Write strict 288-byte GLM zero-RoPE NVFP4 MLA records.
++
++    Each record is ``256`` packed E2M1 latent bytes followed by ``32`` E4M3
++    group-16 scale bytes. The cache contains no RoPE payload, padding, or
++    per-token outer scale; ``scale`` is accepted for cache-op signature parity.
++    """
++    del scale
++    if kv_c.ndim != 2 or int(kv_c.shape[1]) != _KV_LORA_RANK:
++        raise ValueError(
++            f"kv_c must be (num_tokens, {_KV_LORA_RANK}), got {tuple(kv_c.shape)}"
++        )
++    if kv_c.dtype not in (torch.bfloat16, torch.float16):
++        raise TypeError(f"kv_c must be bf16/f16, got {kv_c.dtype}")
++    if kv_cache.ndim != 3 or int(kv_cache.shape[2]) != _ZERO_ROPE_RECORD_BYTES:
++        raise ValueError(
++            "kv_cache must be (num_blocks, block_size, "
++            f"{_ZERO_ROPE_RECORD_BYTES}) uint8, got {tuple(kv_cache.shape)}"
++        )
++    if int(kv_cache.shape[0]) <= 0 or int(kv_cache.shape[1]) <= 0:
++        raise ValueError("kv_cache num_blocks and block_size must be positive")
++    if kv_cache.dtype != torch.uint8:
++        raise TypeError(f"kv_cache must be uint8, got {kv_cache.dtype}")
++    if slot_mapping.ndim != 1 or slot_mapping.dtype != torch.int64:
++        raise TypeError(
++            "slot_mapping must be a 1-D int64 tensor, got "
++            f"{tuple(slot_mapping.shape)} {slot_mapping.dtype}"
++        )
++    if not slot_mapping.is_contiguous():
++        raise ValueError("slot_mapping must be contiguous")
++    num_tokens = int(slot_mapping.shape[0])
++    if int(kv_c.shape[0]) < num_tokens:
++        raise ValueError(
++            f"kv_c must cover slot_mapping's {num_tokens} tokens, got "
++            f"{int(kv_c.shape[0])} rows"
++        )
++    if kv_c.stride(1) != 1 or kv_cache.stride(2) != 1:
++        raise ValueError("kv_c rows and kv_cache records must be innermost-contiguous")
++    if kv_c.stride(0) % 2 != 0 or kv_c.data_ptr() % 4 != 0:
++        raise ValueError("kv_c rows must be 4-byte aligned (even row stride)")
++    if (
++        kv_cache.data_ptr() % 16 != 0
++        or kv_cache.stride(0) % 16 != 0
++        or kv_cache.stride(1) % 16 != 0
++    ):
++        raise ValueError("kv_cache records must be 16-byte aligned")
++    if int(kv_cache.shape[0]) * int(kv_cache.shape[1]) >= 2**31:
++        raise ValueError("kv_cache slot capacity must fit in int32")
++    if not (kv_c.is_cuda and kv_cache.is_cuda and slot_mapping.is_cuda):
++        raise ValueError("all tensors must be on CUDA")
++    if len({kv_c.device, kv_cache.device, slot_mapping.device}) != 1:
++        raise ValueError("all tensors must be on the same device")
++
++    torch.ops.b12x.concat_and_cache_nvfp4_mla_zero_rope(
++        kv_c, kv_cache, slot_mapping
++    )
+diff --git a/b12x/attention/_shared/mla/prefill.py b/b12x/attention/_shared/mla/prefill.py
+index b064476..2fc94f7 100644
+--- a/b12x/attention/_shared/mla/prefill.py
++++ b/b12x/attention/_shared/mla/prefill.py
+@@ -51,14 +51,17 @@ def _cache_block_stride_bytes(
+         COMPRESSED_SPARSE_MLA_BYTES_PER_TOKEN,
+     )
+
+-    if model_type == ModelType.GLM_NSA:
++    if model_type in (ModelType.GLM_NSA, ModelType.GLM_ZERO_ROPE):
+         # GLM-family per-token contiguous record: 656B (ARBITRARY_FP32) or
+         # 432B (NVFP4_E4M3). ``record_bytes`` comes from traits.kv_gmem_stride.
+         rec = int(record_bytes) if record_bytes is not None else _GLM_KV_GMEM_STRIDE
+         expected = int(page_size) * rec
+     else:
+         expected = int(page_size) * COMPRESSED_SPARSE_MLA_BYTES_PER_TOKEN
+-    if model_type == ModelType.GLM_NSA and cache.is_contiguous():
++    if model_type in (
++        ModelType.GLM_NSA,
++        ModelType.GLM_ZERO_ROPE,
++    ) and cache.is_contiguous():
+         return expected
+     # The runtime page stride is part of the packed/padded cache contract.
+     if cache.ndim >= 2:
+@@ -189,6 +192,30 @@ def run_unified_prefill(
+             # NVFP4 GLM-family prefill runs the BF16-QK MG arm (native E2M1
+             # dequant + BF16 MMA); FP8 compute would misread the 432B record.
+             compute_mode = ComputeMode.BF16
++        elif (
++            q_head_dim == _DSV4_HEAD_DIM
++            and scale_format == ScaleFormat.NVFP4_E4M3
++            and int(kv_cache.shape[-1]) == 288
++        ):
++            model_type = ModelType.GLM_ZERO_ROPE
++            compute_mode = ComputeMode.BF16
++            if fp8_rope:
++                raise ValueError(
++                    "288-byte zero-RoPE NVFP4 cache cannot enable fp8_rope"
++            )
++            fp8_rope = False
++        elif (
++            q_head_dim == _DSV4_HEAD_DIM
++            and scale_format == ScaleFormat.ARBITRARY_FP32
++            and int(kv_cache.shape[-1]) == 528
++        ):
++            # GLM-5.3 NoPE FP8: the 512-wide latent plus four inline FP32
++            # group scales, with no zero-filled 128-byte RoPE payload.
++            model_type = ModelType.GLM_ZERO_ROPE
++            compute_mode = ComputeMode.FP8
++            if fp8_rope:
++                raise ValueError("528-byte zero-RoPE FP8 cache cannot enable fp8_rope")
++            fp8_rope = False
+         elif scale_format != inferred_scale_format:
+             raise ValueError(
+                 "SM120 sparse MLA prefill scale_format does not match q_head_dim: "
+@@ -348,13 +375,13 @@ def run_unified_prefill(
+     _mg_glm = (
+         _mg_enabled
+         and not has_extra
+-        and model_type == ModelType.GLM_NSA
++        and model_type in (ModelType.GLM_NSA, ModelType.GLM_ZERO_ROPE)
+         and scale_format == ScaleFormat.ARBITRARY_FP32
+     )
+     if _mg_glm and topk in (512, 1024, 2048):
+         return _run_partitioned_mg(
+             compute_mode=ComputeMode.FP8,
+-            model_type=ModelType.GLM_NSA,
++            model_type=model_type,
+             scale_format=ScaleFormat.ARBITRARY_FP32,
+         )
+     # ── NVFP4 (E2M1 + E4M3 group-16, GLM-family) MG gate ───────────────────────
+@@ -364,13 +391,13 @@ def run_unified_prefill(
+     _mg_nvfp4 = (
+         _mg_enabled
+         and not has_extra
+-        and model_type == ModelType.GLM_NSA
++        and model_type in (ModelType.GLM_NSA, ModelType.GLM_ZERO_ROPE)
+         and scale_format == ScaleFormat.NVFP4_E4M3
+     )
+-    if _mg_nvfp4 and topk in (128, 512, 1024, 2048):
++    if _mg_nvfp4 and topk in (128, 512, 1024, 2048, 2176):
+         return _run_partitioned_mg(
+             compute_mode=ComputeMode.BF16,
+-            model_type=ModelType.GLM_NSA,
++            model_type=model_type,
+             scale_format=ScaleFormat.NVFP4_E4M3,
+         )
+     _mg_base = (
+@@ -428,6 +455,6 @@ def run_unified_prefill(
+         "(BF16-QK, heads%8==0); "
+         "DSV4 dual-cache topk==128 with heads%8==0 and pbs_extra in {2, 64}; "
+         "GLM_NSA topk in {512, 1024, 2048}; "
+-        "NVFP4 (GLM-family, scale_format=2) topk in {128, 512, 1024, 2048}. "
++        "NVFP4 (GLM-family, scale_format=2) topk in {128, 512, 1024, 2048, 2176}. "
+         "No decode-reuse fallback."
+     )
+diff --git a/b12x/attention/_shared/mla/prefill_mg.py b/b12x/attention/_shared/mla/prefill_mg.py
+index b335683..ab67d7d 100644
+--- a/b12x/attention/_shared/mla/prefill_mg.py
++++ b/b12x/attention/_shared/mla/prefill_mg.py
+@@ -2346,13 +2346,13 @@ class UnifiedPrefillMGKernel:
+         # W XV, V==nope (no XV-rope), 656/528 KV geometry, KV-rope from global/L2,
+         # Q-rope registerized (aliased onto W_FP8). DSV4 is the scale_format==0 /
+         # has_extra arm and is byte-identical.
+-        is_glm = cutlass.const_expr(t.model_type == ModelType.GLM_NSA)
++        is_glm = cutlass.const_expr(t.model_type != ModelType.DSV4)
+         # NVFP4 (E2M1 + E4M3 group-16) GLM-family arm: BF16-QK with native
+         # in-register dequant, BF16 P.V staged in the dead W_FP8 region, and
+         # the 432B/288B record geometry. is_glm stays true for NVFP4 so the
+         # shared GLM staging (io gather / kv_sc absence / q_rope alias) applies.
+         is_nvfp4 = cutlass.const_expr(t.scale_format == ScaleFormat.NVFP4_E4M3)
+-        q_head_dim = cutlass.const_expr(_GLM_HEAD_DIM if is_glm else _DSV4_HEAD_DIM)
++        q_head_dim = cutlass.const_expr(t.d_nope + t.d_rope)
+         # Compile-time head-group count: 1 (heads==16) or 2 (heads % 32 == 0). All
+         # group-1 work below const_expr-elides when n_hg==1 (single-group MG).
+         n_hg = cutlass.const_expr(self.mg_n_hg)
+@@ -2539,6 +2539,7 @@ class UnifiedPrefillMGKernel:
+                         io_threads=_PREFILL_IO_THREADS,
+                         scale_format=t.scale_format,
+                         fp8_rope=t.fp8_rope,
++                        zero_rope=t.d_rope == 0,
+                         per_token_latent_scale=t.latent_scale_per_token,
+                         kv_sc_dst_addr=kv_sc_addr,
+                     )
+@@ -2639,6 +2640,7 @@ class UnifiedPrefillMGKernel:
+                                 io_threads=_PREFILL_IO_THREADS,
+                                 scale_format=t.scale_format,
+                                 fp8_rope=t.fp8_rope,
++                                zero_rope=t.d_rope == 0,
+                                 per_token_latent_scale=t.latent_scale_per_token,
+                                 kv_sc_dst_addr=kv_sc_addr + buf * kv_sc_buf,
+                             )
+@@ -4105,7 +4107,7 @@ def run_unified_prefill_mg(
+     head_offset: int = 0,
+ ):
+     model_type = int(model_type)
+-    is_glm = model_type == ModelType.GLM_NSA
++    is_glm = model_type in (ModelType.GLM_NSA, ModelType.GLM_ZERO_ROPE)
+     # DSV4 dual-cache (has_extra) union. all-or-none + DSV4-only (GLM has no extra
+     # section). Forced BF16-QK by the caller (FI ships dual-cache as BF16 only).
+     has_extra = extra_kv_cache is not None
+@@ -4123,7 +4125,10 @@ def run_unified_prefill_mg(
+     if scale_format is None:
+         scale_format = ScaleFormat.ARBITRARY_FP32 if is_glm else ScaleFormat.UE8M0_BYTE
+     scale_format = int(scale_format)
+-    expected_qdim = _GLM_HEAD_DIM if is_glm else _DSV4_HEAD_DIM
++    expected_qdim = (
++        512 if model_type == ModelType.GLM_ZERO_ROPE else
++        (_GLM_HEAD_DIM if is_glm else _DSV4_HEAD_DIM)
++    )
+     if int(q.shape[-1]) != expected_qdim:
+         raise ValueError(
+             f"SM120 sparse MLA MG prefill ({'GLM' if is_glm else 'DSV4'}) expects "
+@@ -4148,16 +4153,41 @@ def run_unified_prefill_mg(
+             "SM120 sparse MLA MG prefill head range out of bounds: "
+             f"head_offset={head_offset}, active_heads={active_heads}, total_heads={total_heads}"
+         )
++    if (
++        model_type == ModelType.GLM_ZERO_ROPE
++        and scale_format == ScaleFormat.ARBITRARY_FP32
++    ):
++        record_bytes = int(kv_cache.shape[-1])
++        if record_bytes != 528:
++            raise ValueError(
++                "zero-RoPE FP8 sparse MLA MG cache record must be 528 bytes, "
++                f"got {record_bytes}"
++            )
++        if fp8_rope:
++            raise ValueError("528-byte zero-RoPE FP8 cache cannot enable fp8_rope")
++        fp8_rope = False
+     if scale_format == ScaleFormat.NVFP4_E4M3:
+         record_bytes = int(kv_cache.shape[-1])
+-        if fp8_rope is None:
++        if model_type == ModelType.GLM_ZERO_ROPE:
++            if record_bytes != 288:
++                raise ValueError(
++                    "zero-RoPE NVFP4 sparse MLA MG cache record must be 288 bytes, "
++                    f"got {record_bytes}"
++                )
++            if fp8_rope:
++                raise ValueError("288-byte zero-RoPE NVFP4 cache cannot enable fp8_rope")
++            fp8_rope = False
++        elif fp8_rope is None:
+             if record_bytes not in (368, 432):
+                 raise ValueError(
+                     "NVFP4 sparse MLA MG cache record must be 368 or 432 bytes, "
+                     f"got {record_bytes}"
+                 )
+             fp8_rope = record_bytes == 368
+-        expected_record_bytes = 368 if fp8_rope else 432
++        expected_record_bytes = (
++            288 if model_type == ModelType.GLM_ZERO_ROPE
++            else (368 if fp8_rope else 432)
++        )
+         if record_bytes != expected_record_bytes:
+             raise ValueError(
+                 "NVFP4 sparse MLA MG cache record disagrees with fp8_rope: "
+diff --git a/b12x/attention/_shared/mla/smem.py b/b12x/attention/_shared/mla/smem.py
+index 5539ba9..6918d59 100644
+--- a/b12x/attention/_shared/mla/smem.py
++++ b/b12x/attention/_shared/mla/smem.py
+@@ -549,6 +549,12 @@ def _run_module_asserts() -> None:
+     glm = _assert_model(ModelType.GLM_NSA, ComputeMode.FP8, ScaleFormat.ARBITRARY_FP32)
+     _assert_model(ModelType.GLM_NSA, ComputeMode.BF16, ScaleFormat.ARBITRARY_FP32)
+     _assert_model(ModelType.GLM_NSA, ComputeMode.BF16, ScaleFormat.NVFP4_E4M3)
++    glm_zero_rope = _assert_model(
++        ModelType.GLM_ZERO_ROPE,
++        ComputeMode.BF16,
++        ScaleFormat.NVFP4_E4M3,
++    )
++    assert glm_zero_rope < glm, "zero-RoPE NVFP4 must reduce shared memory"
+     # Sanity on the expected magnitudes (~92KB DSV4, ~96KB GLM after the
+     # double-buffered KV + footer + w_fp8 refinements).
+     assert 80 * 1024 <= dsv4 <= 96 * 1024, f"DSV4 smem {dsv4}B outside ~92KB band"
+diff --git a/b12x/attention/_shared/mla/traits.py b/b12x/attention/_shared/mla/traits.py
+index bd395e0..a62f6fb 100644
+--- a/b12x/attention/_shared/mla/traits.py
++++ b/b12x/attention/_shared/mla/traits.py
+@@ -31,6 +31,9 @@ def kv_fp8_rope_enabled() -> bool:
+ class ModelType:
+     DSV4 = 0
+     GLM_NSA = 1
++    # GLM-5.3 has qk_rope_head_dim=0. Keep it distinct from DSV4 even though
++    # both expose a 512-wide query: their cache scale formats are different.
++    GLM_ZERO_ROPE = 2
+
+
+ class ComputeMode:
+@@ -150,6 +153,90 @@ def make_unified_traits(
+             rope_scale_offset=-1,
+         )
+
++    if model_type == ModelType.GLM_ZERO_ROPE:
++        if scale_format not in (
++            ScaleFormat.ARBITRARY_FP32,
++            ScaleFormat.NVFP4_E4M3,
++        ):
++            raise ValueError(
++                "GLM_ZERO_ROPE requires ScaleFormat.ARBITRARY_FP32 or "
++                "ScaleFormat.NVFP4_E4M3; "
++                f"got scale_format={scale_format!r}"
++            )
++        if fp8_rope_requested:
++            raise ValueError("GLM_ZERO_ROPE cannot carry a RoPE payload")
++        if scale_format == ScaleFormat.ARBITRARY_FP32:
++            if latent_scale_per_token:
++                raise ValueError(
++                    "GLM_ZERO_ROPE FP8 does not use an NVFP4 latent scale"
++                )
++            # GLM-5.3 native FP8 record:
++            #   [0, 512)  E4M3 latent values
++            #   [512,528) four per-128-group FP32 scales
++            # No zero-filled 128-byte RoPE field is stored.
++            return UnifiedMLATraits(
++                model_type=ModelType.GLM_ZERO_ROPE,
++                compute_mode=ComputeMode.FP8,
++                scale_format=ScaleFormat.ARBITRARY_FP32,
++                d_nope=512,
++                d_rope=0,
++                d_v=512,
++                quant_tile=128,
++                num_scales=4,
++                n_v_chunks=4,
++                nt_per_warp_xv=2,
++                kv_gmem_stride=528,
++                kv_smem_stride=528,
++                q_nope_stride=528,
++                bi=64,
++                hpb=16,
++                block_threads=288,
++                math_threads=256,
++                bulk_tx_bytes=33792,
++                v_has_rope=False,
++                has_extra_cache=False,
++                fp8_rope=False,
++                rope_gmem_offset=-1,
++                rope_payload_bytes=0,
++                rope_scale_offset=-1,
++            )
++        if latent_scale_per_token:
++            raise ValueError(
++                "GLM_ZERO_ROPE's strict 288-byte ABI has no inline per-token "
++                "latent-scale field; use a calibrated per-layer latent scale"
++            )
++        # GLM-5.3 native NVFP4 record:
++        #   [0, 256) packed E2M1 latent
++        #   [256, 288) 32 E4M3 group-16 scales
++        # There is no RoPE payload or alignment tail because qk_rope_head_dim=0.
++        return UnifiedMLATraits(
++            model_type=ModelType.GLM_ZERO_ROPE,
++            compute_mode=ComputeMode.BF16,
++            scale_format=ScaleFormat.NVFP4_E4M3,
++            d_nope=512,
++            d_rope=0,
++            d_v=512,
++            quant_tile=64,
++            num_scales=8,
++            n_v_chunks=8,
++            nt_per_warp_xv=1,
++            kv_gmem_stride=288,
++            kv_smem_stride=288,
++            q_nope_stride=520,
++            bi=64,
++            hpb=16,
++            block_threads=288,
++            math_threads=256,
++            bulk_tx_bytes=18432,  # 64 candidates * 288 bytes
++            v_has_rope=False,
++            has_extra_cache=False,
++            fp8_rope=False,
++            rope_gmem_offset=-1,
++            rope_payload_bytes=0,
++            rope_scale_offset=-1,
++            latent_scale_per_token=False,
++        )
++
+     if model_type == ModelType.GLM_NSA:
+         if scale_format == ScaleFormat.NVFP4_E4M3:
+             # NVFP4 MLA latent cache: 256B packed E2M1 NoPE + 32B E4M3
+@@ -226,5 +313,6 @@ def make_unified_traits(
+
+     raise ValueError(
+         f"unsupported model_type {model_type!r} (DSV3_2 is dropped; "
+-        "valid: ModelType.DSV4, ModelType.GLM_NSA)"
++        "valid: ModelType.DSV4, ModelType.GLM_NSA, "
++        "ModelType.GLM_ZERO_ROPE)"
+     )

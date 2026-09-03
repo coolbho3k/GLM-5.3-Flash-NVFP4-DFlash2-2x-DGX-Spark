@@ -1,6 +1,11 @@
 [gMASK]<sop>
 {%- set requested_reasoning_effort = reasoning_effort if reasoning_effort is defined else 'high' -%}
-{%- if requested_reasoning_effort == 'none' or (enable_thinking is defined and not enable_thinking) -%}
+{%- if thinking is defined or enable_thinking is defined -%}
+    {%- set thinking_enabled = (thinking if thinking is defined else false) or (enable_thinking if enable_thinking is defined else false) -%}
+{%- else -%}
+    {%- set thinking_enabled = true -%}
+{%- endif -%}
+{%- if requested_reasoning_effort == 'none' -%}
     {%- set effective_reasoning_effort = none -%}
 {%- elif requested_reasoning_effort in ['minimal', 'low'] -%}
     {%- set effective_reasoning_effort = 'low' -%}
@@ -220,7 +225,7 @@ For each function call, output the function name and arguments within the follow
 {%- endif -%}
 {%- endfor -%}
 {%- if add_generation_prompt -%}
-    {%- if effective_reasoning_effort is none -%}
+    {%- if effective_reasoning_effort is none or not thinking_enabled -%}
     <|assistant|>{{- '<think></think>' -}}
     {%- else -%}
     <|assistant|>{{- '<think>' -}}

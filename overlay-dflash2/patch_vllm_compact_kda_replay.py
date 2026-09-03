@@ -282,6 +282,7 @@ import torch
 ''',
     '''from collections.abc import Callable
 from dataclasses import replace
+import os
 
 import torch
 ''',
@@ -305,7 +306,10 @@ replace_once(
         kda_config = config.linear_attn_config  # type: ignore[attr-defined]
 ''',
     '''        super().__init__(config, vllm_config, prefix)
-        self.compact_spec_replay = self.num_spec > 0
+        self.compact_spec_replay = (
+            self.num_spec > 0
+            and os.environ.get("VLLM_COMPACT_SPEC_REPLAY", "1") == "1"
+        )
 
         kda_config = config.linear_attn_config  # type: ignore[attr-defined]
 ''',
@@ -530,7 +534,10 @@ replace_once(
 ''',
     '''        super().__init__(config, vllm_config, prefix)
         vllm_config.quant_config = saved_quant_config
-        self.compact_spec_replay = self.num_spec > 0
+        self.compact_spec_replay = (
+            self.num_spec > 0
+            and os.environ.get("VLLM_COMPACT_SPEC_REPLAY", "1") == "1"
+        )
 
         # Linear-attention head config: read the flattened top-level fields when
 ''',
@@ -587,10 +594,22 @@ replace_once(
                 torch.empty(max_num_reqs, dtype=torch.int32),
                 persistent=False,
             )
+            self.register_buffer(
+                "_compact_replay_sequence_mask",
+                torch.empty(max_num_reqs, dtype=torch.bool),
+                persistent=False,
+            )
+            self.register_buffer(
+                "_compact_replay_accepted",
+                torch.empty(max_num_reqs, dtype=torch.int32),
+                persistent=False,
+            )
             self._compact_replay_pending = False
-            self._compact_replay_num_tokens = 0
-            self._compact_replay_num_sequences = 0
-            self._compact_replay_sequence_mask: torch.Tensor | None = None
+            # CUDA graphs replay captured tensor operations, but not this
+            # Python method or its scalar assignments. Keep replay metadata at
+            # fixed maximum shapes so every graph updates the same buffers.
+            self._compact_replay_num_tokens = max_replay_tokens
+            self._compact_replay_num_sequences = max_num_reqs
             self._compact_replay_debug = (
                 os.environ.get("VLLM_COMPACT_REPLAY_DEBUG", "0") == "1"
             )
@@ -633,12 +652,15 @@ replace_once(
         self._compact_replay_cu[: num_sequences + 1].copy_(
             cu_seqlens[: num_sequences + 1]
         )
+        self._compact_replay_cu[num_sequences + 1 :].fill_(num_tokens)
+        self._compact_replay_state_indices.fill_(0)
         self._compact_replay_state_indices[:num_sequences].copy_(
             state_indices[:num_sequences, 0]
         )
-        self._compact_replay_num_tokens = num_tokens
-        self._compact_replay_num_sequences = num_sequences
-        self._compact_replay_sequence_mask = sequence_mask
+        self._compact_replay_sequence_mask.fill_(False)
+        self._compact_replay_sequence_mask[: sequence_mask.numel()].copy_(
+            sequence_mask
+        )
         self._compact_replay_pending = True
         if (
             self._compact_replay_debug
@@ -657,20 +679,20 @@ replace_once(
             )
 
     def compact_replay_sequence_mask(self) -> torch.Tensor:
-        assert self._compact_replay_pending
-        sequence_mask = self._compact_replay_sequence_mask
-        assert sequence_mask is not None
-        return sequence_mask
+        return self._compact_replay_sequence_mask
 
     def replay_compact_spec_state(
         self,
         accepted: torch.Tensor,
     ) -> None:
-        if not self.compact_spec_replay or not self._compact_replay_pending:
+        if not self.compact_spec_replay:
             return
         num_sequences = self._compact_replay_num_sequences
         num_tokens = self._compact_replay_num_tokens
-        assert accepted.numel() == num_sequences
+        if accepted.numel() > num_sequences:
+            raise ValueError("too many speculative sequences for compact replay")
+        self._compact_replay_accepted.zero_()
+        self._compact_replay_accepted[: accepted.numel()].copy_(accepted)
         debug_this_step = (
             self._compact_replay_debug
             and self.prefix.endswith("layers.0.self_attn")
@@ -691,7 +713,7 @@ replace_once(
             state=self.kv_cache[1],
             cu_seqlens=self._compact_replay_cu[: num_sequences + 1],
             state_indices=self._compact_replay_state_indices[:num_sequences],
-            num_accepted_tokens=accepted,
+            num_accepted_tokens=self._compact_replay_accepted,
         )
         if debug_this_step:
             torch.cuda.synchronize()
@@ -778,6 +800,19 @@ replace_once(
 path = ROOT / "model_executor/layers/mamba/abstract.py"
 replace_once(
     path,
+    '''from math import prod
+
+import torch
+''',
+    '''from math import prod
+import os
+
+import torch
+''',
+    "authoritative compact Mamba environment import",
+)
+replace_once(
+    path,
     '''            num_speculative_blocks=(
                 vllm_config.speculative_config.num_speculative_tokens
                 if vllm_config.speculative_config
@@ -790,6 +825,7 @@ replace_once(
                     vllm_config.speculative_config is not None
                     and vllm_config.model_config.architecture
                     == "Glm5NextForConditionalGeneration"
+                    and os.environ.get("VLLM_COMPACT_SPEC_REPLAY", "1") == "1"
                 )
                 else (
                     vllm_config.speculative_config.num_speculative_tokens
@@ -958,15 +994,20 @@ replace_once(
             self, "_compact_replay_layer_count", -1
         ):
             self._compact_replay_layer_count = len(compact_replay_layers)
-        pending_replays = [
+        active_replays = [
             (layer, layer.replay_compact_spec_state)
             for layer in compact_replay_layers
-            if getattr(layer, "_compact_replay_pending", False)
+            if getattr(layer, "compact_spec_replay", False)
         ]
-        if pending_replays:
-            sequence_mask = pending_replays[0][0].compact_replay_sequence_mask()
-            accepted = num_sampled[sequence_mask[: input_batch.num_reqs]].contiguous()
-            for _, replay in pending_replays:
+        # Tensor staging is part of the captured graph, whereas Python flags
+        # set by the model forward are not replayed.  Use the current input's
+        # draft count to re-arm this commit after every graph execution.
+        if active_replays and input_batch.num_draft_tokens > 0:
+            sequence_mask = active_replays[0][0].compact_replay_sequence_mask()
+            accepted = num_sampled[: input_batch.num_reqs][
+                sequence_mask[: input_batch.num_reqs]
+            ].contiguous()
+            for _, replay in active_replays:
                 replay(accepted)
 
         if self.pp_handler is not None:

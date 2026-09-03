@@ -38,6 +38,7 @@ NCCL_HCA="${NCCL_IB_HCA:-rocep1s0f1}"
 NCCL_IFACE="${NCCL_SOCKET_IFNAME:-enp1s0f1np1}"
 NCCL_SUBNET="${NCCL_IB_ADDR_RANGE:-10.100.32.0/24}"
 MAX_MODEL_LEN="${MAX_MODEL_LEN:-1048576}"
+BLOCK_SIZE="${BLOCK_SIZE:-2304}"
 CUDA_LAUNCH_BLOCKING="${CUDA_LAUNCH_BLOCKING:-0}"
 MAX_NUM_BATCHED_TOKENS="${MAX_NUM_BATCHED_TOKENS:-8192}"
 GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.87}"
@@ -47,10 +48,15 @@ VLLM_DISABLE_FLASHINFER_AUTOTUNE="${VLLM_DISABLE_FLASHINFER_AUTOTUNE:-0}"
 USE_FP4_INDEXER_CACHE="${USE_FP4_INDEXER_CACHE:-0}"
 DCP_SIZE="${DCP_SIZE:-2}"
 ENABLE_DFLASH="${ENABLE_DFLASH:-1}"
+DFLASH_TOKENS="${DFLASH_TOKENS:-7}"
+DFLASH_DRAFT_TP="${DFLASH_DRAFT_TP-}"
+DFLASH_DRAFT_SAMPLE_METHOD="${DFLASH_DRAFT_SAMPLE_METHOD-}"
+DFLASH_REJECTION_SAMPLE_METHOD="${DFLASH_REJECTION_SAMPLE_METHOD-}"
 QUANTIZATION="${QUANTIZATION:-}"
 MOE_BACKEND="${MOE_BACKEND:-marlin}"
 KV_CACHE_DTYPE="${KV_CACHE_DTYPE:-fp8_e4m3}"
 ENFORCE_EAGER="${ENFORCE_EAGER:-1}"
+COMPILATION_CONFIG="${COMPILATION_CONFIG-}"
 MAX_NUM_SEQS="${MAX_NUM_SEQS:-6}"
 ENABLE_DECODE_FIRST_SCHEDULER="${ENABLE_DECODE_FIRST_SCHEDULER:-1}"
 PREFILL_ADMISSION_POLICY="${PREFILL_ADMISSION_POLICY:-adaptive}"
@@ -60,6 +66,10 @@ ADAPTIVE_SCHEDULER_CONFIG="${ADAPTIVE_SCHEDULER_CONFIG:-$SCRIPT_DIR/scheduler_pr
 ADAPTIVE_SCHEDULER_RELOAD_SECONDS="${ADAPTIVE_SCHEDULER_RELOAD_SECONDS:-1}"
 EXL3_FUSED_MOE="${EXL3_FUSED_MOE:-1}"
 EXL3_MOE_ROW_TILE="${EXL3_MOE_ROW_TILE:-0}"
+EXL3_FAT_KERNEL="${EXL3_FAT_KERNEL:-1}"
+EXL3_TEMP_ROWS_FUSED="${EXL3_TEMP_ROWS_FUSED:-128}"
+COMPACT_SPEC_REPLAY="${COMPACT_SPEC_REPLAY:-1}"
+GLM53_SPINWAIT_MS="${GLM53_SPINWAIT_MS:-stock}"
 VLLM_B12X_USE_CUDA_GRAPH="${VLLM_B12X_USE_CUDA_GRAPH:-0}"
 VLLM_B12X_CUDA_GRAPH_MAX_TOKENS="${VLLM_B12X_CUDA_GRAPH_MAX_TOKENS:-64}"
 NVFP4_CALIBRATION_HOST_PATH="${NVFP4_CALIBRATION_HOST_PATH:-}"
@@ -89,7 +99,36 @@ if [[ "$DCP_SIZE" != "1" ]]; then
 fi
 speculative_args=()
 if [[ "$ENABLE_DFLASH" == "1" ]]; then
-  speculative_args+=( --speculative-config '{"method":"dflash","model":"/models/dflash2-draft","num_speculative_tokens":7}' )
+  [[ "$DFLASH_TOKENS" =~ ^[1-7]$ ]] || {
+    echo "DFLASH_TOKENS must be an integer from 1 through 7" >&2
+    exit 2
+  }
+  [[ -z "$DFLASH_DRAFT_TP" || "$DFLASH_DRAFT_TP" == "1" || "$DFLASH_DRAFT_TP" == "2" ]] || {
+    echo "DFLASH_DRAFT_TP must be empty, 1, or 2" >&2
+    exit 2
+  }
+  [[ -z "$DFLASH_DRAFT_SAMPLE_METHOD" || "$DFLASH_DRAFT_SAMPLE_METHOD" == "probabilistic" ]] || {
+    echo "DFLASH_DRAFT_SAMPLE_METHOD must be empty or probabilistic" >&2
+    exit 2
+  }
+  [[ -z "$DFLASH_REJECTION_SAMPLE_METHOD" || "$DFLASH_REJECTION_SAMPLE_METHOD" == "standard" ]] || {
+    echo "DFLASH_REJECTION_SAMPLE_METHOD must be empty or standard" >&2
+    exit 2
+  }
+  speculative_config='{"method":"dflash","model":"/models/dflash2-draft","num_speculative_tokens":'
+  speculative_config+="$DFLASH_TOKENS"
+  if [[ -n "$DFLASH_DRAFT_TP" ]]; then
+    speculative_config+=',"draft_tensor_parallel_size":'
+    speculative_config+="$DFLASH_DRAFT_TP"
+  fi
+  if [[ -n "$DFLASH_DRAFT_SAMPLE_METHOD" ]]; then
+    speculative_config+=',"draft_sample_method":"probabilistic"'
+  fi
+  if [[ -n "$DFLASH_REJECTION_SAMPLE_METHOD" ]]; then
+    speculative_config+=',"rejection_sample_method":"standard"'
+  fi
+  speculative_config+='}'
+  speculative_args+=( --speculative-config "$speculative_config" )
 fi
 quantization_args=()
 if [[ -n "$QUANTIZATION" ]]; then
@@ -102,6 +141,11 @@ fi
 eager_args=()
 if [[ "$ENFORCE_EAGER" == "1" ]]; then
   eager_args+=( --enforce-eager )
+fi
+compilation_args=()
+if [[ -n "$COMPILATION_CONFIG" ]]; then
+  python3 -c 'import json,sys; json.loads(sys.argv[1])' "$COMPILATION_CONFIG"
+  compilation_args+=( --compilation-config "$COMPILATION_CONFIG" )
 fi
 scheduler_mount_args=()
 scheduler_env_args=()
@@ -242,6 +286,12 @@ docker run --gpus all -d \
   -v "$DRAFT_HOST_PATH:/models/dflash2-draft:ro" \
   -e EXL3_FUSED_MOE="$EXL3_FUSED_MOE" \
   -e EXL3_MOE_ROW_TILE="$EXL3_MOE_ROW_TILE" \
+  -e EXL3_FAT_KERNEL="$EXL3_FAT_KERNEL" \
+  -e EXL3_TEMP_ROWS_FUSED="$EXL3_TEMP_ROWS_FUSED" \
+  -e EXL3_FAT_SCRATCH_ROWS="$MAX_NUM_BATCHED_TOKENS" \
+  -e MAX_NUM_BATCHED_TOKENS="$MAX_NUM_BATCHED_TOKENS" \
+  -e VLLM_COMPACT_SPEC_REPLAY="$COMPACT_SPEC_REPLAY" \
+  -e GLM53_SPINWAIT_MS="$GLM53_SPINWAIT_MS" \
   -e VLLM_B12X_USE_CUDA_GRAPH="$VLLM_B12X_USE_CUDA_GRAPH" \
   -e VLLM_B12X_CUDA_GRAPH_MAX_TOKENS="$VLLM_B12X_CUDA_GRAPH_MAX_TOKENS" \
   -v "$CHAT_TEMPLATE:/models/chat_template_mm.jinja:ro" \
@@ -260,8 +310,8 @@ docker run --gpus all -d \
     "${dcp_args[@]}" \
     --gpu-memory-utilization "$GPU_MEMORY_UTILIZATION" \
     --max-model-len "$MAX_MODEL_LEN" \
-    --max-num-seqs "$MAX_NUM_SEQS" --block-size 2304 "${moe_backend_args[@]}" "${speculative_args[@]}" --kv-cache-dtype "$KV_CACHE_DTYPE" \
-    "${eager_args[@]}" --max-num-batched-tokens "$MAX_NUM_BATCHED_TOKENS" \
+    --max-num-seqs "$MAX_NUM_SEQS" --block-size "$BLOCK_SIZE" "${moe_backend_args[@]}" "${speculative_args[@]}" --kv-cache-dtype "$KV_CACHE_DTYPE" \
+    "${eager_args[@]}" "${compilation_args[@]}" --max-num-batched-tokens "$MAX_NUM_BATCHED_TOKENS" \
     "${scheduler_args[@]}" \
     --tool-call-parser glm47 --enable-auto-tool-choice \
     --reasoning-parser glm45 --default-chat-template-kwargs '{"enable_thinking":true,"reasoning_effort":"high"}' --chat-template /models/chat_template_mm.jinja \

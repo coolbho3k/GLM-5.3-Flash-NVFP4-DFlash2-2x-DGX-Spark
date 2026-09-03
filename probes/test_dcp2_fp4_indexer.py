@@ -164,6 +164,73 @@ def check_writer_gather() -> dict[str, float | int | bool]:
     }
 
 
+def check_native_k7_paged() -> dict[str, float | int | bool]:
+    """Verify one K=7 target step keeps all eight causal rows correct."""
+    torch.manual_seed(20260901)
+    batch, next_n, heads, dim = 1, 8, 32, 128
+    keys, page_size = 16, 4
+    key = torch.randn(keys, dim, device="cuda", dtype=torch.bfloat16)
+    key_values, key_scales = fwht128_quant_mxfp4(key)
+    raw_cache = torch.empty(
+        (keys // page_size, page_size, 68), dtype=torch.uint8, device="cuda"
+    )
+    # Populate the physical per-page [all values][all scales] layout through
+    # the production writer. The 4-D tensor below is only DeepGEMM's logical
+    # view; assigning its apparent 68-byte records directly would be wrong.
+    kpool_compress_and_write_cache_mxfp4(
+        raw_cache,
+        key[:, None, :],
+        torch.zeros(keys, 1, dim, dtype=torch.bfloat16, device="cuda"),
+        torch.zeros(1, dim, dtype=torch.float32, device="cuda"),
+        torch.arange(keys, dtype=torch.int64, device="cuda"),
+    )
+    cache = raw_cache.unsqueeze(2)
+
+    query = torch.randn(
+        batch * next_n * heads, dim, device="cuda", dtype=torch.bfloat16
+    )
+    q_values, q_scales = fwht128_quant_mxfp4(query)
+    q_values = q_values.view(batch, next_n, heads, 64)
+    q_scales = q_scales.view(batch, next_n, heads, 4).view(torch.int32)
+    weights = torch.rand(
+        batch * next_n, heads, device="cuda", dtype=torch.float32
+    )
+    context_lens = torch.arange(
+        keys - next_n + 1, keys + 1, dtype=torch.int32, device="cuda"
+    ).view(batch, next_n)
+    block_table = torch.arange(
+        keys // page_size, dtype=torch.int32, device="cuda"
+    ).view(batch, -1)
+
+    paged = paged_mqa_logits_mxfp4(
+        (q_values, q_scales),
+        cache,
+        weights,
+        context_lens,
+        block_table,
+        max_model_len=keys,
+    )
+    contiguous = mqa_logits_mxfp4(
+        (q_values.view(-1, heads, 64), q_scales.view(-1, heads)),
+        (key_values, key_scales),
+        weights,
+        torch.zeros(batch * next_n, dtype=torch.int32, device="cuda"),
+        context_lens.reshape(-1),
+    )
+    torch.cuda.synchronize()
+    live = torch.arange(keys, device="cuda")[None, :] < context_lens.reshape(-1, 1)
+    difference = (paged[live] - contiguous[live]).abs()
+    dead_are_inf = bool(torch.isneginf(paged[~live]).all().item())
+    max_abs = difference.max().item()
+    return {
+        "rows": batch * next_n,
+        "max_abs": max_abs,
+        "mean_abs": difference.mean().item(),
+        "dead_are_inf": dead_are_inf,
+        "ok": dead_are_inf and max_abs < 2e-5,
+    }
+
+
 def main() -> None:
     print(
         json.dumps(
@@ -171,6 +238,7 @@ def main() -> None:
                 "pool_slots": check_pool_slots(),
                 "scorers": check_scorers(),
                 "writer_gather": check_writer_gather(),
+                "native_k7_paged": check_native_k7_paged(),
             }
         )
     )

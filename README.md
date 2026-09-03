@@ -1,5 +1,8 @@
 # GLM-5.3-Flash NVFP4 + DFlash2 on 2x NVIDIA DGX Spark
 
+> Experimental EXL3 weight serving with the same compact long-context stack
+> is documented in [EXL3 + native FP8 KV + DCP2](docs/EXL3-FP8-DCP2.md).
+
 OpenAI-compatible vLLM serving of [zai-org/GLM-5.3-Flash](https://huggingface.co/zai-org/GLM-5.3-Flash)
 (320B total / 18B active MoE) across two DGX Spark (GB10, SM121) nodes at TP2.
 The current profile combines MSE-optimized routed-expert NVFP4, byte-exact
@@ -54,6 +57,42 @@ working DFlash2 deployment of this model on GB10** ([docs/DFLASH2-SPECULATIVE-DE
 ## Quickstart
 
 ### This cluster (`spark-0` + `dgx1.lan`)
+
+The unified selector keeps all four weight/KV compositions runnable from one
+branch:
+
+| profile | routed weights | target MLA KV | default limit | state |
+|---|---|---|---:|---|
+| `nvfp4-fp4-dcp2` | optimized NVFP4/Marlin | calibrated native FP4 | 1M | validated |
+| `nvfp4-fp8-dcp2` | optimized NVFP4/Marlin | compact 528-byte FP8 | 512K | backend validated; 1M exact-fit boot pending |
+| `exl3-fp4-dcp2` | EXL3/TR3 K4 | calibrated native FP4 | 1M | validated |
+| `exl3-fp8-dcp2` | EXL3/TR3 K4 | compact 528-byte FP8 | 1M | validated, recommended EXL3 profile |
+
+List or inspect the fully resolved settings without starting anything:
+
+```bash
+./serve-profile.sh list
+./serve-profile.sh show exl3-fp8-dcp2
+```
+
+From a fresh clone, prepare the public pinned EXL3 checkpoint and build the
+runtime image on the head. The preparation step downloads about 164 GiB and
+rsyncs the target and DFlash2 draft to `dgx1.lan` by default:
+
+```bash
+python3 -m pip install --user -U 'huggingface_hub[cli]'
+./prepare-exl3-weights.sh
+./serve-profile.sh build exl3-fp8-dcp2
+./serve-profile.sh start exl3-fp8-dcp2
+```
+
+The starter verifies runtime-file hashes across ranks, streams a missing image
+to the worker, launches worker then head, and waits for `/health`. Stop either
+selected profile with `./serve-profile.sh stop`. Every serving setting remains
+an environment override; for example, `MAX_NUM_SEQS=4 ./serve-profile.sh start
+exl3-fp8-dcp2`. Eager execution is the validated default. The opt-in piecewise
+CUDA-graph experiment is retained as a diagnostic knob but is slower on this
+stack; see [the EXL3 profile notes](docs/EXL3-FP8-DCP2.md).
 
 This checkout is configured for the two active RoCE links at `10.100.32.1` and
 `10.100.32.2`. The corruption-free RedHat target checkpoint and DFlash2 draft

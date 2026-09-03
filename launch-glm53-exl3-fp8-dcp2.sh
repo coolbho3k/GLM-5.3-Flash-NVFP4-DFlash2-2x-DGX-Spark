@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Compatibility rank launcher for EXL3 + compact FP8 KV + TP2/DCP2.
+# Prefer: ./serve-profile.sh start exl3-fp8-dcp2
+set -Eeuo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+export IMAGE="${IMAGE:-glm53-exl3:e2-fp8-dcp2}"
+export MODEL_HOST_PATH="${MODEL_HOST_PATH:-$HOME/.cache/huggingface/glm53-exl3-tr3-4bpw-25a44fdbf16862a46b7cc9921142c6c81350af2f}"
+export QUANTIZATION="${QUANTIZATION:-exl3}"
+export MOE_BACKEND="${MOE_BACKEND:-auto}"
+export VLLM_ATTENTION_BACKEND="${VLLM_ATTENTION_BACKEND:-FLASHINFER_MLA_SPARSE_SM120}"
+export USE_CALIBRATED_NVFP4_MLA="${USE_CALIBRATED_NVFP4_MLA:-0}"
+export USE_FP4_INDEXER_CACHE="${USE_FP4_INDEXER_CACHE:-0}"
+export DCP_SIZE="${DCP_SIZE:-2}"
+export BLOCK_SIZE="${BLOCK_SIZE:-2048}"
+export MAX_MODEL_LEN="${MAX_MODEL_LEN:-1048576}"
+export MAX_NUM_SEQS="${MAX_NUM_SEQS:-6}"
+export MAX_NUM_BATCHED_TOKENS="${MAX_NUM_BATCHED_TOKENS:-8192}"
+export GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.87}"
+export ENFORCE_EAGER="${ENFORCE_EAGER:-1}"
+export ENABLE_DFLASH="${ENABLE_DFLASH:-1}"
+export DFLASH_TOKENS="${DFLASH_TOKENS:-7}"
+export ENABLE_DECODE_FIRST_SCHEDULER="${ENABLE_DECODE_FIRST_SCHEDULER:-1}"
+export PREFILL_ADMISSION_POLICY="${PREFILL_ADMISSION_POLICY:-adaptive}"
+export PREFILL_SCHEDULE_INTERVAL="${PREFILL_SCHEDULE_INTERVAL:-4}"
+export LONG_PREFILL_TOKEN_THRESHOLD="${LONG_PREFILL_TOKEN_THRESHOLD:-512}"
+export EXL3_FAT_KERNEL="${EXL3_FAT_KERNEL:-1}"
+export GLM53_SPINWAIT_MS="${GLM53_SPINWAIT_MS:-stock}"
+export CACHE_HOST_PATH="${CACHE_HOST_PATH:-$HOME/.cache/huggingface/vllm-cache-exl3-fp8-dcp2}"
+export JIT_CACHE_HOST_PATH="${JIT_CACHE_HOST_PATH:-$HOME/.cache/glm53-vllm-jit-exl3-fp8-dcp2}"
+
+exec "$SCRIPT_DIR/launch-glm53-vllm-tp2-dflash2.sh" "$@"
