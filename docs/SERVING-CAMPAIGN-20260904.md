@@ -292,9 +292,30 @@ IMAGE=glm53-exl3:e2-decode-pipeline-v1 \
 ./serve-profile.sh start exl3-fp8-dcp2
 ```
 
-The serving A/B is pending. Both boots hold the above settings constant except
+The serving A/B below holds the above settings constant except
 `GLM53_EXL3_MOE_FAST`. Native off/on must be verified inside both containers.
 Do not infer serving throughput from the ~10% isolated kernel-time reduction.
+
+The experimental derivative image above is convenient for existing local
+images, but is not itself a fresh-clone base. The normal pinned-public-input
+builder now includes the additive native patch:
+
+```bash
+IMAGE=glm53-exl3:decode-pipeline-recipe-v1 \
+  ./serve-profile.sh build exl3-fp8-dcp2
+GPU_MEMORY_UTILIZATION=0.87 EXL3_TEMP_ROWS_FUSED=128 \
+EXL3_FUSED_FAT_ACTIVATION=1 EXL3_FAT_ACTIVATION_CONTROL= \
+GLM53_EXL3_MOE_FAST=1 TARGET_CUDAGRAPH_SCOPE=c1 \
+IMAGE=glm53-exl3:decode-pipeline-recipe-v1 \
+  ./serve-profile.sh start exl3-fp8-dcp2
+```
+
+Startup's existing image-sync path supplies the worker. Model preparation
+and host/NIC configuration remain as described in the README. This complete
+fresh-build route has not yet been rerun end-to-end during this campaign;
+the measured A/B used the derivative image built independently on both nodes.
+Fast mode remains opt-in so old installed images and other profiles keep
+their existing behavior.
 
 ### Serving A control (native pipeline off)
 
@@ -390,3 +411,56 @@ The probe now records actual active experts, M16 expert tiles, and an
 estimated packed-weight throughput. That estimate is not a DRAM hardware
 counter: it excludes scales/activations and assumes weight streaming per
 expert tile. Do not treat it as proof of bandwidth saturation.
+
+Screen outcome (`exl3-private-isolated.jsonl`): **reject**. All ten cases
+(rows 1/8/24/48/64, uniform/correlated routing) passed numerical checks,
+with relative output RMSE below 8e-8. Private accumulation was generally
+1–3% slower than the equivalent shared-input pipeline control; row-1
+uniform was about 6% slower. The two row-8 comparisons showed only ~0.5%
+benefit against the isolated control, within the native repeat drift.
+Neither the serving extension nor its dispatcher includes this variant.
+
+Actual route counts imply about 226–234 GB/s of packed-weight throughput
+for most multirow control cases in this screen (one-row cases ~168 GB/s).
+Again these are estimates, not measured DRAM utilization. The result makes
+output atomic contention a low-priority target at these tested shapes.
+
+Reproduce this screen only with the server stopped:
+
+```bash
+docker run --rm --network=none --cpus 2 --memory 2g \
+  -v "$PWD/probes:/probes:ro" -v /tmp/glm53-exl3-group-probe:/build \
+  --entrypoint python3 glm53-exl3:e2-decode-pipeline-v1 \
+  /probes/build_exl3_group_probe.py --output /build --groups 8 \
+  --shared-input --frag-stages 1 --shared-stages 8 --private-output
+docker run --rm --gpus all --network=none --cpus 4 --memory 8g \
+  -e EXL3_TEMP_ROWS_FUSED=128 -e GLM53_EXL3_MOE_FAST=1 \
+  -v "$PWD/probes:/probes:ro" -v /tmp/glm53-exl3-group-probe:/build:ro \
+  --entrypoint timeout glm53-exl3:e2-decode-pipeline-v1 120 \
+  python3 /probes/bench_exl3_groups.py --libraries /build \
+  --variants g8_shared_k32_f1_s8_private --rows 1,8,24,48,64 \
+  --random-scales --alias-shared-scales
+```
+
+The installed native dispatcher is the fast control in this command. To
+also include the same isolated control as the saved run, build once without
+`--private-output`, then pass both variant labels as in the saved result.
+The validated fast=1 server was relaunched after this screen at GMU 0.87.
+No further GPU probe should run beside that loaded server.
+
+### Remaining dense-projection lead (read-only attribution)
+
+Grouping the saved C1 worker trace by kernel/grid/graph shows 170 calls to
+the BF16 `16x16_128x1` family at grid `(8,99,1)`, totaling 80.18 ms of the
+605.68 ms GPU span. The count is consistent with 34 KDA layers over five
+steps. Installed `vllm/models/glm5next/nvidia/kda.py` already merges q/k/v/b
+and the two low-rank gate inputs into `in_proj_qkvbfg_a`; its TP2 shape is
+12576x4096. This shape/count attribution is an inference, not a recorded
+module-name trace. It is not six separate launches waiting to be fused.
+
+That matrix contains 103.02 MB of BF16 weights per rank. Dividing by the
+observed ~0.472 ms mean kernel time gives ~218 GB/s of weight-only throughput.
+As with the EXL3 estimate, this excludes other traffic and does not prove
+measured bandwidth saturation. It suggests a targeted BF16 kernel could
+yield a modest gain, but does not justify predicting a dramatic speedup.
+The generic cuBLAS/Lt/layout screens above already rejected broad changes.

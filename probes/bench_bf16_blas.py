@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Small, bounded BF16 linear backend screen; run inside the serving image.
 
-Use only on an idle diagnostic server with memory headroom. Synthetic weights
+Run only with the serving processes stopped on the test GPU. Synthetic weights
 match representative TP2 shapes, not model activations. Kernel timings alone
 are not a serving-speed claim. All backends see identical BF16 inputs.
 """
