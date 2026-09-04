@@ -57,6 +57,32 @@ The main path below is intentionally short.
 The launcher selects all of these defaults when given
 `exl3-fp8-dcp2`; they do not need to be entered separately.
 
+## KV cache: what changed and what to expect
+
+GLM-5.3 uses NoPE MLA, so its cache does not need the 128-byte RoPE field
+reserved by the generic packed FP8 layout. The recommended profile removes
+that unused payload and stores each target MLA record as 512 E4M3 data bytes
+plus four FP32 scales: **528 bytes per token per layer**. We also keep the
+sparse indexer in FP8, sequence-shard the target cache with DCP2, and use an
+exact-fit page layout so the target and DFlash2 caches share storage without a
+large padding fallback. Compact KDA replay preserves only the recurrent state
+needed to commit accepted draft tokens.
+
+With two 128 GB DGX Sparks, `GPU_MEMORY_UTILIZATION=0.87`, and the 1M profile,
+the canonical EXL3 + FP8 configuration normally exposes **about 4.6–4.7
+million logical KV tokens**—roughly 4.4–4.5 completely full 1M contexts. This
+is aggregate logical capacity after DCP2; available bytes are still bounded by
+the lower-memory rank. Unified-memory and page-cache state can move the exact
+number between boots, so use the capacity printed during startup as the
+authoritative value.
+
+For maximum capacity, `exl3-fp4-dcp2` uses our 288-byte native-NVFP4 MLA
+record, four-over-six scale selection, and calibrated per-layer outer scales.
+It has exposed about **7.8 million logical KV tokens** on the same pair. We
+still recommend FP8 KV for general use because it keeps more numerical
+headroom and produced the better overall quality/parallel-decode balance; the
+FP4 profile is there for workloads where capacity matters more.
+
 ## Requirements
 
 - Two ARM64 NVIDIA DGX Spark systems with Docker and a working NVIDIA container
