@@ -111,6 +111,25 @@ class AliasTests(unittest.TestCase):
             self.extension.glm53_fast_moe_version = lambda: 1
             self.build(self.layer, self.experts)
 
+    def test_stream_mode_requires_fast_and_native_version(self):
+        with patch.dict(sys.modules, {'exllamav3_ext': self.extension}), \
+             patch.dict(os.environ, {'GLM53_EXL3_MOE_FAST': '0',
+                                    'GLM53_EXL3_MOE_STREAM_WEIGHTS': '1'}):
+            with self.assertRaisesRegex(RuntimeError, 'requires GLM53_EXL3_MOE_FAST'):
+                self.build(self.layer, self.experts)
+            os.environ['GLM53_EXL3_MOE_FAST'] = '1'
+            self.extension.glm53_fast_moe_version = lambda: 1
+            with self.assertRaisesRegex(RuntimeError, 'requires the native streaming image'):
+                self.build(self.layer, self.experts)
+            self.extension.glm53_stream_moe_version = lambda: 2
+            with self.assertRaisesRegex(RuntimeError, 'Unsupported'):
+                self.build(self.layer, self.experts)
+            self.extension.glm53_stream_moe_version = lambda: 1
+            self.build(self.layer, self.experts)
+            os.environ['GLM53_EXL3_MOE_STREAM_WEIGHTS'] = 'bad'
+            with self.assertRaisesRegex(RuntimeError, 'must be 0 or 1'):
+                self.build(self.layer, self.experts)
+
 
 if __name__ == '__main__':
     unittest.main()

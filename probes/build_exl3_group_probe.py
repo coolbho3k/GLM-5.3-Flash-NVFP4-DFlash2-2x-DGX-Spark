@@ -12,6 +12,41 @@ import shutil
 import subprocess
 
 
+def weight_cache_source(gemm, ptx, policy):
+    """Change only packed-weight loads in a private probe source tree.
+
+    Addresses, predicates, copy sizes, barriers and arithmetic stay intact.
+    Cache qualifiers are performance hints, not different memory semantics.
+    """
+    if policy == 'default':
+        return gemm, ptx
+    if policy not in ('stream', 'prefetch128'):
+        raise ValueError(f'Unknown weight cache policy: {policy}')
+    old = ('if (pred_b_gl[i]) cp_async(sh + EXL3_GEMM_BASE_THREADS * i + t, '
+           'gl + load_b_gl[i]);')
+    if gemm.count(old) != 1:
+        raise ValueError('Expected one packed-weight async copy anchor')
+    if policy == 'stream':
+        if ('void cp_async_stream(void* smem_ptr, const void* glob_ptr)' not in ptx
+                or 'createpolicy.fractional.L2::evict_first.b64 p, 1.0;' not in ptx
+                or 'cp.async.cg.shared.global.L2::cache_hint' not in ptx):
+            raise ValueError('Upstream streaming copy helper changed')
+        helper = 'cp_async_stream'
+    else:
+        start = ptx.index('__device__ inline void cp_async(void* smem_ptr, const void* glob_ptr)')
+        end = ptx.index('\n}', start) + 2
+        original = ptx[start:end]
+        instruction = 'cp.async.cg.shared.global [%0], [%1], %2;'
+        if original.count(instruction) != 1 or 'const int bytes = 16;' not in original:
+            raise ValueError('Upstream async copy helper changed')
+        helper = 'glm53_cp_async_prefetch128'
+        added = original.replace('void cp_async(', f'void {helper}(', 1)
+        added = added.replace(instruction,
+            'cp.async.cg.shared.global.L2::128B [%0], [%1], %2;', 1)
+        ptx = ptx[:end] + '\n\n' + added + ptx[end:]
+    return gemm.replace(old, old.replace('cp_async(', helper + '('), 1), ptx
+
+
 def validate_tight_smem_layout(gemm):
     """Reject drift in the upstream layout mirrored by the launch shim."""
     compact = ''.join(gemm.split())
@@ -77,6 +112,8 @@ def main():
                         help='Reserve derived K4/N256 shared memory instead of 90 KiB')
     parser.add_argument('--resident-blocks', type=int, choices=(1, 2), default=1,
                         help='Blocks per SM in grid; 2 requires cooperative launch/residency gate')
+    parser.add_argument('--weight-cache', choices=('default', 'stream', 'prefetch128'),
+                        default='default', help='Probe-only packed-weight async load cache hint')
     args = parser.parse_args()
     source = Path('/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext')
     output = args.output.resolve()
@@ -90,10 +127,19 @@ def main():
         raise ValueError('Screen private output and occupancy separately')
     if args.resident_blocks != 1 and not args.tight_smem:
         raise ValueError('Extra resident blocks require --tight-smem')
+    if args.weight_cache != 'default' and args.private_output:
+        raise ValueError('Screen cache policy and private output separately')
     tree = output / ('private-source' if args.private_output else
                      'guarded-source' if args.guarded_shared_input else
                      'shared-source' if args.shared_input else 'stock-source')
+    if args.weight_cache != 'default':
+        tree = tree.with_name(tree.name + '-' + args.weight_cache)
     shutil.copytree(source, tree, dirs_exist_ok=True)
+    gemm_path, ptx_path = tree / 'quant/exl3_gemm_inner.cuh', tree / 'ptx.cuh'
+    gemm, ptx = weight_cache_source(gemm_path.read_text(), ptx_path.read_text(),
+                                  args.weight_cache)
+    gemm_path.write_text(gemm)
+    ptx_path.write_text(ptx)
     if args.tight_smem:
         validate_tight_smem_layout((tree / 'quant/exl3_gemm_inner.cuh').read_text())
     kernel = tree / 'quant/exl3_moe_kernel.cuh'
@@ -133,6 +179,8 @@ def main():
             label += '_private'
         if args.tight_smem:
             label += f'_occ{args.resident_blocks}'
+        if args.weight_cache != 'default':
+            label += '_' + args.weight_cache
         command = ['/usr/local/cuda/bin/nvcc', '-O3', '--use_fast_math', '-std=c++17',
                    '-arch=sm_121', '--shared', '-Xcompiler=-fPIC',
                    '-Xlinker=-Bsymbolic', '-Xptxas=-v',
@@ -148,6 +196,9 @@ def main():
         # must never interpose across separately loaded DSOs.
         subprocess.run(command, check=True)
         print(json.dumps({'variant': label, 'command': command,
+                          'weight_cache': args.weight_cache,
+                          'gemm_sha256': hashlib.sha256(gemm_path.read_bytes()).hexdigest(),
+                          'ptx_sha256': hashlib.sha256(ptx_path.read_bytes()).hexdigest(),
                           'source_sha256': hashlib.sha256(original.encode()).hexdigest(),
                           'modified_sha256': hashlib.sha256(kernel.read_bytes()).hexdigest()}), flush=True)
 

@@ -1,0 +1,7 @@
+/tmp/glm53-exl3-cache-probe.12qTrS/g8_shared_k32_f1_s8.so
+LDGSTS.E.BYPASS.128 48
+/tmp/glm53-exl3-cache-probe.12qTrS/g8_shared_k32_f1_s8_prefetch128.so
+LDGSTS.E.BYPASS.128 24
+LDGSTS.E.BYPASS.LTC128B.128 24
+/tmp/glm53-exl3-cache-probe.12qTrS/g8_shared_k32_f1_s8_stream.so
+LDGSTS.E.BYPASS.128 48

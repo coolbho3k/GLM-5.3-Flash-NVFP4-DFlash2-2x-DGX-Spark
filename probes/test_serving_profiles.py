@@ -71,16 +71,18 @@ def test_production_defaults_unchanged() -> None:
 def test_native_pipeline_settings_are_visible_and_opt_in() -> None:
     defaults = resolved("exl3-fp8-dcp2")
     assert defaults["GLM53_EXL3_MOE_FAST"] == "0"
+    assert defaults["GLM53_EXL3_MOE_STREAM_WEIGHTS"] == "0"
     assert defaults["EXL3_FUSED_FAT_ACTIVATION"] == "0"
     assert defaults["EXL3_TEMP_ROWS_FUSED"] == "128"
     assert defaults["EXL3_FAT_ACTIVATION_CONTROL"] == "''"
     fast = resolved("exl3-fp8-dcp2", GLM53_EXL3_MOE_FAST="1",
-                    EXL3_FUSED_FAT_ACTIVATION="1")
+                    EXL3_FUSED_FAT_ACTIVATION="1", GLM53_EXL3_MOE_STREAM_WEIGHTS="1")
     assert fast["GLM53_EXL3_MOE_FAST"] == "1"
+    assert fast["GLM53_EXL3_MOE_STREAM_WEIGHTS"] == "1"
     assert fast["EXL3_FUSED_FAT_ACTIVATION"] == "1"
     for filename in ("start-cluster.sh", "launch-glm53-vllm-tp2-dflash2.sh"):
         source = (ROOT / filename).read_text()
-        for setting in ("GLM53_EXL3_MOE_FAST", "EXL3_FUSED_FAT_ACTIVATION"):
+        for setting in ("GLM53_EXL3_MOE_FAST", "GLM53_EXL3_MOE_STREAM_WEIGHTS", "EXL3_FUSED_FAT_ACTIVATION"):
             assert setting in source
     starter = (ROOT / "start-cluster.sh").read_text()
     assert 'find_spec("exllamav3_ext")' in starter
@@ -102,6 +104,23 @@ def test_overrides_win() -> None:
     assert values["MAX_NUM_SEQS"] == "3"
     assert values["ENFORCE_EAGER"] == "0"
     assert "PIECEWISE" in values["COMPILATION_CONFIG"]
+
+
+def test_streaming_rejects_incompatible_configuration() -> None:
+    for profile, fast, fused, stream in (
+        ("exl3-fp8-dcp2", "0", "1", "1"),
+        ("exl3-fp8-dcp2", "1", "0", "1"),
+        ("exl3-fp4-dcp2", "1", "1", "1"),
+        ("nvfp4-fp8-dcp2", "1", "1", "1"),
+        ("exl3-fp8-dcp2", "1", "1", "invalid"),
+    ):
+        env = {"PATH": os.environ["PATH"], "HOME": os.environ.get("HOME", "/home/emi"),
+               "GLM53_EXL3_MOE_FAST": fast, "EXL3_FUSED_MOE": fused,
+               "GLM53_EXL3_MOE_STREAM_WEIGHTS": stream}
+        result = subprocess.run([str(ROOT / "serve-profile.sh"), "show", profile],
+                                cwd=ROOT, env=env, capture_output=True, text=True)
+        assert result.returncode == 2, (profile, fast, fused, stream, result)
+        assert "Streaming-weight experiment requires" in result.stderr or "must be 0 or 1" in result.stderr
 
 
 def test_selective_c1_target_graph_profile() -> None:

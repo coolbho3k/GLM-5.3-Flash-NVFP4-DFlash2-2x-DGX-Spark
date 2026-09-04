@@ -980,6 +980,16 @@ def build_exl3_fused_state(layer: torch.nn.Module, inners: list[dict[str, Any]])
     """Pointer tables + fused temps, once after load. No per-token alloc."""
     import exllamav3_ext
 
+    stream_weights = os.environ.get("GLM53_EXL3_MOE_STREAM_WEIGHTS", "0")
+    if stream_weights not in ("0", "1"):
+        raise RuntimeError("GLM53_EXL3_MOE_STREAM_WEIGHTS must be 0 or 1")
+    if stream_weights == "1":
+        if os.environ.get("GLM53_EXL3_MOE_FAST", "0") != "1":
+            raise RuntimeError("Streaming EXL3 weights requires GLM53_EXL3_MOE_FAST=1")
+        if not hasattr(exllamav3_ext, "glm53_stream_moe_version"):
+            raise RuntimeError("Streaming EXL3 weights requires the native streaming image")
+        if exllamav3_ext.glm53_stream_moe_version() != 1:
+            raise RuntimeError("Unsupported native EXL3 streaming version")
     if os.environ.get("GLM53_EXL3_MOE_FAST", "0") == "1":
         if not hasattr(exllamav3_ext, "glm53_fast_moe_version"):
             raise RuntimeError("GLM53_EXL3_MOE_FAST=1 requires the native decode-pipeline image")
@@ -1654,7 +1664,8 @@ class Exl3MoEMethod(FusedMoEMethodBase):
                 else:
                     fused_err = "exllamav3_ext.exl3_moe missing"
             except Exception as exc:
-                if os.environ.get("GLM53_EXL3_MOE_FAST", "0") == "1":
+                if (os.environ.get("GLM53_EXL3_MOE_FAST", "0") == "1"
+                        or os.environ.get("GLM53_EXL3_MOE_STREAM_WEIGHTS", "0") != "0"):
                     raise RuntimeError("Requested native EXL3 fast path could not initialize") from exc
                 fused_err = repr(exc)
                 layer._exl3_ptrs = None

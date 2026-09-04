@@ -1,0 +1,8 @@
+ARG BASE_IMAGE=glm53-exl3:decode-pipeline-recipe-v1
+FROM ${BASE_IMAGE}
+COPY vendor/miaai-exl3/patch_exl3_stream_weights.py /opt/glm53/
+COPY overlay-exl3-fp8/rebuild_exl3_extension.py /opt/glm53/
+ENV TORCH_CUDA_ARCH_LIST=12.1a MAX_JOBS=2
+RUN python3 /opt/glm53/patch_exl3_stream_weights.py /usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext && python3 /opt/glm53/rebuild_exl3_extension.py
+COPY vendor/miaai-exl3/exl3.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py
+RUN python3 -c "import torch; import exllamav3_ext as e; assert e.glm53_fast_moe_version() == 1; assert e.glm53_stream_moe_version() == 1"

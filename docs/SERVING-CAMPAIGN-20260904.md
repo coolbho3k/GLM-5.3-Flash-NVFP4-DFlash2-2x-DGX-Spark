@@ -613,3 +613,82 @@ a comprehensive quality evaluation or a new maximum-context test.
 The README now includes a short opt-in build/start command. Existing
 defaults remain unchanged. No rejected private-output, K16, tighter-shared-
 memory or expanded-grid variant is in this serving image.
+
+## Packed-weight cache-policy screen
+
+The next bounded screen changes only the packed B-matrix async copy helper.
+`--weight-cache stream` uses the pinned EXL3 `cp_async_stream` helper (L2
+evict-first); `prefetch128` requests 128-byte L2 prefetching. Activation
+loads, addresses, copy sizes, predicates, pipeline geometry, arithmetic,
+scratch and barriers are unchanged. These are performance hints according
+to [NVIDIA's cp.async specification](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#data-movement-and-conversion-instructions-cp-async),
+not a different quantization or memory-consistency scheme.
+
+Both variants and the isolated default control compiled with 127 registers
+and no spills. SASS inspection confirms the prefetch modifier; streaming
+loads use a separate descriptor from activation loads. Merely counting
+LDGSTS opcode names misses that descriptor difference.
+
+After stopping both serving containers, two graph-replay passes used the
+same synthetic weights, randomized scales, aliased gate/up input transforms,
+uniform/correlated routing and rows 8/24/48/128. The second pass reverses
+variant order. Each timing is the median of three 40-replay samples; output
+clearing is included. `stock` means the installed fast=1 dispatcher here.
+
+| Rows | Stream kernel-time reduction, uniform | Stream kernel-time reduction, correlated |
+| --- | ---: | ---: |
+| 8 | 0.82% / 1.32% | 2.20% / 1.98% |
+| 24 | 2.13% / 0.61% | 1.15% / 1.66% |
+| 48 | 2.07% / 1.99% | 4.45% / 2.86% |
+| 128 | 3.01% / 3.50% | 3.08% / 3.37% |
+
+Entries are forward/reverse order versus the isolated same-geometry control.
+The initial row-8 uniform control drifted about 2% in both passes, so that
+specific small gain is inconclusive. Correlated row-8 and larger shapes
+make streaming worth a short native serving A/B, not a default promotion.
+Prefetch128 shows no consistent gain and is rejected. Worst relative output
+RMSE across the screen was 4.735e-8, below the 1e-6 same-math gate. This is
+synthetic output parity, not a model-quality evaluation.
+
+Evidence: `exl3-cache-{forward,reverse}.jsonl`, cache build manifest and
+SASS load report. The validated full-recipe image is restored automatically
+after the screen; no cache-policy experiment was installed into it.
+
+The additive `patch_exl3_stream_weights.py` stages a separate native variant
+behind `GLM53_EXL3_MOE_STREAM_WEIGHTS=1` (also requires fast=1). It preserves
+the existing fast kernel and generic/E2 GEMM headers byte-for-byte, changes
+only a private copy of the decode GEMM helper, and exports its own version
+check. Python rejects a requested but unsupported native variant. The
+shared and independent-input native kernels compile for SM121 without spills;
+CPU source/compatibility guards pass. The experimental Dockerfile is
+`overlay-exl3-fp8/Dockerfile.stream-experiment`. Full image build and native
+serving A/B are still pending; isolated timing is not a serving-speed claim.
+Given the profiled expert-kernel share, a roughly 1% end-to-end benefit is
+a hypothesis, not a measurement.
+
+The switch is forwarded to both ranks and shown by the profile launcher;
+defaults remain off. The launcher rejects incompatible profiles or a request
+without fast/fused MoE. It requires the separate experiment image: do not
+enable it against the restored validated image. The normal restore completed
+with HTTP 200 and 4,650,826 KV tokens at GMU 0.87. Capacity variation across
+these boots is not a cache-format change; no streaming variant is live yet.
+Post-restore short functional checks and all four C1/C6 prose/code smoke
+cases passed, with the expected completed-request counts and no preemptions.
+These 64-token first-use checks are not replacement performance baselines.
+
+Reproduce the isolated screen with the server stopped (CPU-only compilation
+may run separately with resource limits):
+
+```bash
+python3 /probes/build_exl3_group_probe.py --output /build --groups 8 \
+  --shared-input --frag-stages 1 --shared-stages 8 --weight-cache stream
+# Also build default and prefetch128 with the same command/options.
+GLM53_EXL3_MOE_FAST=1 EXL3_TEMP_ROWS_FUSED=128 \
+python3 /probes/bench_exl3_groups.py --libraries /build \
+  --variants g8_shared_k32_f1_s8,g8_shared_k32_f1_s8_stream,g8_shared_k32_f1_s8_prefetch128 \
+  --rows 8,24,48,128 --repeats 40 --random-scales --alias-shared-scales
+```
+
+Use the same GPU-enabled, 8-GiB-limited probe container described above.
+Reverse the variant list for the second pass. The sources copied into
+`/build` are disposable experiment artifacts, not serving dependencies.
