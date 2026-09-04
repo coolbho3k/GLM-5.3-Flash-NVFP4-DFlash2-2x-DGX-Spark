@@ -295,3 +295,33 @@ IMAGE=glm53-exl3:e2-decode-pipeline-v1 \
 The serving A/B is pending. Both boots hold the above settings constant except
 `GLM53_EXL3_MOE_FAST`. Native off/on must be verified inside both containers.
 Do not infer serving throughput from the ~10% isolated kernel-time reduction.
+
+### Serving A control (native pipeline off)
+
+Both ranks verified fast=0, activation=1, scratch=128. At GMU 0.87 the boot
+advertised 4,715,025 KV tokens (4.50x the 1,048,576 context limit). Capture
+completed normally; no preemptions occurred in the measured requests.
+Six 64-token warmups preceded the two 256-token prose/code rounds.
+
+| Concurrency | Prose aggregate tok/s, median | Code aggregate tok/s, median |
+| --- | ---: | ---: |
+| 1 | 26.75 | 23.30 |
+| 3 | 50.65 | 42.62 |
+| 6 | 82.45 | 74.88 |
+
+C1 output speed varied with acceptance: prose 27.79/25.70, code 21.25/25.36.
+Wall time divided by drafting-cycle count was steadier: 126.18/127.71 ms for
+prose and 126.80/129.44 ms for code. This normalization includes first-token
+work and is not a GPU timer. Completed-request deltas matched each case's
+expected concurrency; there was no evidence of extra completed traffic.
+
+After initial prefill warmup, the cold fixed 21,850-token prompt took 19.255 s
+to first token: 1134.75 input tok/s, zero global prefix-cache hit delta, answer
+`OK`. The mixed C3 control processed a fresh 5428-token prefill at 218.03 input
+tok/s while all three decoders overlapped its full lifetime. Mean per-stream
+decode was 10.310 without prefill and 7.976 with prefill; maximum mixed stream
+gap was 0.596 s. The synthetic decoder text is not an authoritative benchmark
+report; use the measured timestamps/counters only.
+
+A drained successfully. The matching B boot has been started with fast=1;
+its warmup, throughput, correctness, and KV checks remain pending.
