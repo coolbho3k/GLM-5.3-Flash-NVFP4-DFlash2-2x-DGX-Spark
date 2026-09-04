@@ -1,12 +1,16 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 
+import os
+from copy import copy
+from dataclasses import replace
 from typing import Any
 
 import torch
 
 from vllm.config import VllmConfig
 from vllm.config.compilation import CUDAGraphMode
+from vllm.logger import init_logger
 # SM121-PORT: tldevice is needed by the local gumbel_noised_argmax below.
 from vllm.triton_utils import tl, tldevice, triton
 # SM121-PORT: the image's gumbel.py (g487ecf187, ~Aug 15) predates PR #52816,
@@ -16,6 +20,12 @@ from vllm.triton_utils import tl, tldevice, triton
 # untouched. Same primitives => draft and verification draw identical noise.
 from vllm.v1.worker.gpu.sample.gumbel import tl_rand32, tl_rand64
 from vllm.v1.worker.gpu.spec_decode.dflash.speculator import DFlashSpeculator
+from vllm.v1.worker.gpu.spec_decode.dflash.cudagraph import (
+    DFlashCudaGraphManager,
+)
+from vllm.v1.attention.backend import AttentionCGSupport
+
+logger = init_logger(__name__)
 
 
 @triton.jit
@@ -157,6 +167,81 @@ def _cache_draft_logits_kernel(
 
 class DFlash2Speculator(DFlashSpeculator):
     _speculator_name = "DFlash2"
+
+    def init_cudagraph_manager(self, cudagraph_mode: CUDAGraphMode) -> None:
+        # Keep the target model eager while capturing DFlash's small, fixed
+        # 1+K query. Normally vLLM passes the target's graph mode here, so
+        # --enforce-eager disables both managers. This opt-in supplies only the
+        # exact DFlash request-count shapes to the otherwise-empty eager config.
+        if os.getenv("VLLM_DFLASH_ONLY_CUDAGRAPH", "0") == "1":
+            # The generic FlashInfer query sees target DCP2 and reports
+            # single-token-only. Our FP8/DCP overlay disables DCP inside every
+            # sliding-window draft builder/implementation, making this DFlash
+            # query a replicated, uniform 1+K batch.
+            support_info_type = type(self.attn_cg_support)
+            self.attn_cg_support = support_info_type(
+                min_cg_support=AttentionCGSupport.UNIFORM_BATCH,
+                min_cg_attn_backend=self.attn_cg_support.min_cg_attn_backend,
+            )
+            logger.info(
+                "Treating replicated DFlash attention as graph-compatible"
+            )
+            batch_text = os.getenv(
+                "VLLM_DFLASH_CUDAGRAPH_BATCHES", "1,2,3,4,5,6"
+            )
+            try:
+                batches = sorted({int(value) for value in batch_text.split(",")})
+            except ValueError as exc:
+                raise ValueError(
+                    "VLLM_DFLASH_CUDAGRAPH_BATCHES must be comma-separated integers"
+                ) from exc
+            if not batches or batches[0] < 1 or batches[-1] > self.max_num_reqs:
+                raise ValueError(
+                    "VLLM_DFLASH_CUDAGRAPH_BATCHES must contain request counts "
+                    f"between 1 and max_num_seqs={self.max_num_reqs}"
+                )
+            capture_sizes = [batch * self.num_query_per_req for batch in batches]
+            compilation_config = self.vllm_config.compilation_config
+            assert compilation_config is not None
+            cudagraph_mode = CUDAGraphMode.FULL_DECODE_ONLY
+            # CudaGraphManager normally reads capture sizes from the target's
+            # shared compilation config. Keep a private config copy here:
+            # mutating the shared list makes target warmup pad eager decode to
+            # draft (1+K) shapes even though the target has no graphs.
+            draft_compilation_config = replace(
+                compilation_config,
+                cudagraph_capture_sizes=capture_sizes,
+                max_cudagraph_capture_size=max(capture_sizes),
+            )
+            # dataclasses.replace(VllmConfig, ...) reruns VllmConfig post-init,
+            # where enforce_eager clears these sizes again. A shallow copy
+            # isolates the field without rerunning config normalization.
+            draft_vllm_config = copy(self.vllm_config)
+            object.__setattr__(
+                draft_vllm_config,
+                "compilation_config",
+                draft_compilation_config,
+            )
+            self.query_cudagraph_manager = DFlashCudaGraphManager(
+                draft_vllm_config,
+                self.device,
+                cudagraph_mode,
+                decode_query_len=self.num_query_per_req,
+            )
+            if not self.query_cudagraph_manager.needs_capture():
+                raise RuntimeError(
+                    "DFlash2-only CUDA graph manager has no capture descriptors"
+                )
+            logger.info(
+                "%s-only CUDA graphs enabled for request batches %s "
+                "(%s query tokens); target graph mode remains unchanged",
+                self._speculator_name,
+                batches,
+                capture_sizes,
+            )
+            return
+
+        super().init_cudagraph_manager(cudagraph_mode)
 
     def __init__(self, vllm_config: VllmConfig, device: torch.device):
         super().__init__(vllm_config, device)

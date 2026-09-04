@@ -9,9 +9,13 @@ CONTAINER_NAME="${CONTAINER_NAME:-vllm_glm53}"
 IMAGE="${IMAGE:-glm53-v14:nvfp4-gscale-tooling}"
 MODEL_HOST_PATH="${MODEL_HOST_PATH:-$HOME/.cache/huggingface/glm53-nvfp4-marlin-shared-w13-v1}"
 DRAFT_HOST_PATH="${DRAFT_HOST_PATH:-$HOME/.cache/huggingface/glm53-dflash2-bf582e4eacc1810f76656d1811693ff6c6737d2a}"
+EXPECTED_DRAFT_SHA256="${EXPECTED_DRAFT_SHA256-}"
 API_PORT="${API_PORT:-8000}"
 HEAD_IP="${HEAD_IP:-10.100.32.1}"
 WORKER_IP="${WORKER_IP:-10.100.32.2}"
+NCCL_IB_HCA="${NCCL_IB_HCA:-rocep1s0f1}"
+NCCL_SOCKET_IFNAME="${NCCL_SOCKET_IFNAME:-enp1s0f1np1}"
+NCCL_IB_ADDR_RANGE="${NCCL_IB_ADDR_RANGE:-10.100.32.0/24}"
 READY_TIMEOUT="${READY_TIMEOUT:-3600}"
 POLL_INTERVAL="${POLL_INTERVAL:-20}"
 DCP_SIZE="${DCP_SIZE:-2}"
@@ -43,6 +47,8 @@ COMPACT_SPEC_REPLAY="${COMPACT_SPEC_REPLAY:-1}"
 GLM53_SPINWAIT_MS="${GLM53_SPINWAIT_MS:-stock}"
 VLLM_B12X_USE_CUDA_GRAPH="${VLLM_B12X_USE_CUDA_GRAPH:-0}"
 VLLM_B12X_CUDA_GRAPH_MAX_TOKENS="${VLLM_B12X_CUDA_GRAPH_MAX_TOKENS:-64}"
+VLLM_DFLASH_ONLY_CUDAGRAPH="${VLLM_DFLASH_ONLY_CUDAGRAPH:-0}"
+VLLM_DFLASH_CUDAGRAPH_BATCHES="${VLLM_DFLASH_CUDAGRAPH_BATCHES:-1,2,3,4,5,6}"
 SYNC_IMAGE_TO_WORKER="${SYNC_IMAGE_TO_WORKER:-0}"
 ENABLE_DECODE_FIRST_SCHEDULER="${ENABLE_DECODE_FIRST_SCHEDULER:-1}"
 PREFILL_ADMISSION_POLICY="${PREFILL_ADMISSION_POLICY:-adaptive}"
@@ -125,6 +131,14 @@ runtime_paths=(
   /usr/local/lib/python3.12/dist-packages/flashinfer/fused_moe/cute_dsl/b12x_moe.py
   /usr/local/lib/python3.12/dist-packages/flashinfer/fused_moe/cute_dsl/blackwell_sm12x/moe_dispatch.py
 )
+if [[ -f "$DRAFT_HOST_PATH/hf_quant_config.json" ]]; then
+  runtime_paths+=(
+    /usr/local/lib/python3.12/dist-packages/vllm/model_executor/kernels/linear/mxfp8/b12x.py
+    /usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/qwen3_dflash.py
+    /usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/qwen3_dflash2.py
+    /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/spec_decode/dflash2/speculator.py
+  )
+fi
 if docker run --rm --entrypoint test "$IMAGE" \
   -f /usr/local/lib/python3.12/dist-packages/vllm/nvfp4_mla_calibration.py; then
   runtime_paths+=(/usr/local/lib/python3.12/dist-packages/vllm/nvfp4_mla_calibration.py)
@@ -138,7 +152,12 @@ local_runtime="$(
 )"
 printf -v remote_checksum_command '%q ' \
   docker run --rm --entrypoint sha256sum "$IMAGE" "${runtime_paths[@]}"
-remote_runtime="$(ssh "${ssh_opts[@]}" "$WORKER_HOST" "$remote_checksum_command")"
+remote_runtime="$(ssh "${ssh_opts[@]}" "$WORKER_HOST" "$remote_checksum_command" || true)"
+if [[ "$remote_runtime" != "$local_runtime" && "$SYNC_IMAGE_TO_WORKER" == "1" ]]; then
+  echo "$WORKER_HOST has a stale $IMAGE; streaming the validated head image"
+  docker save "$IMAGE" | ssh "${ssh_opts[@]}" "$WORKER_HOST" docker load
+  remote_runtime="$(ssh "${ssh_opts[@]}" "$WORKER_HOST" "$remote_checksum_command")"
+fi
 [[ "$remote_runtime" == "$local_runtime" ]] || {
   echo "$WORKER_HOST does not contain the same validated runtime files" >&2
   diff <(printf '%s\n' "$local_runtime") <(printf '%s\n' "$remote_runtime") || true
@@ -176,6 +195,24 @@ if [[ "$PREFILL_ADMISSION_POLICY" == "adaptive" ]]; then
   worker_adaptive_scheduler_config="$REMOTE_DIR/scheduler_profiles/adaptive.json"
 fi
 
+test -f "$DRAFT_HOST_PATH/config.json"
+test -f "$DRAFT_HOST_PATH/model.safetensors"
+ssh "${ssh_opts[@]}" "$WORKER_HOST" \
+  "test -f $(printf '%q' "$DRAFT_HOST_PATH/config.json") && test -f $(printf '%q' "$DRAFT_HOST_PATH/model.safetensors")"
+if [[ -n "$EXPECTED_DRAFT_SHA256" ]]; then
+  local_draft_sha256="$(sha256sum "$DRAFT_HOST_PATH/model.safetensors" | awk '{print $1}')"
+  remote_draft_sha256="$(ssh "${ssh_opts[@]}" "$WORKER_HOST" \
+    "sha256sum $(printf '%q' "$DRAFT_HOST_PATH/model.safetensors")" | awk '{print $1}')"
+  [[ "$local_draft_sha256" == "$EXPECTED_DRAFT_SHA256" ]] || {
+    echo "Head draft checkpoint does not match the pinned hash" >&2
+    exit 1
+  }
+  [[ "$remote_draft_sha256" == "$EXPECTED_DRAFT_SHA256" ]] || {
+    echo "Worker draft checkpoint does not match the pinned hash" >&2
+    exit 1
+  }
+fi
+
 # A stale rank can join the wrong rendezvous. Always remove both before a new boot.
 docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 ssh "${ssh_opts[@]}" "$WORKER_HOST" \
@@ -184,12 +221,14 @@ ssh "${ssh_opts[@]}" "$WORKER_HOST" \
 echo "Starting worker rank on $WORKER_HOST..."
 trap cleanup_failed_start ERR INT TERM
 ssh "${ssh_opts[@]}" "$WORKER_HOST" \
-  "cd $(printf '%q' "$REMOTE_DIR") && CONTAINER_NAME=$(printf '%q' "$CONTAINER_NAME") IMAGE=$(printf '%q' "$IMAGE") MODEL_HOST_PATH=$(printf '%q' "$MODEL_HOST_PATH") DRAFT_HOST_PATH=$(printf '%q' "$DRAFT_HOST_PATH") API_PORT=$(printf '%q' "$API_PORT") HEAD_IP=$(printf '%q' "$HEAD_IP") WORKER_IP=$(printf '%q' "$WORKER_IP") DCP_SIZE=$(printf '%q' "$DCP_SIZE") USE_FP4_INDEXER_CACHE=$(printf '%q' "$USE_FP4_INDEXER_CACHE") GPU_MEMORY_UTILIZATION=$(printf '%q' "$GPU_MEMORY_UTILIZATION") MAX_MODEL_LEN=$(printf '%q' "$MAX_MODEL_LEN") BLOCK_SIZE=$(printf '%q' "$BLOCK_SIZE") CUDA_LAUNCH_BLOCKING=$(printf '%q' "$CUDA_LAUNCH_BLOCKING") MAX_NUM_BATCHED_TOKENS=$(printf '%q' "$MAX_NUM_BATCHED_TOKENS") MAX_NUM_SEQS=$(printf '%q' "$MAX_NUM_SEQS") QUANTIZATION=$(printf '%q' "$QUANTIZATION") MOE_BACKEND=$(printf '%q' "$MOE_BACKEND") KV_CACHE_DTYPE=$(printf '%q' "$KV_CACHE_DTYPE") VLLM_ATTENTION_BACKEND=$(printf '%q' "$VLLM_ATTENTION_BACKEND") CACHE_HOST_PATH=$(printf '%q' "$CACHE_HOST_PATH") JIT_CACHE_HOST_PATH=$(printf '%q' "$JIT_CACHE_HOST_PATH") ENFORCE_EAGER=$(printf '%q' "$ENFORCE_EAGER") COMPILATION_CONFIG=$(printf '%q' "$COMPILATION_CONFIG") ENABLE_DFLASH=$(printf '%q' "$ENABLE_DFLASH") DFLASH_TOKENS=$(printf '%q' "$DFLASH_TOKENS") DFLASH_DRAFT_TP=$(printf '%q' "$DFLASH_DRAFT_TP") DFLASH_DRAFT_SAMPLE_METHOD=$(printf '%q' "$DFLASH_DRAFT_SAMPLE_METHOD") DFLASH_REJECTION_SAMPLE_METHOD=$(printf '%q' "$DFLASH_REJECTION_SAMPLE_METHOD") EXL3_FUSED_MOE=$(printf '%q' "$EXL3_FUSED_MOE") EXL3_MOE_ROW_TILE=$(printf '%q' "$EXL3_MOE_ROW_TILE") EXL3_FAT_KERNEL=$(printf '%q' "$EXL3_FAT_KERNEL") EXL3_TEMP_ROWS_FUSED=$(printf '%q' "$EXL3_TEMP_ROWS_FUSED") COMPACT_SPEC_REPLAY=$(printf '%q' "$COMPACT_SPEC_REPLAY") GLM53_SPINWAIT_MS=$(printf '%q' "$GLM53_SPINWAIT_MS") VLLM_B12X_USE_CUDA_GRAPH=$(printf '%q' "$VLLM_B12X_USE_CUDA_GRAPH") VLLM_B12X_CUDA_GRAPH_MAX_TOKENS=$(printf '%q' "$VLLM_B12X_CUDA_GRAPH_MAX_TOKENS") ENABLE_DECODE_FIRST_SCHEDULER=$(printf '%q' "$ENABLE_DECODE_FIRST_SCHEDULER") PREFILL_ADMISSION_POLICY=$(printf '%q' "$PREFILL_ADMISSION_POLICY") PREFILL_SCHEDULE_INTERVAL=$(printf '%q' "$PREFILL_SCHEDULE_INTERVAL") LONG_PREFILL_TOKEN_THRESHOLD=$(printf '%q' "$LONG_PREFILL_TOKEN_THRESHOLD") ADAPTIVE_SCHEDULER_CONFIG=$(printf '%q' "$worker_adaptive_scheduler_config") ADAPTIVE_SCHEDULER_RELOAD_SECONDS=$(printf '%q' "$ADAPTIVE_SCHEDULER_RELOAD_SECONDS") NVFP4_CALIBRATION_HOST_PATH=$(printf '%q' "$worker_calibration_host_path") NVFP4_MLA_SCALES_FILE=$(printf '%q' "$NVFP4_MLA_SCALES_FILE") ENABLE_NVFP4_MLA_CAPTURE=$(printf '%q' "$ENABLE_NVFP4_MLA_CAPTURE") NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM=$(printf '%q' "$NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM") NVFP4_MLA_CAPTURE_GROUPS_PER_CALL=$(printf '%q' "$NVFP4_MLA_CAPTURE_GROUPS_PER_CALL") ./launch-glm53-vllm-tp2-dflash2.sh 1"
+  "cd $(printf '%q' "$REMOTE_DIR") && CONTAINER_NAME=$(printf '%q' "$CONTAINER_NAME") IMAGE=$(printf '%q' "$IMAGE") MODEL_HOST_PATH=$(printf '%q' "$MODEL_HOST_PATH") DRAFT_HOST_PATH=$(printf '%q' "$DRAFT_HOST_PATH") API_PORT=$(printf '%q' "$API_PORT") HEAD_IP=$(printf '%q' "$HEAD_IP") WORKER_IP=$(printf '%q' "$WORKER_IP") NCCL_IB_HCA=$(printf '%q' "$NCCL_IB_HCA") NCCL_SOCKET_IFNAME=$(printf '%q' "$NCCL_SOCKET_IFNAME") NCCL_IB_ADDR_RANGE=$(printf '%q' "$NCCL_IB_ADDR_RANGE") DCP_SIZE=$(printf '%q' "$DCP_SIZE") USE_FP4_INDEXER_CACHE=$(printf '%q' "$USE_FP4_INDEXER_CACHE") GPU_MEMORY_UTILIZATION=$(printf '%q' "$GPU_MEMORY_UTILIZATION") MAX_MODEL_LEN=$(printf '%q' "$MAX_MODEL_LEN") BLOCK_SIZE=$(printf '%q' "$BLOCK_SIZE") CUDA_LAUNCH_BLOCKING=$(printf '%q' "$CUDA_LAUNCH_BLOCKING") MAX_NUM_BATCHED_TOKENS=$(printf '%q' "$MAX_NUM_BATCHED_TOKENS") MAX_NUM_SEQS=$(printf '%q' "$MAX_NUM_SEQS") QUANTIZATION=$(printf '%q' "$QUANTIZATION") MOE_BACKEND=$(printf '%q' "$MOE_BACKEND") KV_CACHE_DTYPE=$(printf '%q' "$KV_CACHE_DTYPE") VLLM_ATTENTION_BACKEND=$(printf '%q' "$VLLM_ATTENTION_BACKEND") CACHE_HOST_PATH=$(printf '%q' "$CACHE_HOST_PATH") JIT_CACHE_HOST_PATH=$(printf '%q' "$JIT_CACHE_HOST_PATH") ENFORCE_EAGER=$(printf '%q' "$ENFORCE_EAGER") COMPILATION_CONFIG=$(printf '%q' "$COMPILATION_CONFIG") ENABLE_DFLASH=$(printf '%q' "$ENABLE_DFLASH") DFLASH_TOKENS=$(printf '%q' "$DFLASH_TOKENS") DFLASH_DRAFT_TP=$(printf '%q' "$DFLASH_DRAFT_TP") DFLASH_DRAFT_SAMPLE_METHOD=$(printf '%q' "$DFLASH_DRAFT_SAMPLE_METHOD") DFLASH_REJECTION_SAMPLE_METHOD=$(printf '%q' "$DFLASH_REJECTION_SAMPLE_METHOD") EXL3_FUSED_MOE=$(printf '%q' "$EXL3_FUSED_MOE") EXL3_MOE_ROW_TILE=$(printf '%q' "$EXL3_MOE_ROW_TILE") EXL3_FAT_KERNEL=$(printf '%q' "$EXL3_FAT_KERNEL") EXL3_TEMP_ROWS_FUSED=$(printf '%q' "$EXL3_TEMP_ROWS_FUSED") COMPACT_SPEC_REPLAY=$(printf '%q' "$COMPACT_SPEC_REPLAY") GLM53_SPINWAIT_MS=$(printf '%q' "$GLM53_SPINWAIT_MS") VLLM_B12X_USE_CUDA_GRAPH=$(printf '%q' "$VLLM_B12X_USE_CUDA_GRAPH") VLLM_B12X_CUDA_GRAPH_MAX_TOKENS=$(printf '%q' "$VLLM_B12X_CUDA_GRAPH_MAX_TOKENS") VLLM_DFLASH_ONLY_CUDAGRAPH=$(printf '%q' "$VLLM_DFLASH_ONLY_CUDAGRAPH") VLLM_DFLASH_CUDAGRAPH_BATCHES=$(printf '%q' "$VLLM_DFLASH_CUDAGRAPH_BATCHES") ENABLE_DECODE_FIRST_SCHEDULER=$(printf '%q' "$ENABLE_DECODE_FIRST_SCHEDULER") PREFILL_ADMISSION_POLICY=$(printf '%q' "$PREFILL_ADMISSION_POLICY") PREFILL_SCHEDULE_INTERVAL=$(printf '%q' "$PREFILL_SCHEDULE_INTERVAL") LONG_PREFILL_TOKEN_THRESHOLD=$(printf '%q' "$LONG_PREFILL_TOKEN_THRESHOLD") ADAPTIVE_SCHEDULER_CONFIG=$(printf '%q' "$worker_adaptive_scheduler_config") ADAPTIVE_SCHEDULER_RELOAD_SECONDS=$(printf '%q' "$ADAPTIVE_SCHEDULER_RELOAD_SECONDS") NVFP4_CALIBRATION_HOST_PATH=$(printf '%q' "$worker_calibration_host_path") NVFP4_MLA_SCALES_FILE=$(printf '%q' "$NVFP4_MLA_SCALES_FILE") ENABLE_NVFP4_MLA_CAPTURE=$(printf '%q' "$ENABLE_NVFP4_MLA_CAPTURE") NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM=$(printf '%q' "$NVFP4_MLA_CAPTURE_GROUPS_PER_STRATUM") NVFP4_MLA_CAPTURE_GROUPS_PER_CALL=$(printf '%q' "$NVFP4_MLA_CAPTURE_GROUPS_PER_CALL") ./launch-glm53-vllm-tp2-dflash2.sh 1"
 sleep 25
 echo "Starting head rank on $(hostname)..."
 CONTAINER_NAME="$CONTAINER_NAME" IMAGE="$IMAGE" MODEL_HOST_PATH="$MODEL_HOST_PATH" API_PORT="$API_PORT" \
   DRAFT_HOST_PATH="$DRAFT_HOST_PATH" \
   HEAD_IP="$HEAD_IP" WORKER_IP="$WORKER_IP" \
+  NCCL_IB_HCA="$NCCL_IB_HCA" NCCL_SOCKET_IFNAME="$NCCL_SOCKET_IFNAME" \
+  NCCL_IB_ADDR_RANGE="$NCCL_IB_ADDR_RANGE" \
   DCP_SIZE="$DCP_SIZE" USE_FP4_INDEXER_CACHE="$USE_FP4_INDEXER_CACHE" \
   GPU_MEMORY_UTILIZATION="$GPU_MEMORY_UTILIZATION" MAX_MODEL_LEN="$MAX_MODEL_LEN" \
   BLOCK_SIZE="$BLOCK_SIZE" \
@@ -211,6 +250,8 @@ CONTAINER_NAME="$CONTAINER_NAME" IMAGE="$IMAGE" MODEL_HOST_PATH="$MODEL_HOST_PAT
   COMPILATION_CONFIG="$COMPILATION_CONFIG" \
   ENFORCE_EAGER="$ENFORCE_EAGER" VLLM_B12X_USE_CUDA_GRAPH="$VLLM_B12X_USE_CUDA_GRAPH" \
   VLLM_B12X_CUDA_GRAPH_MAX_TOKENS="$VLLM_B12X_CUDA_GRAPH_MAX_TOKENS" \
+  VLLM_DFLASH_ONLY_CUDAGRAPH="$VLLM_DFLASH_ONLY_CUDAGRAPH" \
+  VLLM_DFLASH_CUDAGRAPH_BATCHES="$VLLM_DFLASH_CUDAGRAPH_BATCHES" \
   PREFILL_SCHEDULE_INTERVAL="$PREFILL_SCHEDULE_INTERVAL" \
   LONG_PREFILL_TOKEN_THRESHOLD="$LONG_PREFILL_TOKEN_THRESHOLD" \
   ADAPTIVE_SCHEDULER_CONFIG="$ADAPTIVE_SCHEDULER_CONFIG" \
@@ -236,6 +277,22 @@ until curl -fs --max-time 5 "http://127.0.0.1:$API_PORT/health" >/dev/null; do
   (( SECONDS < deadline )) || { echo "Timed out waiting for the API." >&2; false; }
   sleep "$POLL_INTERVAL"
 done
+
+if [[ -f "$DRAFT_HOST_PATH/hf_quant_config.json" ]]; then
+  kernel_banner="Using B12xMxfp8LinearKernel for MXFP8 GEMM"
+  head_logs="$(docker logs "$CONTAINER_NAME" 2>&1)"
+  worker_logs="$(ssh "${ssh_opts[@]}" "$WORKER_HOST" \
+    "docker logs $(printf '%q' "$CONTAINER_NAME") 2>&1")"
+  [[ "$head_logs" == *"$kernel_banner"* ]] || {
+    echo "Head did not select the native B12X MXFP8 drafter kernel" >&2
+    false
+  }
+  [[ "$worker_logs" == *"$kernel_banner"* ]] || {
+    echo "Worker did not select the native B12X MXFP8 drafter kernel" >&2
+    false
+  }
+  echo "Verified native B12X MXFP8 drafter kernel on both ranks"
+fi
 
 echo "GLM-5.3-Flash is healthy at http://$HEAD_IP:$API_PORT/v1"
 curl -fsS "http://127.0.0.1:$API_PORT/v1/models"

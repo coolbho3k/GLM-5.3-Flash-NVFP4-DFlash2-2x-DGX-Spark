@@ -49,7 +49,23 @@ USE_FP4_INDEXER_CACHE="${USE_FP4_INDEXER_CACHE:-0}"
 DCP_SIZE="${DCP_SIZE:-2}"
 ENABLE_DFLASH="${ENABLE_DFLASH:-1}"
 DFLASH_TOKENS="${DFLASH_TOKENS:-7}"
-DFLASH_DRAFT_TP="${DFLASH_DRAFT_TP-}"
+DFLASH_DRAFT_VARIANT="${DFLASH_DRAFT_VARIANT-}"
+DFLASH_DRAFT_QUANTIZATION="${DFLASH_DRAFT_QUANTIZATION-}"
+VLLM_USE_B12X_FP8_GEMM="${VLLM_USE_B12X_FP8_GEMM-}"
+if [[ -z "$DFLASH_DRAFT_VARIANT" ]]; then
+  if [[ -f "$DRAFT_HOST_PATH/hf_quant_config.json" ]]; then
+    DFLASH_DRAFT_VARIANT=mxfp8
+  else
+    DFLASH_DRAFT_VARIANT=bf16
+  fi
+fi
+if [[ "$DFLASH_DRAFT_VARIANT" == "mxfp8" ]]; then
+  : "${DFLASH_DRAFT_QUANTIZATION:=modelopt_mxfp8}"
+  : "${VLLM_USE_B12X_FP8_GEMM:=1}"
+else
+  : "${VLLM_USE_B12X_FP8_GEMM:=0}"
+fi
+DFLASH_DRAFT_TP="${DFLASH_DRAFT_TP:-2}"
 DFLASH_DRAFT_SAMPLE_METHOD="${DFLASH_DRAFT_SAMPLE_METHOD-}"
 DFLASH_REJECTION_SAMPLE_METHOD="${DFLASH_REJECTION_SAMPLE_METHOD-}"
 QUANTIZATION="${QUANTIZATION:-}"
@@ -72,6 +88,8 @@ COMPACT_SPEC_REPLAY="${COMPACT_SPEC_REPLAY:-1}"
 GLM53_SPINWAIT_MS="${GLM53_SPINWAIT_MS:-stock}"
 VLLM_B12X_USE_CUDA_GRAPH="${VLLM_B12X_USE_CUDA_GRAPH:-0}"
 VLLM_B12X_CUDA_GRAPH_MAX_TOKENS="${VLLM_B12X_CUDA_GRAPH_MAX_TOKENS:-64}"
+VLLM_DFLASH_ONLY_CUDAGRAPH="${VLLM_DFLASH_ONLY_CUDAGRAPH:-0}"
+VLLM_DFLASH_CUDAGRAPH_BATCHES="${VLLM_DFLASH_CUDAGRAPH_BATCHES:-1,2,3,4,5,6}"
 NVFP4_CALIBRATION_HOST_PATH="${NVFP4_CALIBRATION_HOST_PATH:-}"
 NVFP4_MLA_SCALES_FILE="${NVFP4_MLA_SCALES_FILE:-}"
 ENABLE_NVFP4_MLA_CAPTURE="${ENABLE_NVFP4_MLA_CAPTURE:-0}"
@@ -99,8 +117,8 @@ if [[ "$DCP_SIZE" != "1" ]]; then
 fi
 speculative_args=()
 if [[ "$ENABLE_DFLASH" == "1" ]]; then
-  [[ "$DFLASH_TOKENS" =~ ^[1-7]$ ]] || {
-    echo "DFLASH_TOKENS must be an integer from 1 through 7" >&2
+  [[ "$DFLASH_TOKENS" =~ ^[1-8]$ ]] || {
+    echo "DFLASH_TOKENS must be an integer from 1 through 8" >&2
     exit 2
   }
   [[ -z "$DFLASH_DRAFT_TP" || "$DFLASH_DRAFT_TP" == "1" || "$DFLASH_DRAFT_TP" == "2" ]] || {
@@ -115,11 +133,18 @@ if [[ "$ENABLE_DFLASH" == "1" ]]; then
     echo "DFLASH_REJECTION_SAMPLE_METHOD must be empty or standard" >&2
     exit 2
   }
+  [[ "$DFLASH_DRAFT_VARIANT" == "bf16" || "$DFLASH_DRAFT_VARIANT" == "mxfp8" ]] || {
+    echo "DFLASH_DRAFT_VARIANT must be bf16 or mxfp8" >&2
+    exit 2
+  }
   speculative_config='{"method":"dflash","model":"/models/dflash2-draft","num_speculative_tokens":'
   speculative_config+="$DFLASH_TOKENS"
   if [[ -n "$DFLASH_DRAFT_TP" ]]; then
     speculative_config+=',"draft_tensor_parallel_size":'
     speculative_config+="$DFLASH_DRAFT_TP"
+  fi
+  if [[ -n "$DFLASH_DRAFT_QUANTIZATION" ]]; then
+    speculative_config+=',"quantization":"'"$DFLASH_DRAFT_QUANTIZATION"'"'
   fi
   if [[ -n "$DFLASH_DRAFT_SAMPLE_METHOD" ]]; then
     speculative_config+=',"draft_sample_method":"probabilistic"'
@@ -250,6 +275,19 @@ test -f "$MODEL_HOST_PATH/config.json"
 test -f "$MODEL_HOST_PATH/model.safetensors.index.json"
 test -f "$DRAFT_HOST_PATH/config.json"
 test -f "$DRAFT_HOST_PATH/model.safetensors"
+if [[ "$DFLASH_DRAFT_VARIANT" == "mxfp8" ]]; then
+  test -f "$DRAFT_HOST_PATH/hf_quant_config.json"
+  test -f "$DRAFT_HOST_PATH/conversion_manifest.json"
+  python3 -c 'import json,sys
+q=json.load(open(sys.argv[1]))
+algo=(q.get("quantization") or {}).get("quant_algo", q.get("quant_algo"))
+assert algo == "MXFP8", f"expected MXFP8 draft, got {algo!r}"' \
+    "$DRAFT_HOST_PATH/hf_quant_config.json"
+  [[ "$DFLASH_DRAFT_QUANTIZATION" == "modelopt_mxfp8" ]] || {
+    echo "MXFP8 draft requires DFLASH_DRAFT_QUANTIZATION=modelopt_mxfp8" >&2
+    exit 2
+  }
+fi
 test -s "$TOPK_PATCH"
 test -s "$CHAT_TEMPLATE"
 mkdir -p "$CACHE_HOST_PATH" "$JIT_CACHE_HOST_PATH"
@@ -294,6 +332,9 @@ docker run --gpus all -d \
   -e GLM53_SPINWAIT_MS="$GLM53_SPINWAIT_MS" \
   -e VLLM_B12X_USE_CUDA_GRAPH="$VLLM_B12X_USE_CUDA_GRAPH" \
   -e VLLM_B12X_CUDA_GRAPH_MAX_TOKENS="$VLLM_B12X_CUDA_GRAPH_MAX_TOKENS" \
+  -e VLLM_DFLASH_ONLY_CUDAGRAPH="$VLLM_DFLASH_ONLY_CUDAGRAPH" \
+  -e VLLM_DFLASH_CUDAGRAPH_BATCHES="$VLLM_DFLASH_CUDAGRAPH_BATCHES" \
+  -e VLLM_USE_B12X_FP8_GEMM="$VLLM_USE_B12X_FP8_GEMM" \
   -v "$CHAT_TEMPLATE:/models/chat_template_mm.jinja:ro" \
   "${calibration_docker_args[@]}" \
   "$IMAGE" \

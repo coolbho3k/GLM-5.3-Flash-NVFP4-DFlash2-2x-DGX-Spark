@@ -1,0 +1,413 @@
+{
+  "cases": [
+    {
+      "concurrent_prefill": {
+        "aggregate_input_tokens_per_second": 585.856106,
+        "count": 1,
+        "maximum_ttft_seconds": 37.117281,
+        "streams": [
+          {
+            "completion_tokens": 2,
+            "content_preview": "OK",
+            "decode_seconds": 0.107367,
+            "decode_tokens_per_second": 18.627733,
+            "elapsed_seconds": 37.224648,
+            "input_tokens_per_second": 587.569979,
+            "max_stream_gap_seconds": 0.0,
+            "mean_stream_gap_seconds": 0.0,
+            "p95_stream_gap_seconds": 0.0,
+            "prompt_tokens": 21809,
+            "stream_events": 1,
+            "target_prompt_tokens": 16384,
+            "ttft_seconds": 37.117281
+          }
+        ],
+        "wall_seconds": 37.225864
+      },
+      "control_decode": {
+        "aggregate_tokens_per_second": 17.602672,
+        "count": 1,
+        "maximum_stream_gap_seconds": 0.124566,
+        "maximum_ttft_seconds": 0.357947,
+        "mean_per_stream_tokens_per_second": 18.04791,
+        "minimum_per_stream_tokens_per_second": 18.04791,
+        "p50_ttft_seconds": 0.357947,
+        "p95_of_stream_p95_gap_seconds": 0.123658,
+        "streams": [
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A test suite that passes only when run in isolation is hiding an order dependency.\n2. Flaky tests erode trust faster than failing tests ever could.\n3. A skip",
+            "decode_seconds": 14.184468,
+            "decode_tokens_per_second": 18.04791,
+            "elapsed_seconds": 14.542415,
+            "max_stream_gap_seconds": 0.124566,
+            "mean_stream_gap_seconds": 0.117226,
+            "p95_stream_gap_seconds": 0.123658,
+            "prompt_tokens": 47,
+            "stream_events": 122,
+            "ttft_seconds": 0.357947
+          }
+        ],
+        "wall_seconds": 14.543247
+      },
+      "decoder_count": 1,
+      "mixed_decode": {
+        "aggregate_tokens_per_second": 6.808815,
+        "count": 1,
+        "maximum_stream_gap_seconds": 0.434752,
+        "maximum_ttft_seconds": 0.371667,
+        "mean_per_stream_tokens_per_second": 9.421321,
+        "minimum_per_stream_tokens_per_second": 9.421321,
+        "p50_ttft_seconds": 0.371667,
+        "p95_of_stream_p95_gap_seconds": 0.353761,
+        "streams": [
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A decoder that emits valid JSON 90% of the time is worse than one that emits valid JSON 100% of the time or 0% of the time, because the failures are silent u",
+            "decode_seconds": 27.17241,
+            "decode_tokens_per_second": 9.421321,
+            "elapsed_seconds": 27.544077,
+            "max_stream_gap_seconds": 0.434752,
+            "mean_stream_gap_seconds": 0.220913,
+            "p95_stream_gap_seconds": 0.353761,
+            "prompt_tokens": 48,
+            "stream_events": 124,
+            "ttft_seconds": 0.371667
+          }
+        ],
+        "wall_seconds": 37.598321
+      },
+      "mixed_over_control_aggregate_tps": 0.386806,
+      "mixed_over_control_mean_per_stream_tps": 0.522017,
+      "prefill_count": 1,
+      "total_sessions": 2
+    },
+    {
+      "concurrent_prefill": {
+        "aggregate_input_tokens_per_second": 471.595117,
+        "count": 1,
+        "maximum_ttft_seconds": 46.15052,
+        "streams": [
+          {
+            "completion_tokens": 2,
+            "content_preview": "OK",
+            "decode_seconds": 0.093383,
+            "decode_tokens_per_second": 21.417108,
+            "elapsed_seconds": 46.243903,
+            "input_tokens_per_second": 472.562389,
+            "max_stream_gap_seconds": 0.0,
+            "mean_stream_gap_seconds": 0.0,
+            "p95_stream_gap_seconds": 0.0,
+            "prompt_tokens": 21809,
+            "stream_events": 1,
+            "target_prompt_tokens": 16384,
+            "ttft_seconds": 46.15052
+          }
+        ],
+        "wall_seconds": 46.245178
+      },
+      "control_decode": {
+        "aggregate_tokens_per_second": 24.095468,
+        "count": 3,
+        "maximum_stream_gap_seconds": 0.357954,
+        "maximum_ttft_seconds": 6.032245,
+        "mean_per_stream_tokens_per_second": 10.434192,
+        "minimum_per_stream_tokens_per_second": 9.907013,
+        "p50_ttft_seconds": 6.032224,
+        "p95_of_stream_p95_gap_seconds": 0.196906,
+        "streams": [
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A decoder-only model under scheduler pressure may still produce fluent output while silently dropping constraint tokens from the prompt context.\n2. Test harn",
+            "decode_seconds": 25.840282,
+            "decode_tokens_per_second": 9.907013,
+            "elapsed_seconds": 31.872506,
+            "max_stream_gap_seconds": 0.357887,
+            "mean_stream_gap_seconds": 0.183264,
+            "p95_stream_gap_seconds": 0.196889,
+            "prompt_tokens": 47,
+            "stream_events": 142,
+            "ttft_seconds": 6.032224
+          },
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A control decoder that passes its nominal test suite can still fail under scheduler pressure, where preemption and priority inversion expose latent race cond",
+            "decode_seconds": 24.522003,
+            "decode_tokens_per_second": 10.439604,
+            "elapsed_seconds": 30.554249,
+            "max_stream_gap_seconds": 0.357954,
+            "mean_stream_gap_seconds": 0.18863,
+            "p95_stream_gap_seconds": 0.196906,
+            "prompt_tokens": 47,
+            "stream_events": 131,
+            "ttft_seconds": 6.032245
+          },
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A control decoder that passes every functional test can still fail under scheduler pressure, because timing-dependent behavior only surfaces when the runtime",
+            "decode_seconds": 23.366276,
+            "decode_tokens_per_second": 10.95596,
+            "elapsed_seconds": 29.398104,
+            "max_stream_gap_seconds": 0.357943,
+            "mean_stream_gap_seconds": 0.189969,
+            "p95_stream_gap_seconds": 0.196689,
+            "prompt_tokens": 47,
+            "stream_events": 124,
+            "ttft_seconds": 6.031828
+          }
+        ],
+        "wall_seconds": 31.873213
+      },
+      "decoder_count": 3,
+      "mixed_decode": {
+        "aggregate_tokens_per_second": 16.448109,
+        "count": 3,
+        "maximum_stream_gap_seconds": 6.085225,
+        "maximum_ttft_seconds": 0.446256,
+        "mean_per_stream_tokens_per_second": 6.160038,
+        "minimum_per_stream_tokens_per_second": 5.997641,
+        "p50_ttft_seconds": 0.446002,
+        "p95_of_stream_p95_gap_seconds": 0.474046,
+        "streams": [
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. Scheduler pressure tests reveal whether a decoder can maintain output coherence when token budgets shrink mid-generation.\n2. Mixed-decoder configurations oft",
+            "decode_seconds": 42.683245,
+            "decode_tokens_per_second": 5.99767,
+            "elapsed_seconds": 43.129501,
+            "max_stream_gap_seconds": 6.084778,
+            "mean_stream_gap_seconds": 0.323356,
+            "p95_stream_gap_seconds": 0.473983,
+            "prompt_tokens": 48,
+            "stream_events": 133,
+            "ttft_seconds": 0.446256
+          },
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A decoder that passes greedy checks can still fail under beam search.\n2. Scheduler pressure exposes race conditions that idle tests never see.\n3. Mixed workl",
+            "decode_seconds": 39.476916,
+            "decode_tokens_per_second": 6.484802,
+            "elapsed_seconds": 39.922917,
+            "max_stream_gap_seconds": 6.085225,
+            "mean_stream_gap_seconds": 0.328973,
+            "p95_stream_gap_seconds": 0.474046,
+            "prompt_tokens": 48,
+            "stream_events": 121,
+            "ttft_seconds": 0.446002
+          },
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. Scheduler pressure tests reveal whether a decoder's token budget degrades gracefully or collapses under contention.\n2. Mixed-decoder configurations often mas",
+            "decode_seconds": 42.683445,
+            "decode_tokens_per_second": 5.997641,
+            "elapsed_seconds": 43.129015,
+            "max_stream_gap_seconds": 6.085051,
+            "mean_stream_gap_seconds": 0.323356,
+            "p95_stream_gap_seconds": 0.473928,
+            "prompt_tokens": 48,
+            "stream_events": 133,
+            "ttft_seconds": 0.44557
+          }
+        ],
+        "wall_seconds": 46.692296
+      },
+      "mixed_over_control_aggregate_tps": 0.682623,
+      "mixed_over_control_mean_per_stream_tps": 0.59037,
+      "prefill_count": 1,
+      "total_sessions": 4
+    },
+    {
+      "concurrent_prefill": {
+        "aggregate_input_tokens_per_second": 550.30704,
+        "count": 1,
+        "maximum_ttft_seconds": 39.380839,
+        "streams": [
+          {
+            "completion_tokens": 2,
+            "content_preview": "OK",
+            "decode_seconds": 0.247681,
+            "decode_tokens_per_second": 8.074911,
+            "elapsed_seconds": 39.628519,
+            "input_tokens_per_second": 553.797241,
+            "max_stream_gap_seconds": 0.0,
+            "mean_stream_gap_seconds": 0.0,
+            "p95_stream_gap_seconds": 0.0,
+            "prompt_tokens": 21809,
+            "stream_events": 1,
+            "target_prompt_tokens": 16384,
+            "ttft_seconds": 39.380839
+          }
+        ],
+        "wall_seconds": 39.630603
+      },
+      "control_decode": {
+        "aggregate_tokens_per_second": 41.64742,
+        "count": 5,
+        "maximum_stream_gap_seconds": 0.354801,
+        "maximum_ttft_seconds": 0.486535,
+        "mean_per_stream_tokens_per_second": 9.23493,
+        "minimum_per_stream_tokens_per_second": 8.463597,
+        "p50_ttft_seconds": 0.485688,
+        "p95_of_stream_p95_gap_seconds": 0.246186,
+        "streams": [
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A test suite that passes in isolation but fails when run with the full suite usually has hidden shared state.\n2. Flaky tests erode trust faster than failing ",
+            "decode_seconds": 25.853677,
+            "decode_tokens_per_second": 9.90188,
+            "elapsed_seconds": 26.340212,
+            "max_stream_gap_seconds": 0.354796,
+            "mean_stream_gap_seconds": 0.228792,
+            "p95_stream_gap_seconds": 0.246186,
+            "prompt_tokens": 47,
+            "stream_events": 114,
+            "ttft_seconds": 0.486535
+          },
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A control decoder that passes every functional test can still fail catastrophically under scheduler pressure, because timing assumptions are invisible to the",
+            "decode_seconds": 27.563186,
+            "decode_tokens_per_second": 9.287751,
+            "elapsed_seconds": 28.049644,
+            "max_stream_gap_seconds": 0.354801,
+            "mean_stream_gap_seconds": 0.227794,
+            "p95_stream_gap_seconds": 0.241923,
+            "prompt_tokens": 47,
+            "stream_events": 122,
+            "ttft_seconds": 0.486458
+          },
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A control decoder that passes every functional test can still fail under scheduler pressure, where timing variance exposes latent race conditions invisible i",
+            "decode_seconds": 30.247189,
+            "decode_tokens_per_second": 8.463597,
+            "elapsed_seconds": 30.732673,
+            "max_stream_gap_seconds": 0.354778,
+            "mean_stream_gap_seconds": 0.211518,
+            "p95_stream_gap_seconds": 0.240899,
+            "prompt_tokens": 47,
+            "stream_events": 144,
+            "ttft_seconds": 0.485485
+          },
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A test suite that passes in isolation but fails when run with the full suite usually has hidden shared state.\n2. Flaky tests erode trust faster than failing ",
+            "decode_seconds": 27.371417,
+            "decode_tokens_per_second": 9.352822,
+            "elapsed_seconds": 27.85691,
+            "max_stream_gap_seconds": 0.3545,
+            "mean_stream_gap_seconds": 0.228091,
+            "p95_stream_gap_seconds": 0.241904,
+            "prompt_tokens": 47,
+            "stream_events": 121,
+            "ttft_seconds": 0.485493
+          },
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A test suite that passes only when run in alphabetical order is not a passing suite; it is a coincidence wearing a lab coat.\n2. Flaky tests are not noise to ",
+            "decode_seconds": 27.921384,
+            "decode_tokens_per_second": 9.1686,
+            "elapsed_seconds": 28.407071,
+            "max_stream_gap_seconds": 0.354789,
+            "mean_stream_gap_seconds": 0.227002,
+            "p95_stream_gap_seconds": 0.241954,
+            "prompt_tokens": 47,
+            "stream_events": 124,
+            "ttft_seconds": 0.485688
+          }
+        ],
+        "wall_seconds": 30.734197
+      },
+      "decoder_count": 5,
+      "mixed_decode": {
+        "aggregate_tokens_per_second": 26.701721,
+        "count": 5,
+        "maximum_stream_gap_seconds": 5.754317,
+        "maximum_ttft_seconds": 0.764435,
+        "mean_per_stream_tokens_per_second": 5.611661,
+        "minimum_per_stream_tokens_per_second": 5.426933,
+        "p50_ttft_seconds": 0.763854,
+        "p95_of_stream_p95_gap_seconds": 0.574583,
+        "streams": [
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A decoder that passes unit tests can still fail integration tests when scheduler pressure changes thread interleaving.\n2. Flaky tests often reveal timing ass",
+            "decode_seconds": 46.662769,
+            "decode_tokens_per_second": 5.486173,
+            "elapsed_seconds": 47.427203,
+            "max_stream_gap_seconds": 5.753353,
+            "mean_stream_gap_seconds": 0.392123,
+            "p95_stream_gap_seconds": 0.574352,
+            "prompt_tokens": 48,
+            "stream_events": 120,
+            "ttft_seconds": 0.764435
+          },
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A flaky test that passes on retry is not fixed; it is deferred.\n2. Coverage percentage measures execution, not verification.\n3. A test suite that never fails",
+            "decode_seconds": 45.852829,
+            "decode_tokens_per_second": 5.58308,
+            "elapsed_seconds": 46.616684,
+            "max_stream_gap_seconds": 5.753397,
+            "mean_stream_gap_seconds": 0.402217,
+            "p95_stream_gap_seconds": 0.574583,
+            "prompt_tokens": 48,
+            "stream_events": 115,
+            "ttft_seconds": 0.763854
+          },
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A decoder that passes single-turn tests can still fail when prior context accumulates, so mixed-decoder cases should always include multi-turn sequences.\n2. ",
+            "decode_seconds": 45.559895,
+            "decode_tokens_per_second": 5.618977,
+            "elapsed_seconds": 45.81886,
+            "max_stream_gap_seconds": 5.754317,
+            "mean_stream_gap_seconds": 0.406781,
+            "p95_stream_gap_seconds": 0.573843,
+            "prompt_tokens": 48,
+            "stream_events": 113,
+            "ttft_seconds": 0.258965
+          },
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. A decoder that passes unit tests can still fail under scheduler pressure when thread interleavings shift by microseconds.\n2. Mixed workloads reveal latency c",
+            "decode_seconds": 43.074855,
+            "decode_tokens_per_second": 5.943142,
+            "elapsed_seconds": 43.839028,
+            "max_stream_gap_seconds": 5.75286,
+            "mean_stream_gap_seconds": 0.42648,
+            "p95_stream_gap_seconds": 0.573491,
+            "prompt_tokens": 48,
+            "stream_events": 102,
+            "ttft_seconds": 0.764172
+          },
+          {
+            "completion_tokens": 256,
+            "content_preview": "1. Scheduler pressure tests reveal whether a decoder's token budget degrades gracefully or collapses under contention.\n2. Mixed-decoder configurations often mas",
+            "decode_seconds": 47.17213,
+            "decode_tokens_per_second": 5.426933,
+            "elapsed_seconds": 47.935162,
+            "max_stream_gap_seconds": 5.752106,
+            "mean_stream_gap_seconds": 0.383512,
+            "p95_stream_gap_seconds": 0.572712,
+            "prompt_tokens": 48,
+            "stream_events": 124,
+            "ttft_seconds": 0.763032
+          }
+        ],
+        "wall_seconds": 47.936985
+      },
+      "mixed_over_control_aggregate_tps": 0.641137,
+      "mixed_over_control_mean_per_stream_tps": 0.607656,
+      "prefill_count": 1,
+      "total_sessions": 6
+    }
+  ],
+  "decode_tokens": 256,
+  "label": "adaptive-smooth-v1-pressure",
+  "prefill_tokens": 16384,
+  "prefills_per_wave": 1,
+  "schema": 1,
+  "timestamp_utc": "2026-09-02T21:56:55.109411+00:00",
+  "url": "http://127.0.0.1:8000"
+}

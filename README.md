@@ -86,6 +86,26 @@ python3 -m pip install --user -U 'huggingface_hub[cli]'
 ./serve-profile.sh start exl3-fp8-dcp2
 ```
 
+The two FP8-KV profiles default to the validated 1.20 GB ModelOpt MXFP8
+DFlash2 checkpoint and the native B12X SM120/SM121 dense-GEMM path. Therefore,
+the plain `prepare` command above downloads every weight needed by the
+recommended profile. It also verifies the pinned draft SHA-256 before syncing
+the target and draft to the worker.
+
+```bash
+# Inspect the default MXFP8 selection.
+./serve-profile.sh show exl3-fp8-dcp2
+
+# Optional BF16-drafter rollback: prepare once, then start with the same switch.
+DFLASH_DRAFT_VARIANT=bf16 ./serve-profile.sh prepare exl3-fp8-dcp2
+DFLASH_DRAFT_VARIANT=bf16 ./serve-profile.sh start exl3-fp8-dcp2
+```
+
+The image gives quantized draft-token linears first priority over generic
+MXFP8 fallbacks and materializes only the DFlash context K/V projection rows
+to BF16. Set `DFLASH_DRAFT_VARIANT=bf16` to return to the pinned bf582e4
+drafter.
+
 To use the
 [published optimized NVFP4 checkpoint](https://huggingface.co/coolbho3k/GLM-5.3-Flash-NVFP4-Optimized)
 instead, select either NVFP4 profile. Preparation downloads the pinned
@@ -104,6 +124,16 @@ an environment override; for example, `MAX_NUM_SEQS=4 ./serve-profile.sh start
 exl3-fp8-dcp2`. Eager execution is the validated default. The opt-in piecewise
 CUDA-graph experiment is retained as a diagnostic knob but is slower on this
 stack; see [the EXL3 profile notes](docs/EXL3-FP8-DCP2.md).
+
+Other two-node systems normally need only fabric and path overrides. The
+starter forwards these settings identically to both ranks:
+
+```bash
+WORKER_HOST=worker.lan HEAD_IP=10.0.0.1 WORKER_IP=10.0.0.2 \
+NCCL_IB_HCA=rocep1s0f1 NCCL_SOCKET_IFNAME=enp1s0f1np1 \
+NCCL_IB_ADDR_RANGE=10.0.0.0/24 \
+  ./serve-profile.sh start exl3-fp8-dcp2
+```
 
 This checkout is configured for the two active RoCE links at `10.100.32.1` and
 `10.100.32.2`. The corruption-free RedHat target checkpoint and DFlash2 draft

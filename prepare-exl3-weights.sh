@@ -8,6 +8,7 @@ MODEL_HOST_PATH="${MODEL_HOST_PATH:-$HOME/.cache/huggingface/glm53-exl3-tr3-4bpw
 DRAFT_ID="${DRAFT_ID:-incoai/GLM-5.3-Flash-DFlash2}"
 DRAFT_REVISION="${DRAFT_REVISION:-bf582e4eacc1810f76656d1811693ff6c6737d2a}"
 DRAFT_HOST_PATH="${DRAFT_HOST_PATH:-$HOME/.cache/huggingface/glm53-dflash2-$DRAFT_REVISION}"
+EXPECTED_DRAFT_SHA256="${EXPECTED_DRAFT_SHA256-}"
 WORKER_HOST="${WORKER_HOST:-dgx1.lan}"
 SYNC_WORKER="${SYNC_WORKER:-1}"
 EXPECTED_SHARDS="${EXPECTED_SHARDS:-120}"
@@ -20,9 +21,11 @@ if command -v hf >/dev/null; then
   hf_cmd=(hf)
 elif command -v huggingface-cli >/dev/null; then
   hf_cmd=(huggingface-cli)
-else
+elif [[ ! -f "$MODEL_HOST_PATH/model.safetensors.index.json" || ! -f "$DRAFT_HOST_PATH/model.safetensors" ]]; then
   echo "Install the Hugging Face CLI first: python3 -m pip install --user 'huggingface_hub[cli]'" >&2
   exit 1
+else
+  hf_cmd=()
 fi
 
 count_shards() {
@@ -54,6 +57,13 @@ if [[ ! -f "$DRAFT_HOST_PATH/model.safetensors" ]]; then
 fi
 test -f "$DRAFT_HOST_PATH/config.json"
 test -f "$DRAFT_HOST_PATH/model.safetensors"
+if [[ -n "$EXPECTED_DRAFT_SHA256" ]]; then
+  actual_draft_sha256="$(sha256sum "$DRAFT_HOST_PATH/model.safetensors" | awk '{print $1}')"
+  [[ "$actual_draft_sha256" == "$EXPECTED_DRAFT_SHA256" ]] || {
+    echo "Draft checkpoint hash does not match pinned revision $DRAFT_REVISION" >&2
+    exit 1
+  }
+fi
 
 if [[ "$SYNC_WORKER" == "1" ]]; then
   command -v rsync >/dev/null

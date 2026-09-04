@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Optimize NVFP4 group-16 scales/rounding against the official FP8 source.
+"""Optimize NVFP4 group-16 scales/rounding against an FP8 or BF16 source.
 
 The Red Hat checkpoint uses memoryless min/max: each 16-value group scale is
 derived from amax/6 and rounded to FP8 E4M3. This tool keeps the checkpoint's
@@ -35,6 +35,7 @@ SOURCE_SUFFIXES = {
     "gate_proj": ("gate_proj.weight", "gate_proj.weight_scale_inv"),
     "up_proj": ("up_proj.weight", "up_proj.weight_scale_inv"),
 }
+SOURCE_FORMATS = ("block-fp8", "bf16")
 
 
 def parse_csv_ints(value: str) -> list[int]:
@@ -62,10 +63,17 @@ def load_tensor(
     return tensor.to(device)
 
 
-def source_names(layer: int, expert: int, projection: str) -> tuple[str, str]:
+def source_names(
+    layer: int,
+    expert: int,
+    projection: str,
+    source_format: str = "block-fp8",
+) -> tuple[str, str | None]:
+    if source_format not in SOURCE_FORMATS:
+        raise ValueError(f"unsupported source format: {source_format}")
     prefix = f"model.language_model.layers.{layer}.mlp.experts.{expert}."
     weight, scale = SOURCE_SUFFIXES[projection]
-    return prefix + weight, prefix + scale
+    return prefix + weight, (prefix + scale if source_format == "block-fp8" else None)
 
 
 def target_names(layer: int, expert: int, projection: str) -> tuple[str, str, str]:
@@ -89,6 +97,33 @@ def dequant_source(weight: torch.Tensor, scale_inv: torch.Tensor) -> torch.Tenso
         )
     scale = scale_inv.repeat_interleave(128, 0).repeat_interleave(128, 1)
     return weight.float() * scale[:rows, :cols].float()
+
+
+def source_reference(
+    weight: torch.Tensor,
+    scale_inv: torch.Tensor | None,
+    *,
+    source_format: str,
+) -> torch.Tensor:
+    """Return the FP32 reference matrix for a supported source checkpoint.
+
+    BF16 is deliberately strict. This prevents an FP8 checkpoint from being
+    interpreted as unscaled values when the caller accidentally selects the
+    wrong source format.
+    """
+    if source_format == "bf16":
+        if scale_inv is not None:
+            raise ValueError("BF16 source must not provide weight_scale_inv")
+        if weight.dtype != torch.bfloat16:
+            raise ValueError(
+                f"BF16 source expected torch.bfloat16 expert weight, got {weight.dtype}"
+            )
+        return weight.float()
+    if source_format == "block-fp8":
+        if scale_inv is None:
+            raise ValueError("block-FP8 source requires weight_scale_inv")
+        return dequant_source(weight, scale_inv)
+    raise ValueError(f"unsupported source format: {source_format}")
 
 
 def unpack_fp4(packed: torch.Tensor) -> torch.Tensor:
@@ -379,6 +414,12 @@ def aggregate(rows: list[dict[str, Any]], key: str) -> float:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-root", type=Path, required=True)
+    parser.add_argument(
+        "--source-format",
+        choices=SOURCE_FORMATS,
+        default="block-fp8",
+        help="Reference checkpoint encoding; block-fp8 preserves the existing workflow.",
+    )
     parser.add_argument("--target-root", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--layers", type=parse_csv_ints, default=[3, 23, 43])
@@ -422,7 +463,7 @@ def main() -> None:
         for expert in args.experts:
             for projection in projections:
                 source_weight_name, source_scale_name = source_names(
-                    layer, expert, projection
+                    layer, expert, projection, args.source_format
                 )
                 packed_name, target_scale_name, global_name = target_names(
                     layer, expert, projection
@@ -441,10 +482,21 @@ def main() -> None:
                 source_weight = load_tensor(
                     args.source_root, source_index, source_weight_name, device=device
                 )
-                source_scale = load_tensor(
-                    args.source_root, source_index, source_scale_name, device=device
+                source_scale = (
+                    load_tensor(
+                        args.source_root,
+                        source_index,
+                        source_scale_name,
+                        device=device,
+                    )
+                    if source_scale_name is not None
+                    else None
                 )
-                reference = dequant_source(source_weight, source_scale)
+                reference = source_reference(
+                    source_weight,
+                    source_scale,
+                    source_format=args.source_format,
+                )
                 del source_weight, source_scale
 
                 target_packed = load_tensor(
@@ -502,6 +554,11 @@ def main() -> None:
                     "projection": projection,
                     "shape": list(reference.shape),
                     "source_shard": source_index[source_weight_name],
+                    "source_scale_shard": (
+                        source_index[source_scale_name]
+                        if source_scale_name is not None
+                        else None
+                    ),
                     "target_shard": target_index[packed_name],
                     "original_global_divisor": float(global_divisor),
                     "selected_global_divisor": float(selected_divisor),
@@ -556,6 +613,7 @@ def main() -> None:
             "format": "pt",
             "method": method,
             "source": str(args.source_root),
+            "source_format": args.source_format,
             "target": str(args.target_root),
         },
     )
@@ -563,6 +621,7 @@ def main() -> None:
         "schema": 2,
         "method": method,
         "source_root": str(args.source_root),
+        "source_format": args.source_format,
         "target_root": str(args.target_root),
         "layers": args.layers,
         "experts": args.experts,

@@ -1,0 +1,131 @@
+{
+  "corpus_seed": "glm53-scheduler-a-20260902",
+  "created_at": "2026-09-02T21:47:37.808495+00:00",
+  "label": "adaptive-smooth-v1",
+  "mixed": [
+    {
+      "concurrent_prefill": {
+        "completion_tokens": 2,
+        "content_preview": "OK",
+        "decode_seconds": 0.082682,
+        "decode_tokens_per_second": 24.189166,
+        "elapsed_seconds": 39.819811,
+        "input_tokens_per_second": 686.914246,
+        "max_stream_gap_seconds": 0.0,
+        "mean_stream_gap_seconds": 0.0,
+        "p95_stream_gap_seconds": 0.0,
+        "prompt_tokens": 27296,
+        "stream_events": 1,
+        "target_prompt_tokens": 32768,
+        "ttft_seconds": 39.737129
+      },
+      "control_decode": {
+        "completion_tokens": 256,
+        "content_preview": "1. Test the boundary, not the middle.\n2. A passing suite proves presence of bugs caught, not absence of bugs missed.\n3. Flaky tests erode trust faster than fail",
+        "decode_seconds": 13.351389,
+        "decode_tokens_per_second": 19.174035,
+        "elapsed_seconds": 13.795939,
+        "max_stream_gap_seconds": 0.128129,
+        "mean_stream_gap_seconds": 0.119208,
+        "p95_stream_gap_seconds": 0.125211,
+        "prompt_tokens": 43,
+        "stream_events": 113,
+        "ttft_seconds": 0.44455
+      },
+      "mixed_decode": {
+        "completion_tokens": 256,
+        "content_preview": "1. Test the boundary where a valid input becomes invalid.\n2. A test that never fails teaches you nothing new.\n3. Mock everything except the thing you're testing",
+        "decode_seconds": 31.338134,
+        "decode_tokens_per_second": 8.168961,
+        "elapsed_seconds": 31.719997,
+        "max_stream_gap_seconds": 6.701227,
+        "mean_stream_gap_seconds": 0.274895,
+        "p95_stream_gap_seconds": 0.366565,
+        "prompt_tokens": 45,
+        "stream_events": 115,
+        "ttft_seconds": 0.381863
+      },
+      "mixed_over_control_decode_tps": 0.426043,
+      "round": 0
+    }
+  ],
+  "models": {
+    "data": [
+      {
+        "created": 1788385656,
+        "id": "glm-5.3-flash",
+        "max_model_len": 1048576,
+        "object": "model",
+        "owned_by": "vllm",
+        "parent": null,
+        "permission": [
+          {
+            "allow_create_engine": false,
+            "allow_fine_tuning": false,
+            "allow_logprobs": true,
+            "allow_sampling": true,
+            "allow_search_indices": false,
+            "allow_view": true,
+            "created": 1788385656,
+            "group": null,
+            "id": "modelperm-accd623434cbc4e4",
+            "is_blocking": false,
+            "object": "model_permission",
+            "organization": "*"
+          }
+        ],
+        "root": "/models/glm-5.3-flash-nvfp4"
+      }
+    ],
+    "object": "list"
+  },
+  "pure_prefill": [
+    {
+      "completion_tokens": 2,
+      "content_preview": "OK",
+      "decode_seconds": 0.079283,
+      "decode_tokens_per_second": 25.226003,
+      "elapsed_seconds": 3.950033,
+      "input_tokens_per_second": 1411.354753,
+      "max_stream_gap_seconds": 0.0,
+      "mean_stream_gap_seconds": 0.0,
+      "p95_stream_gap_seconds": 0.0,
+      "prompt_tokens": 5463,
+      "stream_events": 1,
+      "target_prompt_tokens": 8192,
+      "ttft_seconds": 3.870749
+    },
+    {
+      "completion_tokens": 2,
+      "content_preview": "OK",
+      "decode_seconds": 0.052706,
+      "decode_tokens_per_second": 37.946452,
+      "elapsed_seconds": 28.77573,
+      "input_tokens_per_second": 1519.582339,
+      "max_stream_gap_seconds": 0.0,
+      "mean_stream_gap_seconds": 0.0,
+      "p95_stream_gap_seconds": 0.0,
+      "prompt_tokens": 43647,
+      "stream_events": 1,
+      "target_prompt_tokens": 32768,
+      "ttft_seconds": 28.723024
+    },
+    {
+      "completion_tokens": 2,
+      "content_preview": "OK",
+      "decode_seconds": 0.019453,
+      "decode_tokens_per_second": 102.810526,
+      "elapsed_seconds": 71.121675,
+      "input_tokens_per_second": 1536.056096,
+      "max_stream_gap_seconds": 0.0,
+      "mean_stream_gap_seconds": 0.0,
+      "p95_stream_gap_seconds": 0.0,
+      "prompt_tokens": 109217,
+      "stream_events": 1,
+      "target_prompt_tokens": 131072,
+      "ttft_seconds": 71.102221
+    }
+  ],
+  "schema": 1,
+  "url": "http://127.0.0.1:8000"
+}

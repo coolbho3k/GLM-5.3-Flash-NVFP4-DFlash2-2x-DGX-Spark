@@ -1,0 +1,85 @@
+{
+  "corpus_seed": "glm53-scheduler-a-warm-20260902",
+  "created_at": "2026-09-02T21:54:55.753272+00:00",
+  "label": "adaptive-smooth-v1-warm",
+  "mixed": [
+    {
+      "concurrent_prefill": {
+        "completion_tokens": 2,
+        "content_preview": "OK",
+        "decode_seconds": 0.085012,
+        "decode_tokens_per_second": 23.526067,
+        "elapsed_seconds": 37.462066,
+        "input_tokens_per_second": 730.341134,
+        "max_stream_gap_seconds": 0.0,
+        "mean_stream_gap_seconds": 0.0,
+        "p95_stream_gap_seconds": 0.0,
+        "prompt_tokens": 27298,
+        "stream_events": 1,
+        "target_prompt_tokens": 32768,
+        "ttft_seconds": 37.377054
+      },
+      "control_decode": {
+        "completion_tokens": 256,
+        "content_preview": "1. Test the boundary where the input buffer is exactly full.\n2. Verify behavior when the network drops mid-request.\n3. Confirm the retry counter resets after a ",
+        "decode_seconds": 13.729229,
+        "decode_tokens_per_second": 18.646349,
+        "elapsed_seconds": 14.091182,
+        "max_stream_gap_seconds": 0.128838,
+        "mean_stream_gap_seconds": 0.119383,
+        "p95_stream_gap_seconds": 0.125334,
+        "prompt_tokens": 45,
+        "stream_events": 116,
+        "ttft_seconds": 0.361952
+      },
+      "mixed_decode": {
+        "completion_tokens": 256,
+        "content_preview": "1. A test that passes only after a retry is a flaky test wearing a costume.\n2. Coverage percentage measures what code ran, not whether anyone cared about the re",
+        "decode_seconds": 22.606922,
+        "decode_tokens_per_second": 11.323966,
+        "elapsed_seconds": 22.988029,
+        "max_stream_gap_seconds": 0.432462,
+        "mean_stream_gap_seconds": 0.215303,
+        "p95_stream_gap_seconds": 0.349915,
+        "prompt_tokens": 47,
+        "stream_events": 106,
+        "ttft_seconds": 0.381107
+      },
+      "mixed_over_control_decode_tps": 0.607302,
+      "round": 0
+    }
+  ],
+  "models": {
+    "data": [
+      {
+        "created": 1788386094,
+        "id": "glm-5.3-flash",
+        "max_model_len": 1048576,
+        "object": "model",
+        "owned_by": "vllm",
+        "parent": null,
+        "permission": [
+          {
+            "allow_create_engine": false,
+            "allow_fine_tuning": false,
+            "allow_logprobs": true,
+            "allow_sampling": true,
+            "allow_search_indices": false,
+            "allow_view": true,
+            "created": 1788386094,
+            "group": null,
+            "id": "modelperm-8bf508b2ed780d72",
+            "is_blocking": false,
+            "object": "model_permission",
+            "organization": "*"
+          }
+        ],
+        "root": "/models/glm-5.3-flash-nvfp4"
+      }
+    ],
+    "object": "list"
+  },
+  "pure_prefill": [],
+  "schema": 1,
+  "url": "http://127.0.0.1:8000"
+}

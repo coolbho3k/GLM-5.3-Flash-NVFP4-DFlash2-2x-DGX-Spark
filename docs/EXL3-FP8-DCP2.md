@@ -12,8 +12,8 @@ post-KV-campaign serving stack in this repository:
 - DFlash2 speculative decoding at K=7 with graph-safe accepted-prefix KDA
   replay.
 
-The unified selectable recipe lives on branch **feature/exl3-ab-current**.
-It retains the post-KV-campaign NVFP4 profile and adds EXL3 with either target-KV format.
+The unified selectable recipe retains the post-KV-campaign NVFP4 profile and
+adds EXL3 with either target-KV format.
 
 ## What is stored
 
@@ -24,7 +24,7 @@ It retains the post-KV-campaign NVFP4 profile and adds EXL3 with either target-K
 | target MLA KV | 512 E4M3 bytes + four FP32 group scales = 528 B/token/layer | sequence-sharded DCP2 |
 | sparse indexer KV | FP8 E4M3 | DCP-aware |
 | KDA recurrent state | FP16 compact replay | replicated |
-| DFlash2 KV/state | auto/bf16, exact-fit slot-share | TP-local, sequence-replicated |
+| DFlash2 weights/KV | MXFP8 with BF16 context rows / auto KV, exact-fit slot-share | TP-local, sequence-replicated |
 
 GLM-5.3 has qk_rope_head_dim=0. The generic packed FP8 MLA ABI reserves
 128 bytes per token for a RoPE payload that is always empty for this model.
@@ -44,7 +44,8 @@ per-layer CPU synchronization and re-plan.
 - ExLlamaV3: c5d9c657966ffeeaa9353f0cc899f18629da4a13
 - MiaAI-Lab source: eb0469fbb2b49fd7c025f594a3339a121e58f7a9
 - EXL3 checkpoint: Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw at 25a44fdbf16862a46b7cc9921142c6c81350af2f
-- DFlash2: incoai/GLM-5.3-Flash-DFlash2 at dc77ff1c99eeb2df044ee3d4f0094eb033fee410
+- default DFlash2: local-inference-lab/GLM-5.3-Flash-DFlash2-MXFP8 at 610aa967a92bfeb97e3d848dcb8693553e8b6a55
+- BF16 draft rollback: incoai/GLM-5.3-Flash-DFlash2 at bf582e4eacc1810f76656d1811693ff6c6737d2a
 
 ## Build and prepare
 
@@ -97,17 +98,18 @@ The validated EXL3+FP8 defaults are:
 - maximum batched tokens: 8,192
 - E2 fat-expert prefill kernel enabled
 - E2 scratch sized against the 8,192-token scheduler budget
-- stock SpinCondition reader window
+- 16 ms SpinCondition reader window
 - CLI block size: 2,048 (attention-manager block size: 4,096)
 - quantization: EXL3
 - target KV cache: FP8 E4M3
 - decode-context parallel size: 2
 - attention backend: FLASHINFER_MLA_SPARSE_SM120
 - FP8 E4M3 indexer cache
-- DFlash2 K=7 with draft KV auto
+- MXFP8 DFlash2 K=7 at TP2 with draft KV auto
+- private DFlash graphs for request concurrency 1 through 6
 - compact KDA accepted-prefix replay enabled
 - decode-first adaptive scheduler enabled
-- eager execution
+- eager target execution
 
 Do not add **--moe-backend marlin**; that belongs to the NVFP4 target and is
 incorrect for EXL3 weights.
@@ -139,6 +141,24 @@ Piecewise CUDA graphs remain opt-in for diagnostics:
 
 On this stack, that mode captured 15 graphs using 0.21 GiB but reduced both
 decode and prefill throughput, so it is deliberately not the default.
+
+Exact target decode graphs can instead be captured only for C1. This keeps
+C2-C6 on the eager target path while retaining the independent DFlash graph
+coverage selected by `VLLM_DFLASH_ONLY_CUDAGRAPH`:
+
+    DFLASH_DRAFT_VARIANT=mxfp8 \
+    VLLM_DFLASH_ONLY_CUDAGRAPH=1 \
+    GLM53_SPINWAIT_MS=16 \
+    TARGET_CUDAGRAPH_SCOPE=c1 \
+      ./serve-profile.sh start exl3-fp8-dcp2
+
+On spark-0 + dgx1.lan at K=7 and GMU 0.87, selective C1 capture improved a
+three-run C1 workload from 32.5 to 34.2 tok/s (+5.2%). Median code decode rose
+from 46.13 to 48.80 tok/s (+5.8% raw, +4.7% per speculative engine step).
+C6 aggregate decode was effectively flat (57.2 versus 56.8 tok/s). Observed
+KV capacity was 4.744M tokens versus 5.079M in the immediately preceding eager
+boot, a 6.6% trade. For that reason the option is reproducible but not the
+unconditional default.
 
 ## Validated results on spark-0 + dgx1.lan
 

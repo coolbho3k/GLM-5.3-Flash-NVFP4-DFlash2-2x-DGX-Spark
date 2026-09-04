@@ -46,6 +46,13 @@ def test_matrix() -> None:
         assert values["USE_FP4_INDEXER_CACHE"] == "0"
         assert values["DCP_SIZE"] == "2"
         assert values["BLOCK_SIZE"] == ("2048" if "-fp8-" in profile else "2304")
+        expected_draft = "mxfp8" if "-fp8-" in profile else "bf16"
+        assert values["DFLASH_DRAFT_VARIANT"] == expected_draft
+        expected_draft_graphs = "1" if "-fp8-" in profile else "0"
+        assert values["VLLM_DFLASH_ONLY_CUDAGRAPH"] == expected_draft_graphs
+        if profile == "exl3-fp8-dcp2":
+            assert values["GLM53_SPINWAIT_MS"] == "16"
+        assert values["COMPACT_SPEC_REPLAY"] == "1"
 
 
 def test_production_defaults_unchanged() -> None:
@@ -77,6 +84,25 @@ def test_overrides_win() -> None:
     assert "PIECEWISE" in values["COMPILATION_CONFIG"]
 
 
+def test_selective_c1_target_graph_profile() -> None:
+    values = resolved(
+        "exl3-fp8-dcp2",
+        TARGET_CUDAGRAPH_SCOPE="c1",
+    )
+    assert values["TARGET_CUDAGRAPH_SCOPE"] == "c1"
+    assert values["ENFORCE_EAGER"] == "0"
+    assert "FULL_DECODE_ONLY" in values["COMPILATION_CONFIG"]
+    assert "cudagraph_capture_sizes" in values["COMPILATION_CONFIG"]
+    assert r"\[8\]" in values["COMPILATION_CONFIG"]
+
+    k5 = resolved(
+        "exl3-fp8-dcp2",
+        TARGET_CUDAGRAPH_SCOPE="c1",
+        DFLASH_TOKENS="5",
+    )
+    assert r"\[6\]" in k5["COMPILATION_CONFIG"]
+
+
 def test_recipe_wiring() -> None:
     starter = (ROOT / "start-cluster.sh").read_text()
     launcher = (ROOT / "launch-glm53-vllm-tp2-dflash2.sh").read_text()
@@ -89,6 +115,9 @@ def test_recipe_wiring() -> None:
         "COMPACT_SPEC_REPLAY",
         "COMPILATION_CONFIG",
         "BLOCK_SIZE",
+        "NCCL_IB_HCA",
+        "NCCL_SOCKET_IFNAME",
+        "NCCL_IB_ADDR_RANGE",
     ):
         assert name in starter
         assert name in launcher

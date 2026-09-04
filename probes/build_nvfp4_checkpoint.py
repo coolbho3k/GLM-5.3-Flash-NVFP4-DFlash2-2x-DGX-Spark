@@ -8,6 +8,10 @@ shards one at a time, replacing routed-expert ``weight_packed``,
 names, shapes, dtypes, serialized size, configuration, and the serving kernel
 contract remain unchanged.
 
+The reference may be either the official 128x128 block-FP8 checkpoint or the
+official BF16 checkpoint. The output representation is identical in both
+cases.
+
 The output directory should first be a copy-on-write clone of the Red Hat
 checkpoint.  Shard-level state makes interrupted builds resumable and allows
 different target shards to be built independently on the two cluster nodes.
@@ -29,13 +33,14 @@ from safetensors import safe_open
 from safetensors.torch import save_file
 
 from optimize_nvfp4_rounding import (
-    dequant_source,
+    SOURCE_FORMATS,
     dequant_target,
     load_index,
     load_tensor,
     optimize_groups,
     select_global_divisor,
     source_names,
+    source_reference,
     target_names,
 )
 
@@ -65,11 +70,20 @@ def shard_number(name: str) -> int:
     return int(match.group(1)) if match else 1 << 30
 
 
+def entry_source_shards(entry: dict[str, Any]) -> set[str]:
+    return {
+        shard
+        for key in ("source_weight_shard", "source_scale_shard")
+        if (shard := entry.get(key)) is not None
+    }
+
+
 def packed_plan(
     source_index: dict[str, str],
     target_index: dict[str, str],
     *,
     include_global_divisor: bool,
+    source_format: str = "block-fp8",
 ) -> dict[str, list[dict[str, Any]]]:
     by_shard: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for packed_name, target_shard in target_index.items():
@@ -79,12 +93,14 @@ def packed_plan(
         layer = int(match.group("layer"))
         expert = int(match.group("expert"))
         projection = match.group("projection")
-        source_weight, source_scale = source_names(layer, expert, projection)
+        source_weight, source_scale = source_names(
+            layer, expert, projection, source_format
+        )
         _, target_scale, global_scale = target_names(layer, expert, projection)
         missing = [
             name
             for name in (source_weight, source_scale)
-            if name not in source_index
+            if name is not None and name not in source_index
         ]
         if missing:
             raise KeyError(f"official source index is missing {missing}")
@@ -100,7 +116,9 @@ def packed_plan(
                 "source_weight_name": source_weight,
                 "source_scale_name": source_scale,
                 "source_weight_shard": source_index[source_weight],
-                "source_scale_shard": source_index[source_scale],
+                "source_scale_shard": (
+                    source_index[source_scale] if source_scale is not None else None
+                ),
         }
         packed_shard = target_index[packed_name]
         scale_shard = target_index[target_scale]
@@ -125,17 +143,24 @@ def packed_plan(
     return dict(sorted(by_shard.items(), key=lambda item: shard_number(item[0])))
 
 
-def plan_summary(plan: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
-    result: dict[str, Any] = {"target_shards": {}}
+def plan_summary(
+    plan: dict[str, list[dict[str, Any]]],
+    *,
+    source_format: str = "block-fp8",
+) -> dict[str, Any]:
+    result: dict[str, Any] = {
+        "source_format": source_format,
+        "target_shards": {},
+    }
     all_source_shards: set[str] = set()
     total = 0
     unique_matrices: set[tuple[int, int, str]] = set()
     for target_shard, entries in plan.items():
         source_shards = sorted(
             {
-                row[key]
+                source_shard
                 for row in entries
-                for key in ("source_weight_shard", "source_scale_shard")
+                for source_shard in entry_source_shards(row)
             },
             key=shard_number,
         )
@@ -206,6 +231,7 @@ def build_shard(
     *,
     source_root: Path,
     source_index: dict[str, str],
+    source_format: str,
     target_root: Path,
     target_index: dict[str, str],
     output_root: Path,
@@ -240,13 +266,21 @@ def build_shard(
             entry["source_weight_name"],
             device=device,
         )
-        source_scale = load_tensor(
-            source_root,
-            source_index,
-            entry["source_scale_name"],
-            device=device,
+        source_scale = (
+            load_tensor(
+                source_root,
+                source_index,
+                entry["source_scale_name"],
+                device=device,
+            )
+            if entry["source_scale_name"] is not None
+            else None
         )
-        reference = dequant_source(source_weight, source_scale)
+        reference = source_reference(
+            source_weight,
+            source_scale,
+            source_format=source_format,
+        )
         if entry["global_scale_name"] in tensors:
             global_divisor = tensors[entry["global_scale_name"]].to(device)
         else:
@@ -346,6 +380,7 @@ def build_shard(
             tensors[entry["global_scale_name"]] = candidate_global
         row = {
             **entry,
+            "source_format": source_format,
             "target_shard": target_shard,
             "shape": list(reference.shape),
             "groups": reference.numel() // 16,
@@ -401,6 +436,12 @@ def build_shard(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-root", type=Path, required=True)
+    parser.add_argument(
+        "--source-format",
+        choices=SOURCE_FORMATS,
+        default="block-fp8",
+        help="Reference checkpoint encoding; block-fp8 preserves the existing workflow.",
+    )
     parser.add_argument("--target-root", type=Path, required=True)
     parser.add_argument("--output-root", type=Path)
     parser.add_argument(
@@ -436,6 +477,7 @@ def main() -> None:
         source_index,
         target_index,
         include_global_divisor=args.global_divisor_steps_per_octave > 0,
+        source_format=args.source_format,
     )
     if args.target_shards:
         unknown = set(args.target_shards) - set(plan)
@@ -449,7 +491,7 @@ def main() -> None:
             name: entries[: args.matrix_limit_per_shard]
             for name, entries in plan.items()
         }
-    summary = plan_summary(plan)
+    summary = plan_summary(plan, source_format=args.source_format)
     if args.plan_only:
         print(json.dumps(summary, indent=2, sort_keys=True))
         return
@@ -461,7 +503,14 @@ def main() -> None:
     state_path = output_root / "nvfp4-build-state.json"
     report_path = output_root / "nvfp4-build-tensors.jsonl"
     state = load_state(state_path)
+    state_source_format = state.get("source_format", "block-fp8")
+    if state["completed_shards"] and state_source_format != args.source_format:
+        raise ValueError(
+            "cannot resume checkpoint built with source format "
+            f"{state_source_format!r} as {args.source_format!r}"
+        )
     state["source_root"] = str(args.source_root)
+    state["source_format"] = args.source_format
     state["target_root"] = str(args.target_root)
     state["scale_radius_below"] = args.scale_radius_below
     state["scale_radius_above"] = args.scale_radius_above
@@ -484,10 +533,10 @@ def main() -> None:
                 continue
             missing_source = sorted(
                 {
-                    row[key]
+                    source_shard
                     for row in entries
-                    for key in ("source_weight_shard", "source_scale_shard")
-                    if not (args.source_root / row[key]).is_file()
+                    for source_shard in entry_source_shards(row)
+                    if not (args.source_root / source_shard).is_file()
                 },
                 key=shard_number,
             )
@@ -498,6 +547,7 @@ def main() -> None:
             result = build_shard(
                 source_root=args.source_root,
                 source_index=source_index,
+                source_format=args.source_format,
                 target_root=args.target_root,
                 target_index=target_index,
                 output_root=output_root,

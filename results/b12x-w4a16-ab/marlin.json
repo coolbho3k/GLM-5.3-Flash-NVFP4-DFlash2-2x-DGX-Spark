@@ -1,0 +1,131 @@
+{
+  "corpus_seed": "glm53-b12x-ab-20260902-2",
+  "created_at": "2026-09-02T20:50:51.249189+00:00",
+  "label": "marlin",
+  "mixed": [
+    {
+      "concurrent_prefill": {
+        "completion_tokens": 2,
+        "content_preview": "OK",
+        "decode_seconds": 0.088633,
+        "decode_tokens_per_second": 22.564901,
+        "elapsed_seconds": 34.896316,
+        "input_tokens_per_second": 784.280895,
+        "max_stream_gap_seconds": 0.0,
+        "mean_stream_gap_seconds": 0.0,
+        "p95_stream_gap_seconds": 0.0,
+        "prompt_tokens": 27299,
+        "stream_events": 1,
+        "target_prompt_tokens": 32768,
+        "ttft_seconds": 34.807682
+      },
+      "control_decode": {
+        "completion_tokens": 256,
+        "content_preview": "# Software-Testing Observations\n\n1. A test suite that passes 100% of the time may simply be testing nothing meaningful.\n2. Flaky tests erode trust faster than f",
+        "decode_seconds": 13.074216,
+        "decode_tokens_per_second": 19.580525,
+        "elapsed_seconds": 13.429435,
+        "max_stream_gap_seconds": 0.142144,
+        "mean_stream_gap_seconds": 0.116733,
+        "p95_stream_gap_seconds": 0.122867,
+        "prompt_tokens": 46,
+        "stream_events": 113,
+        "ttft_seconds": 0.355219
+      },
+      "mixed_decode": {
+        "completion_tokens": 256,
+        "content_preview": "1. A test suite that passes on the first run deserves suspicion, not celebration.\n2. Flaky tests erode trust faster than failing tests ever will.\n3. A test that",
+        "decode_seconds": 27.488221,
+        "decode_tokens_per_second": 9.31308,
+        "elapsed_seconds": 27.856156,
+        "max_stream_gap_seconds": 0.671516,
+        "mean_stream_gap_seconds": 0.221678,
+        "p95_stream_gap_seconds": 0.555836,
+        "prompt_tokens": 48,
+        "stream_events": 125,
+        "ttft_seconds": 0.367935
+      },
+      "mixed_over_control_decode_tps": 0.47563,
+      "round": 0
+    }
+  ],
+  "models": {
+    "data": [
+      {
+        "created": 1788382249,
+        "id": "glm-5.3-flash",
+        "max_model_len": 1048576,
+        "object": "model",
+        "owned_by": "vllm",
+        "parent": null,
+        "permission": [
+          {
+            "allow_create_engine": false,
+            "allow_fine_tuning": false,
+            "allow_logprobs": true,
+            "allow_sampling": true,
+            "allow_search_indices": false,
+            "allow_view": true,
+            "created": 1788382249,
+            "group": null,
+            "id": "modelperm-a8c8a6499825449c",
+            "is_blocking": false,
+            "object": "model_permission",
+            "organization": "*"
+          }
+        ],
+        "root": "/models/glm-5.3-flash-nvfp4"
+      }
+    ],
+    "object": "list"
+  },
+  "pure_prefill": [
+    {
+      "completion_tokens": 2,
+      "content_preview": "OK",
+      "decode_seconds": 0.096694,
+      "decode_tokens_per_second": 20.683909,
+      "elapsed_seconds": 3.737453,
+      "input_tokens_per_second": 1501.335298,
+      "max_stream_gap_seconds": 0.0,
+      "mean_stream_gap_seconds": 0.0,
+      "p95_stream_gap_seconds": 0.0,
+      "prompt_tokens": 5466,
+      "stream_events": 1,
+      "target_prompt_tokens": 8192,
+      "ttft_seconds": 3.640759
+    },
+    {
+      "completion_tokens": 2,
+      "content_preview": "OK",
+      "decode_seconds": 0.054664,
+      "decode_tokens_per_second": 36.587286,
+      "elapsed_seconds": 34.335805,
+      "input_tokens_per_second": 1273.294842,
+      "max_stream_gap_seconds": 0.0,
+      "mean_stream_gap_seconds": 0.0,
+      "p95_stream_gap_seconds": 0.0,
+      "prompt_tokens": 43650,
+      "stream_events": 1,
+      "target_prompt_tokens": 32768,
+      "ttft_seconds": 34.281141
+    },
+    {
+      "completion_tokens": 2,
+      "content_preview": "OK",
+      "decode_seconds": 0.038993,
+      "decode_tokens_per_second": 51.29144,
+      "elapsed_seconds": 82.567379,
+      "input_tokens_per_second": 1323.423434,
+      "max_stream_gap_seconds": 0.0,
+      "mean_stream_gap_seconds": 0.0,
+      "p95_stream_gap_seconds": 0.0,
+      "prompt_tokens": 109220,
+      "stream_events": 1,
+      "target_prompt_tokens": 131072,
+      "ttft_seconds": 82.528386
+    }
+  ],
+  "schema": 1,
+  "url": "http://127.0.0.1:8000"
+}

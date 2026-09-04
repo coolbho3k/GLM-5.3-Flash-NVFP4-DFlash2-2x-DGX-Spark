@@ -169,6 +169,56 @@ replace(
 ''',
 )
 
+# The generic speculative-query router used to look only at the target's
+# configured DCP size.  The DFlash sliding-window builder above deliberately
+# disables sequence DCP because its TP-sharded KV cache is replicated.  Honor
+# that effective builder state so its fixed 1+K query can take the SM12x XQA
+# decode path (and its stable CUDA-graph buffers) instead of the mutable
+# non-causal prefill wrapper.  Target builders still have use_dcp=True and keep
+# the conservative one-token threshold.
+replace(
+    "v1/attention/backend.py",
+    '''        if (
+            self.vllm_config.parallel_config.decode_context_parallel_size > 1
+            and not supports_dcp_with_varlen
+        ):
+            self.reorder_batch_threshold = 1
+''',
+    '''        effective_use_dcp = getattr(
+            self,
+            "use_dcp",
+            self.vllm_config.parallel_config.decode_context_parallel_size > 1,
+        )
+        if effective_use_dcp and not supports_dcp_with_varlen:
+            self.reorder_batch_threshold = 1
+''',
+)
+
+# CUDA-graph capability discovery runs over every target and draft cache
+# group before DFlash receives its private graph manager.  The generic
+# FlashInfer query used to see the target's configured DCP2 and downgrade the
+# whole runner to single-token-only, even for DFlash's sliding-window group.
+# That group is explicitly sequence-replicated above (effective DCP1), and
+# SM12x XQA supports its fixed 1+K query.  Keep the conservative DCP limit for
+# all target/non-sliding attention.
+replace(
+    "v1/attention/backends/flashinfer.py",
+    '''        if is_sm12x and vllm_config.parallel_config.decode_context_parallel_size > 1:
+            return AttentionCGSupport.UNIFORM_SINGLE_TOKEN_DECODE
+''',
+    '''        replicated_sliding_window = (
+            isinstance(kv_cache_spec, AttentionSpec)
+            and kv_cache_spec.sliding_window is not None
+        )
+        if (
+            is_sm12x
+            and vllm_config.parallel_config.decode_context_parallel_size > 1
+            and not replicated_sliding_window
+        ):
+            return AttentionCGSupport.UNIFORM_SINGLE_TOKEN_DECODE
+''',
+)
+
 # DFlash2 selects FLASH_ATTN for its bidirectional sliding-window block on
 # this image. Like the FlashInfer path above, its TP-local KV must not inherit
 # the target model's sequence DCP coordinates.

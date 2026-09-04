@@ -1,0 +1,70 @@
+{
+  "corpus_seed": "glm53-b12x-w4a16-ab-v1",
+  "created_at": "2026-09-03T07:04:34.528553+00:00",
+  "label": "exl3-fp8-piecewise-graphs",
+  "mixed": [],
+  "models": {
+    "data": [
+      {
+        "created": 1788419073,
+        "id": "glm-5.3-flash",
+        "max_model_len": 1048576,
+        "object": "model",
+        "owned_by": "vllm",
+        "parent": null,
+        "permission": [
+          {
+            "allow_create_engine": false,
+            "allow_fine_tuning": false,
+            "allow_logprobs": true,
+            "allow_sampling": true,
+            "allow_search_indices": false,
+            "allow_view": true,
+            "created": 1788419073,
+            "group": null,
+            "id": "modelperm-94b7f99a3d0f8736",
+            "is_blocking": false,
+            "object": "model_permission",
+            "organization": "*"
+          }
+        ],
+        "root": "/models/glm-5.3-flash-nvfp4"
+      }
+    ],
+    "object": "list"
+  },
+  "pure_prefill": [
+    {
+      "completion_tokens": 2,
+      "content_preview": "OK",
+      "decode_seconds": 0.13733,
+      "decode_tokens_per_second": 14.563456,
+      "elapsed_seconds": 6.473373,
+      "input_tokens_per_second": 863.630503,
+      "max_stream_gap_seconds": 0.0,
+      "mean_stream_gap_seconds": 0.0,
+      "p95_stream_gap_seconds": 0.0,
+      "prompt_tokens": 5472,
+      "stream_events": 1,
+      "target_prompt_tokens": 8192,
+      "ttft_seconds": 6.336043
+    },
+    {
+      "completion_tokens": 2,
+      "content_preview": "OK",
+      "decode_seconds": 0.122423,
+      "decode_tokens_per_second": 16.336837,
+      "elapsed_seconds": 43.082668,
+      "input_tokens_per_second": 1016.195298,
+      "max_stream_gap_seconds": 0.0,
+      "mean_stream_gap_seconds": 0.0,
+      "p95_stream_gap_seconds": 0.0,
+      "prompt_tokens": 43656,
+      "stream_events": 1,
+      "target_prompt_tokens": 32768,
+      "ttft_seconds": 42.960246
+    }
+  ],
+  "schema": 1,
+  "url": "http://10.100.32.1:8000"
+}

@@ -8,6 +8,10 @@ serving work.
 
 ## Method and measured result
 
+The tooling also supports direct requantization from the official BF16
+checkpoint without changing the existing block-FP8 default. See
+[BF16-NVFP4-REQUANTIZATION.md](BF16-NVFP4-REQUANTIZATION.md).
+
 The Red Hat checkpoint derives one FP8 E4M3 scale for every 16 FP4 E2M1
 weights using memoryless min/max quantization. For each group, this optimizer
 searches the 25 nearby legal E4M3 scale codes (`-16` through `+8`), requantizes
