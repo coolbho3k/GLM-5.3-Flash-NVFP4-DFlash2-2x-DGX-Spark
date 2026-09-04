@@ -1,0 +1,4 @@
+{"rows": 145, "width": 1024, "max_fp32_difference": 1.52587890625e-05, "half_mismatch_fraction": 6.734913768013939e-06, "max_half_difference": 4.76837158203125e-07, "baseline_us": 12.521920204162598, "fused_us": 5.15936017036438}
+{"rows": 512, "width": 1024, "max_fp32_difference": 1.52587890625e-05, "half_mismatch_fraction": 1.1444091796875e-05, "max_half_difference": 0.03125, "baseline_us": 32.36543893814087, "fused_us": 8.402559757232666}
+{"rows": 2048, "width": 1024, "max_fp32_difference": 1.52587890625e-05, "half_mismatch_fraction": 1.3828277587890625e-05, "max_half_difference": 0.0625, "baseline_us": 293.17216873168945, "fused_us": 117.37088203430176}
+{"rows": 8192, "width": 1024, "max_fp32_difference": 1.52587890625e-05, "half_mismatch_fraction": 1.430511474609375e-05, "max_half_difference": 0.0625, "baseline_us": 2024.7383117675781, "fused_us": 686.185302734375}

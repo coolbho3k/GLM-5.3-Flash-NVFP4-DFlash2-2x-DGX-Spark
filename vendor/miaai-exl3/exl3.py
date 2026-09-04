@@ -15,8 +15,10 @@ from __future__ import annotations
 
 import importlib
 import importlib.util
+import json
 import os
 import sys
+import time
 import types
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -55,6 +57,8 @@ TEMP_ROWS_FUSED = 128
 MOE_ACT_SILU = 0
 # Experimental E2-only activation fusion. No weight/cache format changes.
 _FUSED_FAT_ACTIVATION = os.environ.get("EXL3_FUSED_FAT_ACTIVATION", "0") == "1"
+_FAT_ACTIVATION_CONTROL = os.environ.get("EXL3_FAT_ACTIVATION_CONTROL", "")
+_FAT_ACTIVATION_STATE = [0.0, _FUSED_FAT_ACTIVATION, None]
 # Shared fused scratch: decode is sequential across layers.
 _FUSED_TEMP_CACHE: dict[tuple, tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]] = {}
 _FAT_SCRATCH_CACHE: dict[tuple, dict[str, torch.Tensor]] = {}
@@ -815,6 +819,34 @@ def _stage_counts_to_host(
     return host, stream
 
 
+def fat_activation_enabled() -> bool:
+    """Optional one-second hot reload for drained, same-boot E2 A/B tests.
+
+    Missing/invalid files retain the last valid setting. Thin-expert decode
+    never calls this function. Leave the path unset for normal static serving.
+    """
+    if not _FAT_ACTIVATION_CONTROL:
+        return _FUSED_FAT_ACTIVATION
+    now = time.monotonic()
+    if now < _FAT_ACTIVATION_STATE[0]:
+        return _FAT_ACTIVATION_STATE[1]
+    _FAT_ACTIVATION_STATE[0] = now + 1.0
+    try:
+        enabled = json.loads(Path(_FAT_ACTIVATION_CONTROL).read_text())["enabled"]
+        if type(enabled) is not bool:
+            raise ValueError("enabled must be a JSON boolean")
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        error = str(exc)
+        if error != _FAT_ACTIVATION_STATE[2]:
+            logger.warning("EXL3 activation control ignored: %s", error)
+        _FAT_ACTIVATION_STATE[2] = error
+        return _FAT_ACTIVATION_STATE[1]
+    if enabled != _FAT_ACTIVATION_STATE[1]:
+        logger.info("EXL3 E2 fused activation enabled=%s", enabled)
+    _FAT_ACTIVATION_STATE[1:] = [enabled, None]
+    return enabled
+
+
 def exl3_fat_activation(
     gate_up: torch.Tensor,
     act: torch.Tensor,
@@ -855,6 +887,7 @@ def apply_exl3_batched_fat(
 ) -> torch.Tensor:
     """Run fat experts with persistent buffers and optional direct trellis GEMM."""
     ext = load_exllamav3_ext()
+    fused_activation = fat_activation_enabled()
     offset = 0
     for e, n_rows in enumerate(counts_host):
         start = offset
@@ -901,7 +934,7 @@ def apply_exl3_batched_fat(
         act = scratch["act"][:n_rows]
         act_h = scratch["act_h"][:n_rows]
         exl3_fat_activation(
-            gate_up, act, act_h, limit, fused=_FUSED_FAT_ACTIVATION
+            gate_up, act, act_h, limit, fused=fused_activation
         )
 
         h2 = scratch["h2"][:n_rows]

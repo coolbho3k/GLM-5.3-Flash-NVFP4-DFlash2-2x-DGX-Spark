@@ -183,6 +183,8 @@ def run_case(
     # short decoder prefix is too small for caching to affect the comparison.
     decoder_seed = "glm53-scheduler-pressure-decode-v1"
     decoder_case = f"c{decoder_count}-decoder"
+    from bench_serving_quick import metrics, profile_session
+    before_control = metrics(base_url)
     control_threads, control_boxes, control_started = decode_wave(
         base_url,
         decoder_count=decoder_count,
@@ -191,6 +193,10 @@ def run_case(
         corpus_seed=decoder_seed,
     )
     control = finish_decode_wave(control_threads, control_boxes, control_started)
+    after_control = metrics(base_url)
+    control["metrics_delta"] = {
+        key: after_control[key] - before_control[key] for key in before_control
+    }
 
     ready = [threading.Event() for _ in range(decoder_count)]
     mixed_threads, mixed_boxes, mixed_started = decode_wave(
@@ -208,7 +214,6 @@ def run_case(
         if "error" in box:
             raise box["error"]
 
-    from bench_serving_quick import profile_session
     with profile_session(base_url, profile_mixed):
         prefills = prefill_wave(
             base_url,
@@ -218,6 +223,10 @@ def run_case(
             corpus_seed=corpus_seed,
         )
     mixed = finish_decode_wave(mixed_threads, mixed_boxes, mixed_started)
+    after_mixed = metrics(base_url)
+    mixed["metrics_delta"] = {
+        key: after_mixed[key] - after_control[key] for key in after_control
+    }
     prefill_start = min(s["started_monotonic"] for s in prefills["streams"])
     prefill_end = max(s["first_token_monotonic"] for s in prefills["streams"])
     first_decoder_end = min(s["finished_monotonic"] for s in mixed["streams"])

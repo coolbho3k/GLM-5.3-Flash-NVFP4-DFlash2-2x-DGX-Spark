@@ -153,3 +153,33 @@ Build the overlay on both ranks, or use the launcher's image synchronization.
 The full EXL3 recipe also copies the updated vendor implementation; the
 overlay is only a fast local experimentation path, not a new prerequisite.
 Rollback is `EXL3_FUSED_FAT_ACTIVATION=0` or the previous image.
+
+For same-boot A/B, the v2 experiment image also accepts
+`EXL3_FAT_ACTIVATION_CONTROL=/etc/glm53/adaptive-scheduler/exl3-activation.json`.
+This is optional and requires the adaptive scheduler's existing directory
+mount. The file contains `{"enabled": false}` or `{"enabled": true}`. Startup
+copies it to the worker; when toggling, update both the head file and the
+worker's deployed file (by default
+`~/.cache/glm53-tp2-deploy/scheduler_profiles/exl3-activation.json`). Drain
+requests before changing it. E2 checks at most once a second; invalid or
+missing files retain the last valid setting. Both ranks log actual changes.
+The hot file overrides the static activation flag when configured; unset the
+control path for ordinary static serving or a static-flag rollback.
+
+The exact integrated helper passed the GPU parity gate with the same error
+bounds as the primitive screen. CPU hot-control tests verify static mode,
+rate limiting, reversal, and retention of the last valid value on bad input.
+
+Final 512-row screening: C3 mixed decode 7.49 versus 7.59 tok/s/stream and
+prefill 222.8 versus 223.8 tok/s. C5 prefill 178.0 versus 178.3; the candidate's
+prefill overlapped the full five decoders for only 86% of its lifetime, so its
+6.89 versus 6.73 mixed decode is not a clean speedup. C1 included first-use
+compilation pauses. Short pure prefill was 1073.5 tok/s, versus about 1089
+baseline. There is no convincing scratch-buffer win; restore 128 rows.
+
+The next boot restores GMU 0.87, 128 scratch rows, and starts activation off.
+It uses image `glm53-exl3:e2-activation-v2` for an off/on/off same-boot test.
+`probes/bench_exl3_tile.py` separately stages an ABI-checked N128/N256 kernel
+screen using existing compiled variants. Its beside-server allocation failed
+before any timing; no kernel result or serving change exists. Run it only
+with the server stopped, regardless of Linux's reported available memory.
