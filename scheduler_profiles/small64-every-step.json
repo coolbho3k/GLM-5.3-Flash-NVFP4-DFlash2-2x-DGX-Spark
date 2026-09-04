@@ -1,0 +1,8 @@
+{
+  "profile_name": "experiment-small64-every-step",
+  "global_budget": true,
+  "pure_prefill_token_threshold": 0,
+  "tiers": [
+    {"max_decoders": 6, "packet_tokens": 64, "interval": 1}
+  ]
+}

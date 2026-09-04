@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "config": {
+    "url": "http://127.0.0.1:8000",
+    "mode": "prefill",
+    "label": "prefill-cap4096-r1",
+    "output": "results/serving-20260904/prefill-cap4096-r1.json",
+    "levels": "1,6",
+    "prompts": "prose,code",
+    "max_tokens": 256,
+    "prefill_tokens": "32768",
+    "rounds": 1
+  },
+  "timestamp_utc": "2026-09-04T19:38:41.162236+00:00",
+  "cases": [
+    {
+      "started_monotonic": 53939.053441618,
+      "first_token_monotonic": 53959.027217914,
+      "finished_monotonic": 53959.114144144,
+      "cached_prompt_tokens": 0,
+      "prompt_tokens": 21853,
+      "completion_tokens": 2,
+      "ttft_seconds": 19.973776,
+      "elapsed_seconds": 20.060703,
+      "decode_seconds": 0.086926,
+      "decode_tokens_per_second": 23.008015,
+      "mean_stream_gap_seconds": 0.0,
+      "p95_stream_gap_seconds": 0.0,
+      "max_stream_gap_seconds": 0.0,
+      "stream_events": 1,
+      "content_preview": "OK",
+      "content_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
+      "target_prompt_tokens": 32768,
+      "input_tokens_per_second": 1094.084564,
+      "round": 0,
+      "cold": true
+    }
+  ]
+}

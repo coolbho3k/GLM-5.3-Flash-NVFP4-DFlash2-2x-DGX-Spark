@@ -108,8 +108,11 @@ def finish_decode_wave(
     for box in boxes:
         if "error" in box:
             raise box["error"]
+    results = [box["result"] for box in boxes]
+    # The caller may wait for prefill before joining finished decoders. Count
+    # only the decoder wave's lifetime, not that extra wait.
     return summarize_decoders(
-        [box["result"] for box in boxes], time.perf_counter() - started
+        results, max(result["finished_monotonic"] for result in results) - started
     )
 
 
@@ -173,6 +176,7 @@ def run_case(
     decode_tokens: int,
     prefill_tokens: int,
     corpus_seed: str,
+    profile_mixed: bool = False,
 ) -> dict[str, Any]:
     # Keep decoder prompts identical between control/mixed waves and across
     # scheduler profiles. DFlash acceptance is content-sensitive, while the
@@ -204,14 +208,22 @@ def run_case(
         if "error" in box:
             raise box["error"]
 
-    prefills = prefill_wave(
-        base_url,
-        prefill_count=prefill_count,
-        prefill_tokens=prefill_tokens,
-        case_prefix=f"c{decoder_count}-mixed",
-        corpus_seed=corpus_seed,
-    )
+    from bench_serving_quick import profile_session
+    with profile_session(base_url, profile_mixed):
+        prefills = prefill_wave(
+            base_url,
+            prefill_count=prefill_count,
+            prefill_tokens=prefill_tokens,
+            case_prefix=f"c{decoder_count}-mixed",
+            corpus_seed=corpus_seed,
+        )
     mixed = finish_decode_wave(mixed_threads, mixed_boxes, mixed_started)
+    prefill_start = min(s["started_monotonic"] for s in prefills["streams"])
+    prefill_end = max(s["first_token_monotonic"] for s in prefills["streams"])
+    first_decoder_end = min(s["finished_monotonic"] for s in mixed["streams"])
+    full_concurrency_overlap = max(
+        0.0, min(prefill_end, first_decoder_end) - prefill_start
+    )
     return {
         "decoder_count": decoder_count,
         "prefill_count": prefill_count,
@@ -219,6 +231,9 @@ def run_case(
         "control_decode": control,
         "mixed_decode": mixed,
         "concurrent_prefill": prefills,
+        "prefill_fraction_at_full_decode_concurrency": round(
+            full_concurrency_overlap / max(prefill_end - prefill_start, 1e-9), 6
+        ),
         "mixed_over_control_mean_per_stream_tps": round(
             mixed["mean_per_stream_tokens_per_second"]
             / control["mean_per_stream_tokens_per_second"],
@@ -242,6 +257,8 @@ def main() -> None:
     parser.add_argument("--prefills-per-wave", type=int, default=1)
     parser.add_argument("--decode-tokens", type=int, default=256)
     parser.add_argument("--prefill-tokens", type=int, default=16384)
+    parser.add_argument("--profile-mixed", action="store_true",
+                        help="Capture bounded traces once mixed decoding is active")
     args = parser.parse_args()
 
     base_url = args.url.rstrip("/")
@@ -268,6 +285,7 @@ def main() -> None:
         "decode_tokens": args.decode_tokens,
         "prefill_tokens": args.prefill_tokens,
         "prefills_per_wave": args.prefills_per_wave,
+        "profile_mixed": args.profile_mixed,
         "cases": [],
     }
     output = Path(args.output)
@@ -280,6 +298,7 @@ def main() -> None:
             decode_tokens=args.decode_tokens,
             prefill_tokens=args.prefill_tokens,
             corpus_seed=args.corpus_seed,
+            profile_mixed=args.profile_mixed,
         )
         report["cases"].append(case)
         print(json.dumps(case), flush=True)

@@ -172,6 +172,10 @@ if [[ -n "$COMPILATION_CONFIG" ]]; then
   python3 -c 'import json,sys; json.loads(sys.argv[1])' "$COMPILATION_CONFIG"
   compilation_args+=( --compilation-config "$COMPILATION_CONFIG" )
 fi
+profiler_args=()
+if [[ -n "${PROFILER_CONFIG:-}" ]]; then
+  profiler_args+=( --profiler-config "$PROFILER_CONFIG" )
+fi
 scheduler_mount_args=()
 scheduler_env_args=()
 scheduler_args=()
@@ -353,7 +357,7 @@ docker run --gpus all -d \
     --max-model-len "$MAX_MODEL_LEN" \
     --max-num-seqs "$MAX_NUM_SEQS" --block-size "$BLOCK_SIZE" "${moe_backend_args[@]}" "${speculative_args[@]}" --kv-cache-dtype "$KV_CACHE_DTYPE" \
     "${eager_args[@]}" "${compilation_args[@]}" --max-num-batched-tokens "$MAX_NUM_BATCHED_TOKENS" \
-    "${scheduler_args[@]}" \
+    "${scheduler_args[@]}" "${profiler_args[@]}" \
     --tool-call-parser glm47 --enable-auto-tool-choice \
     --reasoning-parser glm45 --default-chat-template-kwargs '{"enable_thinking":true,"reasoning_effort":"high"}' --chat-template /models/chat_template_mm.jinja \
     --distributed-executor-backend mp \

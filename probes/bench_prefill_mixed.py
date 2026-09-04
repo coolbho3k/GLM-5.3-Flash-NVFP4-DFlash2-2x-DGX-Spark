@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import statistics
@@ -102,6 +103,12 @@ def stream_chat(
     ttft = event_times[0] - started
     decode_seconds = max(finished - event_times[0], 1e-9)
     return {
+        "started_monotonic": started,
+        "first_token_monotonic": event_times[0],
+        "finished_monotonic": finished,
+        "cached_prompt_tokens": (usage.get("prompt_tokens_details") or {}).get(
+            "cached_tokens"
+        ),
         "prompt_tokens": prompt_tokens,
         "completion_tokens": completion_tokens,
         "ttft_seconds": round(ttft, 6),
@@ -113,6 +120,7 @@ def stream_chat(
         "max_stream_gap_seconds": round(max(gaps), 6) if gaps else 0.0,
         "stream_events": len(event_times),
         "content_preview": "".join(pieces)[:160],
+        "content_sha256": hashlib.sha256("".join(pieces).encode()).hexdigest(),
     }
 
 
