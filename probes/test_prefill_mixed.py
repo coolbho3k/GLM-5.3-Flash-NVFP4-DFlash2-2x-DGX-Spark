@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import sys
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -12,6 +13,18 @@ import compare_prefill_mixed as compare
 
 
 class PrefillMixedToolingTests(unittest.TestCase):
+    def test_cache_salt_changes_cache_identity_not_prompt_content(self) -> None:
+        kwargs = dict(case_id="fixed", corpus_seed="fixed", phrase_index=0)
+        with patch.object(bench, "stream_chat", side_effect=lambda *args: {
+            "prompt_tokens": 100, "ttft_seconds": 2.0
+        }) as chat:
+            first = bench.prefill_once("http://unused", 8192, cache_salt="a", **kwargs)
+            second = bench.prefill_once("http://unused", 8192, cache_salt="b", **kwargs)
+        a, b = (call.args[1] for call in chat.call_args_list)
+        self.assertEqual(a["messages"], b["messages"])
+        self.assertNotEqual(a["cache_salt"], b["cache_salt"])
+        self.assertEqual(first["prompt_sha256"], second["prompt_sha256"])
+
     def test_prefill_corpora_are_deterministic_and_case_distinct(self) -> None:
         kwargs = {
             "target_tokens": 8192,

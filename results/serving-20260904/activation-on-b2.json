@@ -1,0 +1,42 @@
+{
+  "activation_rank_settings": {"head": true, "worker": false},
+  "valid_cluster_ab": false,
+  "schema": 1,
+  "config": {
+    "url": "http://127.0.0.1:8000",
+    "mode": "prefill",
+    "label": "activation-on-b2",
+    "output": "results/serving-20260904/activation-on-b2.json",
+    "levels": "1,6",
+    "prompts": "prose,code",
+    "max_tokens": 256,
+    "prefill_tokens": "32768",
+    "rounds": 1,
+    "profile": false
+  },
+  "timestamp_utc": "2026-09-04T20:37:01.294663+00:00",
+  "cases": [
+    {
+      "started_monotonic": 57439.186041106,
+      "first_token_monotonic": 57458.9394981,
+      "finished_monotonic": 57459.033903218,
+      "cached_prompt_tokens": null,
+      "prompt_tokens": 21853,
+      "completion_tokens": 2,
+      "ttft_seconds": 19.753457,
+      "elapsed_seconds": 19.847862,
+      "decode_seconds": 0.094405,
+      "decode_tokens_per_second": 21.185292,
+      "mean_stream_gap_seconds": 0.0,
+      "p95_stream_gap_seconds": 0.0,
+      "max_stream_gap_seconds": 0.0,
+      "stream_events": 1,
+      "content_preview": "OK",
+      "content_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
+      "target_prompt_tokens": 32768,
+      "input_tokens_per_second": 1106.28737,
+      "round": 0,
+      "cold": null
+    }
+  ]
+}

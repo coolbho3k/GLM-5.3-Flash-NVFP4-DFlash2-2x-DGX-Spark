@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "config": {
+    "url": "http://127.0.0.1:8000",
+    "mode": "prefill",
+    "label": "activation-off-a2",
+    "output": "results/serving-20260904/activation-off-a2.json",
+    "levels": "1,6",
+    "prompts": "prose,code",
+    "max_tokens": 256,
+    "prefill_tokens": "32768",
+    "rounds": 1,
+    "profile": false
+  },
+  "timestamp_utc": "2026-09-04T20:35:08.759523+00:00",
+  "cases": [
+    {
+      "started_monotonic": 57326.650719491,
+      "first_token_monotonic": 57346.526070641,
+      "finished_monotonic": 57346.619788048,
+      "cached_prompt_tokens": null,
+      "prompt_tokens": 21854,
+      "completion_tokens": 2,
+      "ttft_seconds": 19.875351,
+      "elapsed_seconds": 19.969069,
+      "decode_seconds": 0.093717,
+      "decode_tokens_per_second": 21.340753,
+      "mean_stream_gap_seconds": 0.0,
+      "p95_stream_gap_seconds": 0.0,
+      "max_stream_gap_seconds": 0.0,
+      "stream_events": 1,
+      "content_preview": "OK",
+      "content_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
+      "target_prompt_tokens": 32768,
+      "input_tokens_per_second": 1099.552909,
+      "round": 0,
+      "cold": null
+    }
+  ]
+}

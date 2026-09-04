@@ -159,8 +159,10 @@ For same-boot A/B, the v2 experiment image also accepts
 This is optional and requires the adaptive scheduler's existing directory
 mount. The file contains `{"enabled": false}` or `{"enabled": true}`. Startup
 copies it to the worker; when toggling, update both the head file and the
-worker's deployed file (by default
-`~/.cache/glm53-tp2-deploy/scheduler_profiles/exl3-activation.json`). Drain
+worker's actual deployed file. `serve-profile.sh` uses the profile-specific
+directory `~/.cache/glm53-profile-exl3-fp8-dcp2/scheduler_profiles/`; standalone
+`start-cluster.sh` instead defaults to `~/.cache/glm53-tp2-deploy/`. Inspect the
+container's mount source rather than assuming the deployment directory. Drain
 requests before changing it. E2 checks at most once a second; invalid or
 missing files retain the last valid setting. Both ranks log actual changes.
 The hot file overrides the static activation flag when configured; unset the
@@ -183,3 +185,113 @@ It uses image `glm53-exl3:e2-activation-v2` for an off/on/off same-boot test.
 screen using existing compiled variants. Its beside-server allocation failed
 before any timing; no kernel result or serving change exists. Run it only
 with the server stopped, regardless of Linux's reported available memory.
+
+The first on passes (`activation-on-b1/b2`) enabled only the head because the
+worker copy targeted the standalone launcher's directory, not the profile's
+mounted directory. They are explicitly marked invalid as cluster A/B results.
+The subsequent both-rank passes verify the actual mounted files before running.
+
+## Fixed-prompt activation result and isolated decode-kernel screens
+
+The stable-prefill probe holds message bytes constant and varies API
+`cache_salt`, outside the prompt. The four fixed runs all processed 21,850
+tokens with prompt SHA256
+`56ab27fb7e244e01f4cdb65e5c7c12666ed8a7c9c426b39ff48437d6fd6e00ec`
+and zero global prefix-hit delta. Off a5/a6 averaged 1106.12 input tok/s;
+both-rank on b5/b6 averaged 1139.16: **2.99% higher prefill throughput**.
+This does not demonstrate a thin-path decode gain.
+
+Both serving containers were then stopped for bounded GPU kernel screens.
+Results are synthetic 288-expert, TP-local 4096/1024-dimensional K4 MoE
+measurements, not serving tok/s or model-quality evaluations. Probes use fresh
+CUDA graphs and independent scratch/locks for each variant. The installed
+kernel is timed before and after candidates. Correlated routing shares six
+experts within each eight-token speculative block; uniform routing provides
+a second distribution. Neither distribution is an actual captured route.
+
+- N128 versus N256: N128 was 11–13% slower; reject.
+- Expert groups 8 versus 4 versus 2 blocks: smaller groups sometimes help
+  eight-row cases, but regress some correlated larger cases. They also change
+  split-K rounding (~0.077% output-relative RMSE in the synthetic screen).
+  No global group-size change is justified.
+- Shared gate/up input Hadamard: about 1–2% kernel benefit; output differences
+  are comparable to stock repeat-run atomic-add rounding (~1e-8 relative).
+- Reducing the register pipeline from three stages to one removes compiler-
+  reported spills (original: 84 bytes spill stores/188 bytes loads; one stage:
+  zero). It improves timings across tested shapes without changing the
+  arithmetic result beyond repeat-run noise.
+- A 16-wide K tile eliminates spills but is slower; reject. Two shared-memory
+  pipeline stages also regress. Four/six stages with a one-stage register
+  pipeline perform better than the original three/three pipeline.
+
+`exl3-pipeline-neighbors-isolated.jsonl` uses random nonuniform SUH/SVH scales,
+preserving gate/up SUH equality. The 8-block, K32, register-1/shared-6 variant
+cuts kernel time roughly 9–12% versus stock across the six tested cases.
+This is a candidate, **not yet a serving improvement**. Neighboring pipeline
+depths and guarded transform reuse are being screened before native integration.
+
+Reproduce isolated tooling (server stopped, image available):
+
+```bash
+mkdir -p /tmp/glm53-exl3-group-probe
+docker run --rm --network=none \
+  -v "$PWD/probes:/probes:ro" -v /tmp/glm53-exl3-group-probe:/build \
+  --entrypoint python3 glm53-exl3:e2-activation-v2 \
+  /probes/build_exl3_group_probe.py --output /build --groups 8 \
+  --shared-input --frag-stages 1 --shared-stages 6
+docker run --rm --gpus all --network=none -e EXL3_TEMP_ROWS_FUSED=128 \
+  -v "$PWD/probes:/probes:ro" -v /tmp/glm53-exl3-group-probe:/build:ro \
+  --entrypoint timeout glm53-exl3:e2-activation-v2 90 \
+  python3 /probes/bench_exl3_groups.py --libraries /build \
+  --variants g8_shared_k32_f1_s6 --random-scales
+```
+
+These commands create experiment artifacts only. They do not replace the
+installed extension, modify checkpoints, or change serving defaults.
+
+### Native opt-in candidate
+
+The final candidate keeps K32/N256, eight thread blocks per expert, one
+register stage, and eight shared-memory stages. Twelve shared stages did not
+give a consistent additional benefit. `patch_exl3_decode_pipeline.py` adds
+two native K4/N256 kernels (shared and independent gate/up SUH) and preserves
+the existing stock kernels. A host-side choice selects transform reuse only
+when both SUH pointer tables are the identical allocation. The loader aliases
+those tables only after its existing all-expert `torch.equal` scale check.
+
+The native dispatcher is gated by `GLM53_EXL3_MOE_FAST=1`, SM121, equal K4
+bitrates, and N256-compatible dimensions; other cases keep the original path.
+The setting is read at process startup/first use, **not hot-reloadable**.
+Changing it requires a restart so captured target graphs match the setting.
+An explicitly requested fast path fails startup on an incompatible image;
+it must not silently fall back to the Python expert loop.
+
+The compiled native candidate passes graph-replay parity against the original
+kernel control (`g8`) for rows 8/48/128, random scale tensors, and both routing
+distributions. The separate unequal-SUH stress screen covers rows 1/8/48/128
+at 10x input amplitude. Relative output differences remain below 1e-6 (observed
+~1e-8), comparable to original-kernel repeat rounding. No weight or KV bytes
+are altered. `stock` in these two probe result files is a legacy label for
+the installed dispatcher; `native_fast: "1"` identifies it as the candidate.
+
+Both nodes built `glm53-exl3:e2-decode-pipeline-v1`. The image also includes
+the previously validated E2 activation helper and a scratch allocation cleanup
+(152 MiB/rank of unused reconstruct-path buffers omitted from direct E2).
+The optional fresh-build patch applies successfully to the pinned public
+EXL3 source as well as the installed source. A full fresh image rebuild is
+not yet independently validated during this campaign.
+
+```bash
+docker build -f overlay-exl3-fp8/Dockerfile.decode-experiment \
+  -t glm53-exl3:e2-decode-pipeline-v1 .
+# Build the same image on dgx1, then run A (0) or B (1):
+GPU_MEMORY_UTILIZATION=0.87 EXL3_TEMP_ROWS_FUSED=128 \
+EXL3_FUSED_FAT_ACTIVATION=1 EXL3_FAT_ACTIVATION_CONTROL= \
+GLM53_EXL3_MOE_FAST=0 TARGET_CUDAGRAPH_SCOPE=c1 \
+IMAGE=glm53-exl3:e2-decode-pipeline-v1 \
+./serve-profile.sh start exl3-fp8-dcp2
+```
+
+The serving A/B is pending. Both boots hold the above settings constant except
+`GLM53_EXL3_MOE_FAST`. Native off/on must be verified inside both containers.
+Do not infer serving throughput from the ~10% isolated kernel-time reduction.

@@ -39,7 +39,8 @@ def metrics(url):
     with urllib.request.urlopen(url + "/metrics", timeout=20) as response:
         text = response.read().decode()
     names = ("spec_decode_num_drafts_total", "spec_decode_num_draft_tokens_total",
-             "spec_decode_num_accepted_tokens_total", "num_preemptions_total")
+             "spec_decode_num_accepted_tokens_total", "num_preemptions_total",
+             "request_success_total")
     result = {}
     for name in names:
         result[name] = sum(float(m.group(1)) for m in re.finditer(
@@ -60,6 +61,8 @@ def main():
     parser.add_argument("--rounds", type=int, default=1)
     parser.add_argument("--profile", action="store_true",
                         help="Capture bounded worker traces; timings are diagnostic only")
+    parser.add_argument("--stable-prefill", action="store_true",
+                        help="Keep text fixed; use vLLM cache_salt to force cold prefill")
     args = parser.parse_args()
     health(args.url)
     output = Path(args.output)
@@ -71,9 +74,15 @@ def main():
     for round_index in range(args.rounds):
         if args.mode == "prefill":
             for count in map(int, args.prefill_tokens.split(",")):
+                from validate_kv_candidate import metric
+                cache_hits_before = metric(args.url, "vllm:prefix_cache_hits_total")
                 with profile_session(args.url, args.profile):
                     result = prefill_once(args.url, count, case_id=f"{round_index}-{count}",
-                        corpus_seed=salt, phrase_index=round_index)
+                        corpus_seed="glm53-prefill-fixed-v1" if args.stable_prefill else salt,
+                        phrase_index=round_index,
+                        cache_salt=f"{salt}-{round_index}-{count}" if args.stable_prefill else None)
+                result["global_prefix_hit_tokens_delta"] = (
+                    metric(args.url, "vllm:prefix_cache_hits_total") - cache_hits_before)
                 result["round"] = round_index
                 cached = result["cached_prompt_tokens"]
                 result["cold"] = None if cached is None else cached == 0

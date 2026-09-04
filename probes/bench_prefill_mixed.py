@@ -153,10 +153,9 @@ def prefill_once(
     case_id: str,
     corpus_seed: str,
     phrase_index: int,
+    cache_salt: str | None = None,
 ) -> dict[str, Any]:
-    result = stream_chat(
-        base_url,
-        {
+    payload = {
             "model": "glm-5.3-flash",
             "messages": prefill_messages(
                 target_tokens,
@@ -167,8 +166,14 @@ def prefill_once(
             "temperature": 0,
             "max_tokens": 4,
             "chat_template_kwargs": {"enable_thinking": False},
-        },
-    )
+        }
+    if cache_salt is not None:
+        payload["cache_salt"] = cache_salt
+    result = stream_chat(base_url, payload)
+    result["prompt_sha256"] = hashlib.sha256(
+        json.dumps(payload["messages"], sort_keys=True).encode()
+    ).hexdigest()
+    result["cache_salt"] = cache_salt
     result["target_prompt_tokens"] = target_tokens
     result["input_tokens_per_second"] = round(
         result["prompt_tokens"] / result["ttft_seconds"], 6

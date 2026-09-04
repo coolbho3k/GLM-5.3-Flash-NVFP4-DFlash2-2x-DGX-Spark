@@ -724,6 +724,8 @@ def _fat_scratch(
     device: torch.device,
     rows: int,
     gate: Any,
+    *,
+    use_kernel: bool = False,
 ) -> dict[str, torch.Tensor]:
     """Return shared prefill scratch, growing once if the configured chunk grows."""
     hidden = int(gate.in_features)
@@ -743,6 +745,7 @@ def _fat_scratch(
         intermediate,
         int(gate.K),
         int(gate.trellis.shape[-1]),
+        use_kernel,
     )
     scratch = _FAT_SCRATCH_CACHE.get(key)
     if scratch is not None and int(scratch["h"].shape[0]) >= rows:
@@ -757,12 +760,6 @@ def _fat_scratch(
         ),
         "svh13": torch.empty(
             2 * intermediate, dtype=torch.float16, device=device
-        ),
-        "w13": torch.empty(
-            (hidden, 2 * intermediate), dtype=torch.float16, device=device
-        ),
-        "w2": torch.empty(
-            (intermediate, hidden), dtype=torch.float16, device=device
         ),
         "h": torch.empty(
             (capacity, hidden), dtype=torch.float16, device=device
@@ -782,10 +779,21 @@ def _fat_scratch(
         "h2": torch.empty(
             (capacity, intermediate), dtype=torch.float16, device=device
         ),
-        "down": torch.empty(
-            (capacity, hidden), dtype=torch.float32, device=device
-        ),
     }
+    # Direct E2 reads packed weights and scatters its output itself. These
+    # dequantized-weight/output buffers belong only to the reconstruct path.
+    if not use_kernel:
+        scratch.update({
+            "w13": torch.empty(
+                (hidden, 2 * intermediate), dtype=torch.float16, device=device
+            ),
+            "w2": torch.empty(
+                (intermediate, hidden), dtype=torch.float16, device=device
+            ),
+            "down": torch.empty(
+                (capacity, hidden), dtype=torch.float32, device=device
+            ),
+        })
     _FAT_SCRATCH_CACHE[key] = scratch
     _FAT_SCRATCH_BYTES[key] = sum(
         t.numel() * t.element_size() for t in scratch.values()
@@ -900,7 +908,7 @@ def apply_exl3_batched_fat(
         gate = inners[e]["gate"]
         up = inners[e]["up"]
         down = inners[e]["down"]
-        scratch = _fat_scratch(xh.device, n_rows, gate)
+        scratch = _fat_scratch(xh.device, n_rows, gate, use_kernel=use_kernel)
         intermediate = int(gate.out_features)
 
         h = scratch["h"][:n_rows]
@@ -972,6 +980,11 @@ def build_exl3_fused_state(layer: torch.nn.Module, inners: list[dict[str, Any]])
     """Pointer tables + fused temps, once after load. No per-token alloc."""
     import exllamav3_ext
 
+    if os.environ.get("GLM53_EXL3_MOE_FAST", "0") == "1":
+        if not hasattr(exllamav3_ext, "glm53_fast_moe_version"):
+            raise RuntimeError("GLM53_EXL3_MOE_FAST=1 requires the native decode-pipeline image")
+        if exllamav3_ext.glm53_fast_moe_version() != 1:
+            raise RuntimeError("Unsupported native EXL3 decode-pipeline version")
     device = layer.w13_trellis.device
     n_exp = len(inners)
     hidden = int(layer._exl3_hidden_size)
@@ -995,6 +1008,11 @@ def build_exl3_fused_state(layer: torch.nn.Module, inners: list[dict[str, Any]])
         "down_suh": _ptrs("down", "suh"),
         "down_svh": _ptrs("down", "svh"),
     }
+    # Equality was checked across all experts at load time, before weights
+    # were released. Pointer-table identity authorizes the native fast path
+    # to reuse the gate input Hadamard; unequal checkpoints keep both paths.
+    if bool(getattr(layer, "_exl3_shared_w13_suh", False)):
+        layer._exl3_ptrs["up_suh"] = layer._exl3_ptrs["gate_suh"]
     idx = int(device.index) if device.index is not None else 0
     concurrency = int(exllamav3_ext.exl3_moe_max_concurrency(idx))
     if concurrency < 1:
@@ -1636,6 +1654,8 @@ class Exl3MoEMethod(FusedMoEMethodBase):
                 else:
                     fused_err = "exllamav3_ext.exl3_moe missing"
             except Exception as exc:
+                if os.environ.get("GLM53_EXL3_MOE_FAST", "0") == "1":
+                    raise RuntimeError("Requested native EXL3 fast path could not initialize") from exc
                 fused_err = repr(exc)
                 layer._exl3_ptrs = None
         if not self._logged:
