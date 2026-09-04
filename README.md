@@ -153,6 +153,24 @@ ranks, starts the worker and then the head, and waits for `/health`.
 Cold model startup normally takes several minutes. The command returns only
 after the API is healthy or startup has failed.
 
+#### Optional tuned EXL3 path
+
+Rebuild from this checkout before enabling the tuned decode kernel and fused
+prefill activation; older images may not contain the required native extension:
+
+```bash
+./serve-profile.sh build exl3-fp8-dcp2
+GLM53_EXL3_MOE_FAST=1 EXL3_FUSED_FAT_ACTIVATION=1 \
+  TARGET_CUDAGRAPH_SCOPE=c1 ./serve-profile.sh start exl3-fp8-dcp2
+```
+
+This keeps the same weight and KV formats and adds target decode graphs for
+C1; drafter graphs still cover C1–C6. The kernel settings are opt-in, require
+a restart, and appear in `serve-profile.sh show` when supplied as environment
+overrides. Startup verifies the EXL3 native binary on both nodes, not just
+the Python files. See the [serving campaign notes](docs/SERVING-CAMPAIGN-20260904.md)
+for the measured gains and validation scope.
+
 ### 4. Call the API
 
 The default endpoint is `http://<head-ip>:8000/v1`, and the served model name

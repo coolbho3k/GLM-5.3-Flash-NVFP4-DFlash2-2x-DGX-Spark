@@ -1,0 +1,2201 @@
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/activation.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z16act_mul_kernel_hILi2EEvPK6__halfS2_PS0_fm:
+  REG:12 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16act_mul_kernel_fILi2EEvPKfS1_P6__halffm:
+  REG:12 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16act_mul_kernel_hILi1EEvPK6__halfS2_PS0_fm:
+  REG:18 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16act_mul_kernel_fILi1EEvPKfS1_P6__halffm:
+  REG:20 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16act_mul_kernel_hILi0EEvPK6__halfS2_PS0_fm:
+  REG:13 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16act_mul_kernel_fILi0EEvPKfS1_P6__halffm:
+  REG:14 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25add_sigmoid_proj_kernel_fPKfPK6__halfPfS3_mm:
+  REG:53 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z30mul_sigmoid_broadcast_kernel_hP6__halfPKS_mm:
+  REG:20 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:928 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z20mul_sigmoid_kernel_hP6__halfPKS_m:
+  REG:12 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z20add_sigmoid_kernel_fPKfS0_Pfmm:
+  REG:18 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z14xielu_kernel_fPKfP6__halfmff:
+  REG:16 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:928 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/add.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z14add_kernel_fffPKfS0_Pfmm:
+  REG:22 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z14add_kernel_ffhPKfS0_P6__halfmm:
+  REG:22 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z14add_kernel_fhfPKfPK6__halfPfmm:
+  REG:22 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z14add_kernel_fhhPKfPK6__halfPS1_mm:
+  REG:22 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z14add_kernel_hffPK6__halfPKfPfmm:
+  REG:22 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z14add_kernel_hfhPK6__halfPKfPS_mm:
+  REG:22 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z14add_kernel_hhfPK6__halfS1_Pfmm:
+  REG:22 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z14add_kernel_hhhPK6__halfS1_PS_mm:
+  REG:22 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/attention.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z19attn_chunked_kernelILi256ELi8EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:52 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19attn_chunked_kernelILi256ELi4EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:42 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19attn_chunked_kernelILi256ELi2EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:42 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19attn_chunked_kernelILi256ELi1EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:40 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19attn_chunked_kernelILi128ELi8EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:48 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19attn_chunked_kernelILi128ELi4EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:40 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19attn_chunked_kernelILi128ELi2EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:38 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19attn_chunked_kernelILi128ELi1EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:38 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19attn_chunked_kernelILi64ELi8EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:48 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19attn_chunked_kernelILi64ELi4EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:40 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19attn_chunked_kernelILi64ELi2EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:35 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19attn_chunked_kernelILi64ELi1EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:38 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z27attn_chunked_kernel_512x256ILi16EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:114 STACK:0 SHARED:1600 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z27attn_chunked_kernel_512x256ILi8EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:64 STACK:0 SHARED:1312 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z27attn_chunked_kernel_512x256ILi4EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:40 STACK:0 SHARED:1168 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z27attn_chunked_kernel_512x256ILi2EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:40 STACK:0 SHARED:1104 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z27attn_chunked_kernel_512x256ILi1EEvPK6__halfS2_S2_Pflllllllbf:
+  REG:40 STACK:0 SHARED:1072 LOCAL:0 CONSTANT[0]:992 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18attn_reduce_kernelILi256ELi8EEvPKfP6__halfllll:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25attn_chunked_paged_kernelILi256ELi8EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:48 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18attn_reduce_kernelILi256ELi4EEvPKfP6__halfllll:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25attn_chunked_paged_kernelILi256ELi4EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:42 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18attn_reduce_kernelILi256ELi2EEvPKfP6__halfllll:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25attn_chunked_paged_kernelILi256ELi2EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:40 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18attn_reduce_kernelILi256ELi1EEvPKfP6__halfllll:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25attn_chunked_paged_kernelILi256ELi1EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:36 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z28kv_cache_update_kernel_pagedILi256EEvPK6__halfS2_PS0_S3_PKiS5_llll:
+  REG:22 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18attn_reduce_kernelILi128ELi8EEvPKfP6__halfllll:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25attn_chunked_paged_kernelILi128ELi8EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:52 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18attn_reduce_kernelILi128ELi4EEvPKfP6__halfllll:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25attn_chunked_paged_kernelILi128ELi4EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:48 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18attn_reduce_kernelILi128ELi2EEvPKfP6__halfllll:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25attn_chunked_paged_kernelILi128ELi2EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:39 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18attn_reduce_kernelILi128ELi1EEvPKfP6__halfllll:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25attn_chunked_paged_kernelILi128ELi1EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z28kv_cache_update_kernel_pagedILi128EEvPK6__halfS2_PS0_S3_PKiS5_llll:
+  REG:22 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18attn_reduce_kernelILi64ELi8EEvPKfP6__halfllll:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25attn_chunked_paged_kernelILi64ELi8EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:48 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18attn_reduce_kernelILi64ELi4EEvPKfP6__halfllll:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25attn_chunked_paged_kernelILi64ELi4EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:47 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18attn_reduce_kernelILi64ELi2EEvPKfP6__halfllll:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25attn_chunked_paged_kernelILi64ELi2EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:39 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18attn_reduce_kernelILi64ELi1EEvPKfP6__halfllll:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25attn_chunked_paged_kernelILi64ELi1EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z28kv_cache_update_kernel_pagedILi64EEvPK6__halfS2_PS0_S3_PKiS5_llll:
+  REG:22 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z33attn_chunked_paged_kernel_512x256ILi16EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:116 STACK:0 SHARED:1600 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z33attn_chunked_paged_kernel_512x256ILi8EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:64 STACK:0 SHARED:1312 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z33attn_chunked_paged_kernel_512x256ILi4EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:47 STACK:0 SHARED:1168 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z33attn_chunked_paged_kernel_512x256ILi2EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:40 STACK:0 SHARED:1104 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z33attn_chunked_paged_kernel_512x256ILi1EEvPK6__halfS2_S2_PKiS4_Pfllllllllbf:
+  REG:40 STACK:0 SHARED:1072 LOCAL:0 CONSTANT[0]:1016 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z28kv_cache_update_kernel_pagedILi512EEvPK6__halfS2_PS0_S3_PKiS5_llll:
+  REG:22 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26attn_reduce_kernel_512x256PKfP6__halfllll:
+  REG:37 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/cache/q_cache.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z26dequant_cache_paged_kernelILi8ELi8EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi8ELi7EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi8ELi6EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi8ELi5EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi8ELi4EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi8ELi3EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi8ELi2EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi7ELi8EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi7ELi7EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi7ELi6EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi7ELi5EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi7ELi4EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi7ELi3EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi7ELi2EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi6ELi8EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi6ELi7EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi6ELi6EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi6ELi5EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi6ELi4EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi6ELi3EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi6ELi2EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi5ELi8EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi5ELi7EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi5ELi6EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi5ELi5EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi5ELi4EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi5ELi3EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi5ELi2EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi4ELi8EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi4ELi7EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi4ELi6EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi4ELi5EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi4ELi4EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi4ELi3EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi4ELi2EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi3ELi8EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi3ELi7EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi3ELi6EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi3ELi5EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi3ELi4EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi3ELi3EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi3ELi2EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi2ELi8EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi2ELi7EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi2ELi6EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi2ELi5EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi2ELi4EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi2ELi3EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26dequant_cache_paged_kernelILi2ELi2EEvPKjPK6__halfPS2_S1_S4_S5_S1_S1_iiii:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi8ELi8EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi8ELi7EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi8ELi6EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi8ELi5EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi8ELi4EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi8ELi3EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:22 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi8ELi2EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:23 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi7ELi8EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi7ELi7EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi7ELi6EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi7ELi5EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi7ELi4EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi7ELi3EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi7ELi2EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:22 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi6ELi8EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi6ELi7EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi6ELi6EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi6ELi5EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi6ELi4EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi6ELi3EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi6ELi2EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi5ELi8EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi5ELi7EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi5ELi6EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi5ELi5EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi5ELi4EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi5ELi3EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi5ELi2EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi4ELi8EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi4ELi7EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi4ELi6EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi4ELi5EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi4ELi4EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi4ELi3EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi4ELi2EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi3ELi8EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi3ELi7EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi3ELi6EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi3ELi5EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi3ELi4EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi3ELi3EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi3ELi2EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi2ELi8EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi2ELi7EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi2ELi6EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi2ELi5EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi2ELi4EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi2ELi3EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24quant_cache_paged_kernelILi2ELi2EEvPK6__halfPjPS0_S2_S3_S4_PKjS6_ii:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25dequant_cache_cont_kernelILi8EEvPKjPK6__halfPS2_:
+  REG:24 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25dequant_cache_cont_kernelILi7EEvPKjPK6__halfPS2_:
+  REG:26 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25dequant_cache_cont_kernelILi6EEvPKjPK6__halfPS2_:
+  REG:26 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25dequant_cache_cont_kernelILi5EEvPKjPK6__halfPS2_:
+  REG:24 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25dequant_cache_cont_kernelILi4EEvPKjPK6__halfPS2_:
+  REG:19 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25dequant_cache_cont_kernelILi3EEvPKjPK6__halfPS2_:
+  REG:20 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z25dequant_cache_cont_kernelILi2EEvPKjPK6__halfPS2_:
+  REG:15 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z23quant_cache_cont_kernelILi8EEvPK6__halfPjPS0_:
+  REG:17 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z23quant_cache_cont_kernelILi7EEvPK6__halfPjPS0_:
+  REG:15 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z23quant_cache_cont_kernelILi6EEvPK6__halfPjPS0_:
+  REG:14 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z23quant_cache_cont_kernelILi5EEvPK6__halfPjPS0_:
+  REG:14 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z23quant_cache_cont_kernelILi4EEvPK6__halfPjPS0_:
+  REG:16 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z23quant_cache_cont_kernelILi3EEvPK6__halfPjPS0_:
+  REG:14 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z23quant_cache_cont_kernelILi2EEvPK6__halfPjPS0_:
+  REG:16 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/gdn.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z38cuda_recurrent_gated_delta_rule_kernelILi256ELb1ELi1EEvPK13__nv_bfloat16PKfS2_PfPS0_iiiiiifPKii:
+  REG:64 STACK:0 SHARED:5184 LOCAL:0 CONSTANT[0]:980 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z38cuda_recurrent_gated_delta_rule_kernelILi128ELb1ELi1EEvPK13__nv_bfloat16PKfS2_PfPS0_iiiiiifPKii:
+  REG:40 STACK:0 SHARED:3104 LOCAL:0 CONSTANT[0]:980 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z38cuda_recurrent_gated_delta_rule_kernelILi128ELb1ELi4EEvPK13__nv_bfloat16PKfS2_PfPS0_iiiiiifPKii:
+  REG:40 STACK:0 SHARED:3104 LOCAL:0 CONSTANT[0]:980 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z42cuda_recurrent_gated_delta_rule_kernel_128ILb1ELi1EEvPK13__nv_bfloat16PKfS2_PfPS0_iiiiiifPKii:
+  REG:40 STACK:8 SHARED:3104 LOCAL:0 CONSTANT[0]:980 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z42cuda_recurrent_gated_delta_rule_kernel_128ILb1ELi4EEvPK13__nv_bfloat16PKfS2_PfPS0_iiiiiifPKii:
+  REG:40 STACK:8 SHARED:3104 LOCAL:0 CONSTANT[0]:980 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z38cuda_recurrent_gated_delta_rule_kernelILi256ELb0ELi1EEvPK13__nv_bfloat16PKfS2_PfPS0_iiiiiifPKii:
+  REG:64 STACK:0 SHARED:5184 LOCAL:0 CONSTANT[0]:980 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z38cuda_recurrent_gated_delta_rule_kernelILi128ELb0ELi1EEvPK13__nv_bfloat16PKfS2_PfPS0_iiiiiifPKii:
+  REG:40 STACK:0 SHARED:3104 LOCAL:0 CONSTANT[0]:980 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z38cuda_recurrent_gated_delta_rule_kernelILi128ELb0ELi4EEvPK13__nv_bfloat16PKfS2_PfPS0_iiiiiifPKii:
+  REG:40 STACK:0 SHARED:3104 LOCAL:0 CONSTANT[0]:980 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z42cuda_recurrent_gated_delta_rule_kernel_128ILb0ELi1EEvPK13__nv_bfloat16PKfS2_PfPS0_iiiiiifPKii:
+  REG:44 STACK:0 SHARED:3104 LOCAL:0 CONSTANT[0]:980 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z42cuda_recurrent_gated_delta_rule_kernel_128ILb0ELi4EEvPK13__nv_bfloat16PKfS2_PfPS0_iiiiiifPKii:
+  REG:44 STACK:0 SHARED:3104 LOCAL:0 CONSTANT[0]:980 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z33gated_delta_net_fused_op_2_kernelI13__nv_bfloat16EvPKfS2_PKS0_PKT_PS0_Pfiiiif:
+  REG:17 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:964 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z33gated_delta_net_fused_op_2_kernelIfEvPKfS1_PK13__nv_bfloat16PKT_PS2_Pfiiiif:
+  REG:17 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:964 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z31gated_delta_net_fused_op_kernelILi256EEvPKfS1_PK13__nv_bfloat16S4_PS2_S5_S5_Pfmmmmmmf:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:1012 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z31gated_delta_net_fused_op_kernelILi128EEvPKfS1_PK13__nv_bfloat16S4_PS2_S5_S5_Pfmmmmmmf:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:1012 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/generator/cache.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z27paged_kv_update_vec8_kernelPK6__halfS1_PS_S2_PKiS4_iiiiil:
+  REG:32 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:976 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19cache_rotate_kernelPhPKiS_mm:
+  REG:40 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/generator/gumbel.cu
+
+Resource usage:
+ Common:
+  GLOBAL:218076 CONSTANT[4]:288 CONSTANT[3]:72
+ Function _Z23gumbel_noise_kernel_logPKfPfij:
+  REG:14 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z23gumbel_noise_kernel_f32PKfPfij:
+  REG:14 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z23gumbel_noise_kernel_f16PK6__halfPS_ij:
+  REG:22 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/generator/rep_pen.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z27apply_pres_freq_pens_kernelILb0EEvPKvPfPKmiiffii:
+  REG:26 STACK:0 SHARED:33792 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z27apply_pres_freq_pens_kernelILb1EEvPKvPfPKmiiffii:
+  REG:26 STACK:0 SHARED:33792 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21apply_rep_pens_kernelILb0EEvPKvPfPKmiifii:
+  REG:22 STACK:0 SHARED:17408 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21apply_rep_pens_kernelILb1EEvPKvPfPKmiifii:
+  REG:22 STACK:0 SHARED:17408 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/generator/sampling_basic.cu
+
+Resource usage:
+ Common:
+  GLOBAL:218076 CONSTANT[4]:288 CONSTANT[3]:72
+ Function _Z20gumbel_sample_kernelPK6__halfPmiij:
+  REG:37 STACK:0 SHARED:1280 LOCAL:0 CONSTANT[0]:924 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z20argmax_sample_kernelPK6__halfPmii:
+  REG:27 STACK:0 SHARED:1280 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/generator/sampling_extra.cu
+
+Resource usage:
+ Common:
+  GLOBAL:218076 CONSTANT[4]:288 CONSTANT[3]:72
+ Function _Z33adaptivep_gumbel_noise_kernel_f32PKfPfijffff:
+  REG:28 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/graph.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/hgemm.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/histogram.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z16histogram_kernelI6__halfEvPKT_Pymmffb:
+  REG:40 STACK:0 SHARED:9216 LOCAL:0 CONSTANT[0]:937 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16histogram_kernelIfEvPKT_Pymmffb:
+  REG:44 STACK:0 SHARED:9216 LOCAL:0 CONSTANT[0]:937 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/norm.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z21gated_rms_norm_kernelILi1024Ef13__nv_bfloat16fEvPKS0_PKT1_PT0_PKT2_fiif:
+  REG:52 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi32Ef13__nv_bfloat16fEvPKS0_PKT1_PT0_PKT2_fiif:
+  REG:51 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi1024E6__half13__nv_bfloat16fEvPKS1_PKT1_PT0_PKT2_fiif:
+  REG:63 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi32E6__half13__nv_bfloat16fEvPKS1_PKT1_PT0_PKT2_fiif:
+  REG:66 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi1024EfffEvPK13__nv_bfloat16PKT1_PT0_PKT2_fiif:
+  REG:52 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi32EfffEvPK13__nv_bfloat16PKT1_PT0_PKT2_fiif:
+  REG:52 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi1024E6__halfffEvPK13__nv_bfloat16PKT1_PT0_PKT2_fiif:
+  REG:52 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi32E6__halfffEvPK13__nv_bfloat16PKT1_PT0_PKT2_fiif:
+  REG:51 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi1024Ef13__nv_bfloat16S0_EvPKS0_PKT1_PT0_PKT2_fiif:
+  REG:64 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi32Ef13__nv_bfloat16S0_EvPKS0_PKT1_PT0_PKT2_fiif:
+  REG:70 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi1024E6__half13__nv_bfloat16S1_EvPKS1_PKT1_PT0_PKT2_fiif:
+  REG:63 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi32E6__half13__nv_bfloat16S1_EvPKS1_PKT1_PT0_PKT2_fiif:
+  REG:67 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi1024Eff13__nv_bfloat16EvPKS0_PKT1_PT0_PKT2_fiif:
+  REG:52 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi32Eff13__nv_bfloat16EvPKS0_PKT1_PT0_PKT2_fiif:
+  REG:51 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi1024E6__halff13__nv_bfloat16EvPKS1_PKT1_PT0_PKT2_fiif:
+  REG:64 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21gated_rms_norm_kernelILi32E6__halff13__nv_bfloat16EvPKS1_PKT1_PT0_PKT2_fiif:
+  REG:76 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb1Eff13__nv_bfloat16EvPKT0_PKT2_PT1_fiiff:
+  REG:64 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb1Ef6__half13__nv_bfloat16EvPKT0_PKT2_PT1_fiiff:
+  REG:62 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb1E6__halff13__nv_bfloat16EvPKT0_PKT2_PT1_fiiff:
+  REG:52 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb1E6__halfS0_13__nv_bfloat16EvPKT0_PKT2_PT1_fiiff:
+  REG:44 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb1Eff6__halfEvPKT0_PKT2_PT1_fiiff:
+  REG:64 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb1Ef6__halfS0_EvPKT0_PKT2_PT1_fiiff:
+  REG:62 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb1E6__halffS0_EvPKT0_PKT2_PT1_fiiff:
+  REG:52 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb1E6__halfS0_S0_EvPKT0_PKT2_PT1_fiiff:
+  REG:44 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb0Eff13__nv_bfloat16EvPKT0_PKT2_PT1_fiiff:
+  REG:64 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb0Ef6__half13__nv_bfloat16EvPKT0_PKT2_PT1_fiiff:
+  REG:62 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb0E6__halff13__nv_bfloat16EvPKT0_PKT2_PT1_fiiff:
+  REG:52 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb0E6__halfS0_13__nv_bfloat16EvPKT0_PKT2_PT1_fiiff:
+  REG:46 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb0Eff6__halfEvPKT0_PKT2_PT1_fiiff:
+  REG:64 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb0Ef6__halfS0_EvPKT0_PKT2_PT1_fiiff:
+  REG:62 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb0E6__halffS0_EvPKT0_PKT2_PT1_fiiff:
+  REG:50 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15rms_norm_kernelILb0E6__halfS0_S0_EvPKT0_PKT2_PT1_fiiff:
+  REG:46 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/parallel/all_reduce.cu
+
+Resource usage:
+ Common:
+  GLOBAL:121 CONSTANT[4]:272
+ Function _Z20pg_all_reduce_kernelP9PGContextjiiPhS1_mmPj:
+  REG:62 STACK:16 SHARED:1032 LOCAL:0 CONSTANT[0]:960 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/parallel/all_reduce_cpu.cu
+
+Resource usage:
+ Common:
+  GLOBAL:97 CONSTANT[4]:248
+ Function _Z24pg_all_reduce_cpu_kernelILi2EEvP9PGContextjiiPhS2_mmbPj:
+  REG:43 STACK:8 SHARED:1028 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24pg_all_reduce_cpu_kernelILi1EEvP9PGContextjiiPhS2_mmbPj:
+  REG:43 STACK:8 SHARED:1028 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24pg_all_reduce_cpu_kernelILi0EEvP9PGContextjiiPhS2_mmbPj:
+  REG:43 STACK:8 SHARED:1028 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/parallel/barrier.cu
+
+Resource usage:
+ Common:
+  GLOBAL:80 CONSTANT[4]:248
+ Function _Z17pg_barrier_kernelP9PGContextjiiPj:
+  REG:34 STACK:8 SHARED:0 LOCAL:0 CONSTANT[0]:928 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/parallel/broadcast.cu
+
+Resource usage:
+ Common:
+  GLOBAL:184 CONSTANT[4]:280
+ Function _Z22pg_broadcast_ll_kernelILb0EtEvP9PGContextjiiPhS2_mmPj:
+  REG:37 STACK:8 SHARED:1028 LOCAL:0 CONSTANT[0]:960 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z22pg_broadcast_ll_kernelILb0EjEvP9PGContextjiiPhS2_mmPj:
+  REG:37 STACK:8 SHARED:1028 LOCAL:0 CONSTANT[0]:960 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z22pg_broadcast_ll_kernelILb1EtEvP9PGContextjiiPhS2_mmPj:
+  REG:35 STACK:16 SHARED:1028 LOCAL:0 CONSTANT[0]:960 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z22pg_broadcast_ll_kernelILb1EjEvP9PGContextjiiPhS2_mmPj:
+  REG:35 STACK:16 SHARED:1028 LOCAL:0 CONSTANT[0]:960 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19pg_broadcast_kernelILb0EtEvP9PGContextjiiPhS2_mmPj:
+  REG:40 STACK:8 SHARED:0 LOCAL:0 CONSTANT[0]:960 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19pg_broadcast_kernelILb0E5uint4EvP9PGContextjiiPhS3_mmPj:
+  REG:46 STACK:8 SHARED:0 LOCAL:0 CONSTANT[0]:960 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19pg_broadcast_kernelILb1EtEvP9PGContextjiiPhS2_mmPj:
+  REG:42 STACK:8 SHARED:0 LOCAL:0 CONSTANT[0]:960 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19pg_broadcast_kernelILb1E5uint4EvP9PGContextjiiPhS3_mmPj:
+  REG:46 STACK:8 SHARED:0 LOCAL:0 CONSTANT[0]:960 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/parallel/context.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/parallel/gather.cu
+
+Resource usage:
+ Common:
+  GLOBAL:126 CONSTANT[4]:280
+ Function _Z22pg_gather_small_kernelP9PGContextjiiPhS1_7OffsetsiS1_mPj:
+  REG:32 STACK:16 SHARED:0 LOCAL:0 CONSTANT[0]:1032 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16pg_gather_kernelP9PGContextjiiPhS1_7OffsetsiS1_mmPj:
+  REG:50 STACK:8 SHARED:1028 LOCAL:0 CONSTANT[0]:1040 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+compressed
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_comp_unit_1.cu
+
+Resource usage:
+ Common:
+  GLOBAL:1312 CONSTANT[4]:248
+ Function _Z17exl3_mgemm_kernelILi1ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:185 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:64 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:24 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:180 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:185 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:174 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:176 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:127 STACK:48 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi1ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:176 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:124 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:168 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:125 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:168 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:180 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:176 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:48 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi1ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+compressed
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_comp_unit_2.cu
+
+Resource usage:
+ Common:
+  GLOBAL:1312 CONSTANT[4]:248
+ Function _Z17exl3_mgemm_kernelILi2ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:72 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:180 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:176 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:176 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi2ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:176 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:48 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:121 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:168 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:125 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:168 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:32 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:182 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:125 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:178 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:24 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:176 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi2ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+compressed
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_comp_unit_3.cu
+
+Resource usage:
+ Common:
+  GLOBAL:1312 CONSTANT[4]:248
+ Function _Z17exl3_mgemm_kernelILi3ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:187 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:64 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:88 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:32 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:187 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:176 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:72 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi3ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:176 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:124 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:168 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:180 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:72 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:24 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:180 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:48 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:24 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:72 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:124 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi3ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+compressed
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_comp_unit_4.cu
+
+Resource usage:
+ Common:
+  GLOBAL:1312 CONSTANT[4]:248
+ Function _Z17exl3_mgemm_kernelILi4ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:182 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:72 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:180 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:180 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:181 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:174 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:48 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:178 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi4ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:176 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:48 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:166 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:125 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:166 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:180 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:32 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:178 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:64 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi4ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+compressed
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_comp_unit_5.cu
+
+Resource usage:
+ Common:
+  GLOBAL:1312 CONSTANT[4]:248
+ Function _Z17exl3_mgemm_kernelILi5ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:191 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:24 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:24 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:201 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:72 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:191 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:176 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:201 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi5ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:179 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:173 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:183 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:72 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:180 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:48 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:183 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi5ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:24 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+compressed
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_comp_unit_6.cu
+
+Resource usage:
+ Common:
+  GLOBAL:1312 CONSTANT[4]:248
+ Function _Z17exl3_mgemm_kernelILi6ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:191 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:24 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:24 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:201 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:72 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:191 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:176 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:201 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi6ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:179 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:173 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:183 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:72 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:180 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:48 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:183 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi6ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:24 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+compressed
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_comp_unit_7.cu
+
+Resource usage:
+ Common:
+  GLOBAL:1312 CONSTANT[4]:248
+ Function _Z17exl3_mgemm_kernelILi7ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:202 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:64 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:197 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:64 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:206 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:72 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:202 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:127 STACK:48 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:197 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:206 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:64 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi7ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:24 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:195 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:173 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:194 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:121 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:252 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:194 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:64 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi7ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+compressed
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_comp_unit_8.cu
+
+Resource usage:
+ Common:
+  GLOBAL:1312 CONSTANT[4]:248
+ Function _Z17exl3_mgemm_kernelILi8ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:182 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:64 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:180 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:180 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:32 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:174 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:178 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z17exl3_mgemm_kernelILi8ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPPKtPviiiPiPS2_PS0_S8_PlS9_iiii:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1000 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb0ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:174 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb0ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:48 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb0ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb0ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb0ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:166 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb0ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb0ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:126 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb0ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:127 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb0ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:171 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb0ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:32 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb0ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb0ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:127 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb1ELi2ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:178 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb1ELi2ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:56 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb1ELi2ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb1ELi2ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:127 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb1ELi1ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:184 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb1ELi1ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb1ELi1ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb1ELi1ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb1ELi0ELi16ELi16ELi512ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:176 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb1ELi0ELi16ELi32ELi256ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:40 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb1ELi0ELi16ELi32ELi128ELi4ELi3EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemm_kernelILi8ELb1ELi0ELi16ELi16ELi128ELi6ELi5EEvPK6__halfPKtPviiiPiS2_PS0_S2_:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:968 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_moe_inst_0.cu
+
+Resource usage:
+ Common:
+  GLOBAL:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_moe_inst_0_128.cu
+
+Resource usage:
+ Common:
+  GLOBAL:0
+ Function _Z15exl3_moe_kernelILi0ELi128EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:64 STACK:1440 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_moe_inst_0_256.cu
+
+Resource usage:
+ Common:
+  GLOBAL:0
+ Function _Z15exl3_moe_kernelILi0ELi256EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:64 STACK:2344 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_moe_inst_1.cu
+
+Resource usage:
+ Common:
+  GLOBAL:0
+ Function _Z15exl3_moe_kernelILi1ELi256EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:104 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15exl3_moe_kernelILi1ELi128EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_moe_inst_2.cu
+
+Resource usage:
+ Common:
+  GLOBAL:0
+ Function _Z15exl3_moe_kernelILi2ELi256EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:88 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15exl3_moe_kernelILi2ELi128EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:126 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_moe_inst_3.cu
+
+Resource usage:
+ Common:
+  GLOBAL:0
+ Function _Z15exl3_moe_kernelILi3ELi256EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:88 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15exl3_moe_kernelILi3ELi128EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_moe_inst_4.cu
+
+Resource usage:
+ Common:
+  GLOBAL:0
+ Function _Z15exl3_moe_kernelILi4ELi256EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:88 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15exl3_moe_kernelILi4ELi128EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_moe_inst_5.cu
+
+Resource usage:
+ Common:
+  GLOBAL:0
+ Function _Z15exl3_moe_kernelILi5ELi256EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:96 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15exl3_moe_kernelILi5ELi128EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_moe_inst_6.cu
+
+Resource usage:
+ Common:
+  GLOBAL:0
+ Function _Z15exl3_moe_kernelILi6ELi256EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:96 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15exl3_moe_kernelILi6ELi128EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_moe_inst_7.cu
+
+Resource usage:
+ Common:
+  GLOBAL:0
+ Function _Z15exl3_moe_kernelILi7ELi256EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:96 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15exl3_moe_kernelILi7ELi128EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/exl3_moe_inst_8.cu
+
+Resource usage:
+ Common:
+  GLOBAL:0
+ Function _Z15exl3_moe_kernelILi8ELi256EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:80 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z15exl3_moe_kernelILi8ELi128EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:128 STACK:8 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/comp_units/glm53_exl3_moe_fast.cu
+
+Resource usage:
+ Common:
+  GLOBAL:0
+ Function _Z26glm53_exl3_moe_fast_kernelILi4ELi256ELb0EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26glm53_exl3_moe_fast_kernelILi4ELi256ELb1EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi:
+  REG:127 STACK:16 SHARED:1024 LOCAL:0 CONSTANT[0]:1096 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/coop_autotune.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/exl3_devctx.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/exl3_fat_gemm.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _ZN49_GLOBAL__N__633ad3ec_16_exl3_fat_gemm_cu_0717d89720exl3_fat_gemm_kernelILb1EEEvPK6__halfPKtPfS3_PKlS3_iii:
+  REG:106 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:956 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _ZN49_GLOBAL__N__633ad3ec_16_exl3_fat_gemm_cu_0717d89720exl3_fat_gemm_kernelILb0EEEvPK6__halfPKtPfS3_PKlS3_iii:
+  REG:99 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:956 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/exl3_gemm.cu
+
+Resource usage:
+ Common:
+  GLOBAL:1312 CONSTANT[4]:248
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/exl3_gemv.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z16exl3_gemv_kernelILi4ELb1ELi0ELi1EEvPK6__halfPKtPviii:
+  REG:63 STACK:0 SHARED:33792 LOCAL:0 CONSTANT[0]:932 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z16exl3_gemv_kernelILi4ELb0ELi0ELi1EEvPK6__halfPKtPviii:
+  REG:63 STACK:0 SHARED:33792 LOCAL:0 CONSTANT[0]:932 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/exl3_kernel_map.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/exl3_moe.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/hadamard.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z24had_ff_r_128_dual_kernelILb0ELb0EEvPKfPfPK6__halfS1_S2_S5_f:
+  REG:25 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:948 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24had_ff_r_128_dual_kernelILb0ELb1EEvPKfPfPK6__halfS1_S2_S5_f:
+  REG:32 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:948 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24had_ff_r_128_dual_kernelILb1ELb0EEvPKfPfPK6__halfS1_S2_S5_f:
+  REG:27 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:948 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24had_hf_r_128_dual_kernelILb0ELb0EEvPK6__halfPS0_S2_S2_S3_S2_f:
+  REG:25 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:948 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24had_hf_r_128_dual_kernelILb0ELb1EEvPK6__halfPS0_S2_S2_S3_S2_f:
+  REG:30 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:948 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24had_hf_r_128_dual_kernelILb1ELb0EEvPK6__halfPS0_S2_S2_S3_S2_f:
+  REG:28 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:948 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19had_ff_r_128_kernelILb0ELb0EEvPKfPfPK6__halff:
+  REG:21 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:924 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19had_ff_r_128_kernelILb0ELb1EEvPKfPfPK6__halff:
+  REG:27 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:924 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19had_ff_r_128_kernelILb1ELb0EEvPKfPfPK6__halff:
+  REG:25 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:924 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19had_hf_r_128_kernelILb0ELb0EEvPK6__halfPS0_S2_f:
+  REG:19 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:924 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19had_hf_r_128_kernelILb0ELb1EEvPK6__halfPS0_S2_f:
+  REG:23 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:924 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19had_hf_r_128_kernelILb1ELb0EEvPK6__halfPS0_S2_f:
+  REG:20 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:924 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/pack.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z17pack_signs_kernelPtPKti:
+  REG:23 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:916 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21unpack_trellis_kernelILi8EEvPtPKt:
+  REG:14 STACK:0 SHARED:1280 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21unpack_trellis_kernelILi7EEvPtPKt:
+  REG:14 STACK:0 SHARED:1248 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21unpack_trellis_kernelILi6EEvPtPKt:
+  REG:14 STACK:0 SHARED:1216 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21unpack_trellis_kernelILi5EEvPtPKt:
+  REG:14 STACK:0 SHARED:1184 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21unpack_trellis_kernelILi4EEvPtPKt:
+  REG:14 STACK:0 SHARED:1152 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21unpack_trellis_kernelILi3EEvPtPKt:
+  REG:14 STACK:0 SHARED:1120 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21unpack_trellis_kernelILi2EEvPtPKt:
+  REG:14 STACK:0 SHARED:1088 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21unpack_trellis_kernelILi1EEvPtPKt:
+  REG:14 STACK:0 SHARED:1056 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19pack_trellis_kernelILi8EEvPtPKt:
+  REG:13 STACK:0 SHARED:1792 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19pack_trellis_kernelILi7EEvPtPKt:
+  REG:16 STACK:0 SHARED:1760 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19pack_trellis_kernelILi6EEvPtPKt:
+  REG:15 STACK:0 SHARED:1728 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19pack_trellis_kernelILi5EEvPtPKt:
+  REG:16 STACK:0 SHARED:1696 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19pack_trellis_kernelILi4EEvPtPKt:
+  REG:13 STACK:0 SHARED:1664 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19pack_trellis_kernelILi3EEvPtPKt:
+  REG:16 STACK:0 SHARED:1632 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19pack_trellis_kernelILi2EEvPtPKt:
+  REG:16 STACK:0 SHARED:1600 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z19pack_trellis_kernelILi1EEvPtPKt:
+  REG:23 STACK:0 SHARED:1568 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+compressed
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/quantize.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z24test_distribution_kernelPKfPfS1_mmffbb:
+  REG:44 STACK:0 SHARED:5120 LOCAL:0 CONSTANT[0]:946 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z13decode_kernelI6__halfEvPKtPT_ibb:
+  REG:10 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:918 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z13decode_kernelIfEvPKtPT_ibb:
+  REG:10 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:918 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi8ELi2EEvPKfPfPtP6__halfS3_:
+  REG:62 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi7ELi2EEvPKfPfPtP6__halfS3_:
+  REG:64 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi6ELi2EEvPKfPfPtP6__halfS3_:
+  REG:64 STACK:432 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi5ELi2EEvPKfPfPtP6__halfS3_:
+  REG:35 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi4ELi2EEvPKfPfPtP6__halfS3_:
+  REG:35 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi3ELi2EEvPKfPfPtP6__halfS3_:
+  REG:35 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi2ELi2EEvPKfPfPtP6__halfS3_:
+  REG:38 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi1ELi2EEvPKfPfPtP6__halfS3_:
+  REG:48 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi8ELi1EEvPKfPfPtP6__halfS3_:
+  REG:60 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi7ELi1EEvPKfPfPtP6__halfS3_:
+  REG:64 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi6ELi1EEvPKfPfPtP6__halfS3_:
+  REG:64 STACK:432 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi5ELi1EEvPKfPfPtP6__halfS3_:
+  REG:33 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi4ELi1EEvPKfPfPtP6__halfS3_:
+  REG:33 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi3ELi1EEvPKfPfPtP6__halfS3_:
+  REG:33 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi2ELi1EEvPKfPfPtP6__halfS3_:
+  REG:39 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi1ELi1EEvPKfPfPtP6__halfS3_:
+  REG:40 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi8ELi0EEvPKfPfPtP6__halfS3_:
+  REG:60 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi7ELi0EEvPKfPfPtP6__halfS3_:
+  REG:64 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi6ELi0EEvPKfPfPtP6__halfS3_:
+  REG:64 STACK:432 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi5ELi0EEvPKfPfPtP6__halfS3_:
+  REG:35 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi4ELi0EEvPKfPfPtP6__halfS3_:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi3ELi0EEvPKfPfPtP6__halfS3_:
+  REG:34 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi2ELi0EEvPKfPfPtP6__halfS3_:
+  REG:36 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21quantize_tiles_kernelILi1ELi0EEvPKfPfPtP6__halfS3_:
+  REG:40 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:936 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/reconstruct.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z18reconstruct_kernelILi8ELi2EEvP6__halfPKtii:
+  REG:21 STACK:0 SHARED:7168 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi7ELi2EEvP6__halfPKtii:
+  REG:27 STACK:0 SHARED:6912 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi6ELi2EEvP6__halfPKtii:
+  REG:27 STACK:0 SHARED:6656 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi5ELi2EEvP6__halfPKtii:
+  REG:27 STACK:0 SHARED:6400 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi4ELi2EEvP6__halfPKtii:
+  REG:22 STACK:0 SHARED:6144 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi3ELi2EEvP6__halfPKtii:
+  REG:24 STACK:0 SHARED:5888 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi2ELi2EEvP6__halfPKtii:
+  REG:23 STACK:0 SHARED:5632 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi1ELi2EEvP6__halfPKtii:
+  REG:21 STACK:0 SHARED:5376 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi8ELi1EEvP6__halfPKtii:
+  REG:21 STACK:0 SHARED:7168 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi7ELi1EEvP6__halfPKtii:
+  REG:29 STACK:0 SHARED:6912 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi6ELi1EEvP6__halfPKtii:
+  REG:24 STACK:0 SHARED:6656 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi5ELi1EEvP6__halfPKtii:
+  REG:24 STACK:0 SHARED:6400 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi4ELi1EEvP6__halfPKtii:
+  REG:20 STACK:0 SHARED:6144 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi3ELi1EEvP6__halfPKtii:
+  REG:24 STACK:0 SHARED:5888 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi2ELi1EEvP6__halfPKtii:
+  REG:22 STACK:0 SHARED:5632 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi1ELi1EEvP6__halfPKtii:
+  REG:20 STACK:0 SHARED:5376 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi8ELi0EEvP6__halfPKtii:
+  REG:22 STACK:0 SHARED:7168 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi7ELi0EEvP6__halfPKtii:
+  REG:29 STACK:0 SHARED:6912 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi6ELi0EEvP6__halfPKtii:
+  REG:26 STACK:0 SHARED:6656 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi5ELi0EEvP6__halfPKtii:
+  REG:26 STACK:0 SHARED:6400 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi4ELi0EEvP6__halfPKtii:
+  REG:22 STACK:0 SHARED:6144 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi3ELi0EEvP6__halfPKtii:
+  REG:26 STACK:0 SHARED:5888 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi2ELi0EEvP6__halfPKtii:
+  REG:25 STACK:0 SHARED:5632 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z18reconstruct_kernelILi1ELi0EEvP6__halfPKtii:
+  REG:24 STACK:0 SHARED:5376 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/quant/util.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z20count_inf_nan_kernelIfEvPKT_Pyy:
+  REG:31 STACK:0 SHARED:1280 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z20count_inf_nan_kernelI6__halfEvPKT_Pyy:
+  REG:33 STACK:0 SHARED:1280 LOCAL:0 CONSTANT[0]:920 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/rope.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z11rope_kernelILi3ELb1EEvPK6__halfPS0_S2_S3_PKfiiiiiiiPKjS7_fPKvS9_ffbifibii:
+  REG:40 STACK:32 SHARED:5248 LOCAL:0 CONSTANT[0]:1044 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z11rope_kernelILi2ELb1EEvPK6__halfPS0_S2_S3_PKfiiiiiiiPKjS7_fPKvS9_ffbifibii:
+  REG:40 STACK:32 SHARED:5248 LOCAL:0 CONSTANT[0]:1044 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z11rope_kernelILi1ELb1EEvPK6__halfPS0_S2_S3_PKfiiiiiiiPKjS7_fPKvS9_ffbifibii:
+  REG:39 STACK:32 SHARED:5248 LOCAL:0 CONSTANT[0]:1044 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z11rope_kernelILi3ELb0EEvPK6__halfPS0_S2_S3_PKfiiiiiiiPKjS7_fPKvS9_ffbifibii:
+  REG:40 STACK:32 SHARED:5248 LOCAL:0 CONSTANT[0]:1044 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z11rope_kernelILi2ELb0EEvPK6__halfPS0_S2_S3_PKfiiiiiiiPKjS7_fPKvS9_ffbifibii:
+  REG:40 STACK:32 SHARED:5248 LOCAL:0 CONSTANT[0]:1044 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z11rope_kernelILi1ELb0EEvPK6__halfPS0_S2_S3_PKfiiiiiiiPKjS7_fPKvS9_ffbifibii:
+  REG:39 STACK:32 SHARED:5248 LOCAL:0 CONSTANT[0]:1044 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/routing.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z18routing_std_kernelPK6__halfPlPS_PK13__nv_bfloat16iii:
+  REG:37 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z23routing_std_topk_kernelPK6__halfPlPS_PK13__nv_bfloat16iii:
+  REG:38 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:940 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z26routing_ds3_nogroup_kernelPK6__halfS1_PlPS_fiii:
+  REG:40 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z31routing_ds3_nogroup_topk_kernelPK6__halfS1_PlPS_fiii:
+  REG:40 STACK:0 SHARED:1024 LOCAL:0 CONSTANT[0]:944 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/softcap.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z16softcap_h_kernelPK6__halfPS_mf:
+  REG:11 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:924 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z14softcap_kernelPKfPfmf:
+  REG:10 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:924 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin elf code:
+================
+arch = sm_121a
+code version = [1,8]
+host = linux
+compile_size = 64bit
+identifier = /tmp/exllamav3/exllamav3/exllamav3_ext/stloader_cu.cu
+
+Resource usage:
+ Common:
+  GLOBAL:28 CONSTANT[4]:224
+ Function _Z27inplace_bf16_to_fp16_kernelPvm:
+  REG:8 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:912 TEXTURE:0 SURFACE:0 SAMPLER:0

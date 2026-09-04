@@ -561,3 +561,55 @@ matching compiled expert kernels. The location is resolved without importing
 torch/CUDA and is restricted to the expected installed extension path.
 Existing mismatch behavior is unchanged: sync the selected image when
 enabled, otherwise fail before launching a mismatched cluster.
+
+### Full-recipe serving verification completed
+
+The image above was streamed through the normal launcher to dgx1 and started
+at GMU 0.87, fast=1, activation=1, scratch=128, target graphs C1 and MXFP8
+draft graphs C1–C6. Native `.so`, generated kernel source and Python hashes
+match between ranks (`decode-pipeline-fresh-{head,worker}.sha256`). The API
+is healthy and this image is left serving. Boot KV capacity is 4,800,623
+tokens (4.58x 1M); this is ordinary startup variance, not a new KV change.
+
+After an all-concurrency 64-token warmup, the same two-round 256-token
+decode tests measured:
+
+| Concurrency | Prose aggregate tok/s | Code aggregate tok/s |
+| --- | ---: | ---: |
+| 1 | 28.98 | 27.20 |
+| 3 | 54.92 | 49.15 |
+| 6 | 81.93 | 83.85 |
+
+C1 wall time per drafting cycle was 117.48 ms prose and 117.91 ms code,
+versus 126.97/127.99 ms for the original A control. Output throughput still
+varies with acceptance; these results reproduce the fast configuration,
+not another optimization beyond the previously measured kernel change.
+All completed-request counts matched the synthetic workload; no extra
+completed traffic or preemptions were observed.
+
+The first long-prefill pass gave 1063.90 input tok/s. Two warmed repeats of
+the identical 21,850-token prompt gave 1153.91 and 1153.50 input tok/s
+(18.936/18.942 s TTFT), all with zero global prefix-hit delta. Thus the early
+sample is not evidence of a persistent regression. CPU binary inspection
+also finds identical resource usage for the four relevant serving kernels
+(two native fast variants and two E2 fat variants) between derivative and
+fresh builds. Raw reports retain build-path-dependent identifiers; only
+those known path-dependent namespace prefixes were ignored when matching
+the full kernel template/signature suffixes. Resource equality is not a
+claim of binary or numerical identity by itself.
+
+The mixed C3 sample gave 8.254 mean per-stream decode tok/s, 23.913 aggregate,
+240.16 concurrent prefill input tok/s, and 0.551 s maximum stream gap. This
+is consistent with the prior candidate, with the same short-run/acceptance
+caveats. All decoders overlapped the full prefill lifetime.
+
+Functional checks passed again: exact response, arithmetic, ordinary prompt,
+tools, image input, 27,049-token retrieval and an observed prefix hit. All
+six requests against the 131,117-token shared prefix returned MAGNOLIA;
+737,280 prefix-hit tokens were recorded. Warm long-prefill time was 114.418 s
+versus 114.575 s in the earlier candidate. These are regression checks, not
+a comprehensive quality evaluation or a new maximum-context test.
+
+The README now includes a short opt-in build/start command. Existing
+defaults remain unchanged. No rejected private-output, K16, tighter-shared-
+memory or expanded-grid variant is in this serving image.
