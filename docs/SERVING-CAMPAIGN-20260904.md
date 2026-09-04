@@ -488,3 +488,76 @@ The campaign checkpoints are local on `feature/exl3-ab-current`. Public push
 was rejected by safety review even after read-only verification of the named
 GitHub fork and existing branch. No campaign commits were pushed; main is
 unchanged. Publishing requires renewed approval, not a server change.
+
+## Occupancy follow-up: no K7 serving candidate
+
+`exl3-occupancy-isolated.jsonl` records the next bounded screen, with native
+fast=1 as installed control. All variants reuse the same synthetic weights,
+inputs and routing, and retain K4/N256 quantization. Measured residency:
+
+| Variant | Dynamic shared memory/block | Blocks/SM allowed | Expert groups launched |
+| --- | ---: | ---: | ---: |
+| K32, register-1/shared-8, tight allocation | 56 KiB | 1 | 6 |
+| K16, register-1/shared-8, tight allocation | 36 KiB | 2 | 6 or 12 |
+| K16, register-1/shared-4, tight allocation | 26 KiB | 2 | 12 |
+
+The probe checks the mirrored upstream shared-memory layout before compiling,
+queries actual CUDA residency, and requires cooperative-launch support for
+the expanded 96-block grid. Oversubscribing its persistent cross-block
+barriers with a normal launch would be unsafe; unsupported configurations
+fail before timing. Source guards have three CPU tests.
+
+The K32 90→56 KiB change keeps output parity at repeat-rounding level, but
+changes multirow timing only about -0.24% to +0.15%, within noise. Reject
+as a speed optimization. K16 with twice the expert groups reduces one-row
+latency ~14–19%, but one row is not our C1 K7 verification workload. At
+rows 8/24/48/128 the candidate is generally unchanged or slower; the lone
+~2% correlated-row-8 improvement is not a broad win. No serving promotion.
+
+K16 changes floating-point summation order: relative output RMSE against
+the K32 control is ~0.00031–0.00034 (0.031–0.034%). It passed the broad
+geometry-screen tolerance, **not** the stricter same-math 1e-6 gate. This
+is neither checkpoint quantization error nor evidence of better/worse model
+quality. There is no reason to accept that extra numerical difference for
+the measured K7 workload. No weight, KV or serving kernel change resulted.
+
+Reproduce while serving is stopped, using the existing probe bind mounts:
+
+```bash
+python3 /probes/build_exl3_group_probe.py --output /build --groups 8 \
+  --shared-input --frag-stages 1 --shared-stages 8 --tight-smem
+python3 /probes/build_exl3_group_probe.py --output /build --groups 8 \
+  --shared-input --tile-k 16 --frag-stages 1 --shared-stages 8 \
+  --tight-smem --resident-blocks 2
+python3 /probes/build_exl3_group_probe.py --output /build --groups 8 \
+  --shared-input --tile-k 16 --frag-stages 1 --shared-stages 4 \
+  --tight-smem --resident-blocks 2
+# Run in the GPU-enabled, memory-bounded probe container:
+python3 /probes/bench_exl3_groups.py --libraries /build \
+  --variants g8_shared_k32_f1_s8_occ1,g8_shared_k16_f1_s8_occ2,g8_shared_k16_f1_s4_occ2 \
+  --rows 1,8,24,48,128 --random-scales --alias-shared-scales
+```
+
+Build and timing containers must use `GLM53_EXL3_MOE_FAST=1` and scratch=128
+as in the preceding screen. Build itself needs no GPU. This concise command
+omits the saved screen's K16 single-residency and isolated K32 controls;
+their exact compiler commands are in the build manifest.
+
+## Full recipe build verification
+
+The normal `IMAGE=glm53-exl3:decode-pipeline-recipe-v1 ./serve-profile.sh build
+exl3-fp8-dcp2` completed successfully from pinned public inputs. Native compile,
+version=1, E2 symbols, Python checks and the packaged image contracts passed.
+The full wheel build did not reproduce the derivative JIT build's earlier
+CUDA-header precedence problem; no header workaround was added to it.
+
+Image identity: `sha256:dc39113a8fce66769da925c2fddcfb58e172b6d73746820a8d5f1f1aebed64cd`.
+This closes the image-build gap mentioned in earlier chronological notes;
+cluster startup/serving checks on that new image are still in progress.
+
+Cluster startup now includes the installed EXL3 `.so` in the existing
+cross-rank runtime checksums. Matching Python overlays alone cannot prove
+matching compiled expert kernels. The location is resolved without importing
+torch/CUDA and is restricted to the expected installed extension path.
+Existing mismatch behavior is unchanged: sync the selected image when
+enabled, otherwise fail before launching a mismatched cluster.

@@ -62,6 +62,7 @@ def main():
                             _exl3_bits=4, _exl3_shared_w13_suh=args.alias_shared_scales)
     build_exl3_fused_state(layer, experts)
     variants = {}
+    launch_metadata = {}
     for label in args.variants.split(','):
         group = int(label.split('_')[0][1:])
         sms = torch.cuda.get_device_properties(0).multi_processor_count
@@ -76,7 +77,16 @@ def main():
             library.probe_launch_private.restype = C.c_int
             library.probe_launch_private.argtypes = [C.POINTER(C.c_void_p), C.c_int,
                                                     C.c_int, C.c_void_p]
-        assert library.probe_init() == 0
+        init_rc = library.probe_init()
+        assert init_rc == 0, ('unsafe or unsupported launch', label, init_rc)
+        if hasattr(library, 'probe_concurrency'):
+            concurrency = library.probe_concurrency()
+            assert concurrency > 0
+            launch_metadata[label] = {
+                'concurrency': concurrency, 'grid_blocks': concurrency * group,
+                'active_blocks_per_sm': library.probe_active_blocks_per_sm(),
+                'dynamic_smem_bytes': library.probe_smem_bytes(),
+            }
         scratch = [torch.empty((concurrency, cap, dim), dtype=torch.float16, device='cuda')
                    for dim in (hidden, hidden, intermediate, intermediate)]
         locks = torch.zeros(1024 * 1024 + 2 * 1024, dtype=torch.int32, device='cuda')
@@ -115,6 +125,7 @@ def main():
                           'native_fast': os.environ.get('GLM53_EXL3_MOE_FAST', '0'),
                           'aliased_scales': args.alias_shared_scales,
                           'independent_up_scales': args.independent_up_scales,
+                          'launch_metadata': launch_metadata,
                           'variants': {}}
                 baseline = None
                 for label in ['stock', *variants, 'stock_repeat']:

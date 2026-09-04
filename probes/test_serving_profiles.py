@@ -82,6 +82,10 @@ def test_native_pipeline_settings_are_visible_and_opt_in() -> None:
         source = (ROOT / filename).read_text()
         for setting in ("GLM53_EXL3_MOE_FAST", "EXL3_FUSED_FAT_ACTIVATION"):
             assert setting in source
+    starter = (ROOT / "start-cluster.sh").read_text()
+    assert 'find_spec("exllamav3_ext")' in starter
+    assert 'runtime_paths+=("$exl3_native_path")' in starter
+    assert 'Unexpected EXL3 native extension location' in starter
 
 
 def test_overrides_win() -> None:

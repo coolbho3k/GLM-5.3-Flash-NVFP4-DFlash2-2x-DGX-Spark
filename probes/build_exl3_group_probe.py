@@ -12,6 +12,22 @@ import shutil
 import subprocess
 
 
+def validate_tight_smem_layout(gemm):
+    """Reject drift in the upstream layout mirrored by the launch shim."""
+    compact = ''.join(gemm.split())
+    anchors = (
+        'const int sh_a_stage_size = TILESIZE_M * TILESIZE_K;',
+        'const int sh_b_stage_size = TILEBLOCKS_K * TILEBLOCKS_N * 256 / 16 * bits;',
+        '4 * EXL3_GEMM_BASE_THREADS * FRAGS_N_PER_WARP,',
+        'shmem_out_had ? TILESIZE_N * TILESIZE_M : 0',
+        'const int FRAGS_N_PER_WARP = 2 * TILEBLOCKS_N / (EXL3_GEMM_BASE_THREADS / 32);',
+        'float* sh_c = (float*) (sh_b + sh_b_stage_size * SH_STAGES);',
+    )
+    for anchor in anchors:
+        if ''.join(anchor.split()) not in compact:
+            raise ValueError(f'Upstream shared-memory layout changed: {anchor}')
+
+
 def private_output_source(kernel, hadamard):
     """Derive a scratch-private writeback; input must already reuse gate SUH.
 
@@ -57,6 +73,10 @@ def main():
     parser.add_argument('--guarded-shared-input', action='store_true')
     parser.add_argument('--private-output', action='store_true',
                         help='Probe non-atomic per-group output in unused up-input scratch')
+    parser.add_argument('--tight-smem', action='store_true',
+                        help='Reserve derived K4/N256 shared memory instead of 90 KiB')
+    parser.add_argument('--resident-blocks', type=int, choices=(1, 2), default=1,
+                        help='Blocks per SM in grid; 2 requires cooperative launch/residency gate')
     args = parser.parse_args()
     source = Path('/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext')
     output = args.output.resolve()
@@ -66,10 +86,16 @@ def main():
     assert not (args.shared_input and args.guarded_shared_input)
     if args.private_output and not args.shared_input:
         raise ValueError('--private-output requires --shared-input')
+    if args.private_output and (args.tight_smem or args.resident_blocks != 1):
+        raise ValueError('Screen private output and occupancy separately')
+    if args.resident_blocks != 1 and not args.tight_smem:
+        raise ValueError('Extra resident blocks require --tight-smem')
     tree = output / ('private-source' if args.private_output else
                      'guarded-source' if args.guarded_shared_input else
                      'shared-source' if args.shared_input else 'stock-source')
     shutil.copytree(source, tree, dirs_exist_ok=True)
+    if args.tight_smem:
+        validate_tight_smem_layout((tree / 'quant/exl3_gemm_inner.cuh').read_text())
     kernel = tree / 'quant/exl3_moe_kernel.cuh'
     original = kernel.read_text()
     if args.shared_input or args.guarded_shared_input:
@@ -105,6 +131,8 @@ def main():
             label += f'_s{args.shared_stages}'
         if args.private_output:
             label += '_private'
+        if args.tight_smem:
+            label += f'_occ{args.resident_blocks}'
         command = ['/usr/local/cuda/bin/nvcc', '-O3', '--use_fast_math', '-std=c++17',
                    '-arch=sm_121', '--shared', '-Xcompiler=-fPIC',
                    '-Xlinker=-Bsymbolic', '-Xptxas=-v',
@@ -112,6 +140,8 @@ def main():
                    f'-DGLM53_FRAG_STAGES={args.frag_stages}',
                    f'-DGLM53_SH_STAGES={args.shared_stages}', '-I', str(tree),
                    f'-DGLM53_PRIVATE_OUTPUT={int(args.private_output)}',
+                   f'-DGLM53_TIGHT_SMEM={int(args.tight_smem)}',
+                   f'-DGLM53_RESIDENT_BLOCKS={args.resident_blocks}',
                    str(Path(__file__).with_name('exl3_group_probe.cu')),
                    '-o', str(output / f'{label}.so')]
         # Bind local symbols: variants have identical C++ kernel names, but

@@ -11,15 +11,67 @@
 #define exl3_moe_kernel glm53_probe_moe_kernel
 #include "quant/exl3_moe_kernel.cuh"
 
+// Mirror exl3_gemm_inner.cuh for bits=4, M16/N256. Hadamard writeback
+// reuses the same dynamic buffer, needing only 128 floats per warp.
+#ifndef GLM53_TIGHT_SMEM
+#define GLM53_TIGHT_SMEM 0
+#endif
+#ifndef GLM53_RESIDENT_BLOCKS
+#define GLM53_RESIDENT_BLOCKS 1
+#endif
+constexpr int probe_threads = 256 * GLM53_TILE_K / 16;
+constexpr int probe_gemm_smem = GLM53_SH_STAGES *
+    (2 * 16 * GLM53_TILE_K + 2 * (GLM53_TILE_K / 16) * 16 * 16 * 4)
+    + 4 * (4 * 256 * 4);
+constexpr int probe_had_smem = probe_threads / 32 * 128 * sizeof(float);
+constexpr int probe_required_smem = probe_gemm_smem > probe_had_smem
+    ? probe_gemm_smem : probe_had_smem;
+static_assert(probe_required_smem <= SMEM_MAX);
+constexpr int probe_smem = GLM53_TIGHT_SMEM ? probe_required_smem : SMEM_MAX;
+static int probe_resident_limit = 0;
+static int probe_grid_groups = 0;
+
 extern "C" int probe_init() {
-    return cudaFuncSetAttribute(glm53_probe_moe_kernel<4, 256>,
-        cudaFuncAttributeMaxDynamicSharedMemorySize, SMEM_MAX);
+    cudaError_t rc = cudaFuncSetAttribute(glm53_probe_moe_kernel<4, 256>,
+        cudaFuncAttributeMaxDynamicSharedMemorySize, probe_smem);
+    if (rc != cudaSuccess) return rc;
+    rc = cudaOccupancyMaxActiveBlocksPerMultiprocessor(&probe_resident_limit,
+        glm53_probe_moe_kernel<4, 256>, probe_threads, probe_smem);
+    if (rc != cudaSuccess) return rc;
+    if (probe_resident_limit < GLM53_RESIDENT_BLOCKS)
+        return cudaErrorCooperativeLaunchTooLarge;
+    int device = 0, sms = 0, cooperative = 0;
+    rc = cudaGetDevice(&device);
+    if (rc != cudaSuccess) return rc;
+    rc = cudaDeviceGetAttribute(&sms, cudaDevAttrMultiProcessorCount, device);
+    if (rc != cudaSuccess) return rc;
+    if (GLM53_RESIDENT_BLOCKS > 1) {
+        rc = cudaDeviceGetAttribute(&cooperative, cudaDevAttrCooperativeLaunch, device);
+        if (rc != cudaSuccess) return rc;
+        if (!cooperative) return cudaErrorNotSupported;
+    }
+    if (sms % GLM53_GROUP_SIZE) return cudaErrorInvalidConfiguration;
+    probe_grid_groups = sms * GLM53_RESIDENT_BLOCKS / GLM53_GROUP_SIZE;
+    return cudaSuccess;
 }
 
+extern "C" int probe_concurrency() { return probe_grid_groups; }
+extern "C" int probe_active_blocks_per_sm() { return probe_resident_limit; }
+extern "C" int probe_smem_bytes() { return probe_smem; }
+
 extern "C" int probe_launch(void** args, int concurrency, void* stream) {
+    if (concurrency <= 0 || concurrency > probe_grid_groups)
+        return cudaErrorInvalidConfiguration;
+    // The persistent expert-group barriers must not be oversubscribed.
+    // Cooperative launch plus the occupancy gate guarantees residency for
+    // the expanded grid; there is no unchecked 2x ordinary launch path.
+    if (GLM53_RESIDENT_BLOCKS > 1)
+        return cudaLaunchCooperativeKernel((const void*)glm53_probe_moe_kernel<4, 256>,
+            dim3(GLM53_GROUP_SIZE, 1, concurrency), dim3(probe_threads, 1, 1),
+            args, probe_smem, (cudaStream_t)stream);
     return cudaLaunchKernel((const void*)glm53_probe_moe_kernel<4, 256>,
-        dim3(GLM53_GROUP_SIZE, 1, concurrency), dim3(256 * GLM53_TILE_K / 16, 1, 1),
-        args, SMEM_MAX, (cudaStream_t)stream);
+        dim3(GLM53_GROUP_SIZE, 1, concurrency), dim3(probe_threads, 1, 1),
+        args, probe_smem, (cudaStream_t)stream);
 }
 
 #if GLM53_PRIVATE_OUTPUT

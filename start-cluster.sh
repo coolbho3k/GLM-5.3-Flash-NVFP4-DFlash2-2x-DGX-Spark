@@ -146,6 +146,17 @@ fi
 if docker run --rm --entrypoint test "$IMAGE" \
   -f /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py; then
   runtime_paths+=(/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py)
+  # Python overlays can match while the compiled expert kernels differ.
+  # Resolve without importing torch/CUDA or allocating a GPU context.
+  exl3_native_path="$(docker run --rm --entrypoint python3 "$IMAGE" -c \
+    'import importlib.util; s = importlib.util.find_spec("exllamav3_ext"); print(s.origin if s and s.origin else "")')"
+  if [[ -n "$exl3_native_path" ]]; then
+    [[ "$exl3_native_path" == /usr/local/lib/python3.12/dist-packages/exllamav3_ext*.so ]] || {
+      echo "Unexpected EXL3 native extension location: $exl3_native_path" >&2
+      exit 1
+    }
+    runtime_paths+=("$exl3_native_path")
+  fi
 fi
 local_runtime="$(
   docker run --rm --entrypoint sha256sum "$IMAGE" "${runtime_paths[@]}"

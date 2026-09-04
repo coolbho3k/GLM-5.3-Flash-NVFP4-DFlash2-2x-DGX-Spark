@@ -1,0 +1,168 @@
+Preparing worktree (detached HEAD 3a437ab)
+HEAD is now at 3a437ab fix(gemm): restore vLLM FP4 recipe entry points
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 6.19kB done
+#1 DONE 0.0s
+
+#2 [context sparkinfer] load .dockerignore
+#2 transferring sparkinfer: 2B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for ghcr.io/tonyd2wild/vllm-glm53-flash@sha256:4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6
+#3 DONE 0.5s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 71B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 287.24kB done
+#5 DONE 0.0s
+
+#6 [stage-0  1/27] FROM ghcr.io/tonyd2wild/vllm-glm53-flash@sha256:4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6
+#6 resolve ghcr.io/tonyd2wild/vllm-glm53-flash@sha256:4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6 0.0s done
+#6 CACHED
+
+#7 [context sparkinfer] load from client
+#7 transferring sparkinfer: 8.30MB 0.0s done
+#7 DONE 0.1s
+
+#8 [stage-0  2/27] COPY vendor/miaai-exl3/patch_exl3_ext_aarch64.py vendor/miaai-exl3/patch_exl3_fat_kernel.py vendor/miaai-exl3/patch_exl3_decode_pipeline.py /opt/glm53/
+#8 DONE 0.0s
+
+#9 [stage-0  3/27] COPY vendor/miaai-exl3/exl3_fat_gemm.cu vendor/miaai-exl3/exl3_fat_gemm.cuh /opt/glm53/exl3-fat-kernel/
+#9 DONE 0.0s
+
+#10 [stage-0  4/27] RUN set -eux; mkdir -p /tmp/exllamav3;     curl -fsSL "https://github.com/turboderp-org/exllamav3/archive/c5d9c657966ffeeaa9353f0cc899f18629da4a13.tar.gz" | tar -xz -C /tmp/exllamav3 --strip-components=1;     python3 /opt/glm53/patch_exl3_ext_aarch64.py /tmp/exllamav3/exllamav3/exllamav3_ext;     python3 /opt/glm53/patch_exl3_fat_kernel.py /tmp/exllamav3/exllamav3/exllamav3_ext /opt/glm53/exl3-fat-kernel;     python3 /opt/glm53/patch_exl3_decode_pipeline.py /tmp/exllamav3/exllamav3/exllamav3_ext;     export CPATH="/usr/local/lib/python3.12/dist-packages/nvidia/cu13/include${CPATH:+:$CPATH}";     export CPLUS_INCLUDE_PATH="/usr/local/lib/python3.12/dist-packages/nvidia/cu13/include${CPLUS_INCLUDE_PATH:+:$CPLUS_INCLUDE_PATH}";     export C_INCLUDE_PATH="/usr/local/lib/python3.12/dist-packages/nvidia/cu13/include${C_INCLUDE_PATH:+:$C_INCLUDE_PATH}";     cd /tmp/exllamav3; pip install --no-deps --no-build-isolation --no-cache-dir .;     python3 -c "import torch; import exllamav3_ext as e; assert hasattr(e, 'exl3_moe'); assert hasattr(e, 'exl3_moe_max_concurrency'); assert hasattr(e, 'exl3_fat_gemm'); assert hasattr(e, 'exl3_fat_gemm_scatter'); assert e.glm53_fast_moe_version() == 1";     rm -rf /tmp/exllamav3 /root/.cache/pip
+#10 0.171 + mkdir -p /tmp/exllamav3
+#10 0.176 + curl -fsSL https://github.com/turboderp-org/exllamav3/archive/c5d9c657966ffeeaa9353f0cc899f18629da4a13.tar.gz
+#10 0.176 + tar -xz -C /tmp/exllamav3 --strip-components=1
+#10 1.125 + python3 /opt/glm53/patch_exl3_ext_aarch64.py /tmp/exllamav3/exllamav3/exllamav3_ext
+#10 1.138 aarch64 EXL3 CPU-target stubs written in /tmp/exllamav3/exllamav3/exllamav3_ext
+#10 1.140 + python3 /opt/glm53/patch_exl3_fat_kernel.py /tmp/exllamav3/exllamav3/exllamav3_ext /opt/glm53/exl3-fat-kernel
+#10 1.155 + python3 /opt/glm53/patch_exl3_decode_pipeline.py /tmp/exllamav3/exllamav3/exllamav3_ext
+#10 1.166 Installed opt-in SM121 K4/N256 decode pipeline into /tmp/exllamav3/exllamav3/exllamav3_ext
+#10 1.169 + export CPATH=/usr/local/lib/python3.12/dist-packages/nvidia/cu13/include
+#10 1.169 + export CPLUS_INCLUDE_PATH=/usr/local/lib/python3.12/dist-packages/nvidia/cu13/include
+#10 1.169 + export C_INCLUDE_PATH=/usr/local/lib/python3.12/dist-packages/nvidia/cu13/include
+#10 1.169 + cd /tmp/exllamav3
+#10 1.169 + pip install --no-deps --no-build-isolation --no-cache-dir .
+#10 1.448 Processing ./.
+#10 1.449   Preparing metadata (pyproject.toml): started
+#10 2.520   Preparing metadata (pyproject.toml): finished with status 'done'
+#10 2.521 Building wheels for collected packages: exllamav3
+#10 2.521   Building wheel for exllamav3 (pyproject.toml): started
+#10 63.29   Building wheel for exllamav3 (pyproject.toml): still running...
+#10 99.54   Building wheel for exllamav3 (pyproject.toml): finished with status 'done'
+#10 99.56   Created wheel for exllamav3: filename=exllamav3-0.0.43-cp312-cp312-linux_aarch64.whl size=41522728 sha256=d7e9dac6896fdfc31f29ce0f4c8b7ac1f110be383c21dbabec406fe11af3405a
+#10 99.56   Stored in directory: /tmp/pip-ephem-wheel-cache-2qr2iatp/wheels/7b/23/e2/6763eb65bd376902f0b74b8186f260856b5438253d1a78629a
+#10 99.57 Successfully built exllamav3
+#10 99.58 Installing collected packages: exllamav3
+#10 99.93 Successfully installed exllamav3-0.0.43
+#10 99.93 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+#10 99.96 + python3 -c import torch; import exllamav3_ext as e; assert hasattr(e, 'exl3_moe'); assert hasattr(e, 'exl3_moe_max_concurrency'); assert hasattr(e, 'exl3_fat_gemm'); assert hasattr(e, 'exl3_fat_gemm_scatter'); assert e.glm53_fast_moe_version() == 1
+#10 100.7 + rm -rf /tmp/exllamav3 /root/.cache/pip
+#10 DONE 101.0s
+
+#11 [stage-0  5/27] COPY --from=sparkinfer b12x /usr/local/lib/python3.12/dist-packages/b12x
+#11 DONE 0.0s
+
+#12 [stage-0  6/27] COPY overlay-exl3-fp8/b12x_mxfp8.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/kernels/linear/mxfp8/b12x.py
+#12 DONE 0.0s
+
+#13 [stage-0  7/27] COPY overlay-exl3-fp8/fp8_zero_rope.py /usr/local/lib/python3.12/dist-packages/b12x/attention/_shared/mla/fp8_zero_rope.py
+#13 DONE 0.0s
+
+#14 [stage-0  8/27] COPY overlay-dflash2/qwen3_dflash2.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/qwen3_dflash2.py
+#14 DONE 0.0s
+
+#15 [stage-0  9/27] COPY overlay-dflash2/dflash2/speculator.py /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/spec_decode/dflash2/speculator.py
+#15 DONE 0.0s
+
+#16 [stage-0 10/27] COPY overlay-dflash2/sm121_mxfp4_indexer.py /usr/local/lib/python3.12/dist-packages/b12x/attention/dsa_indexer/sm121_mxfp4.py
+#16 DONE 0.0s
+
+#17 [stage-0 11/27] COPY docker/sparse_attn_indexer_kpool_sm121.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py
+#17 DONE 0.0s
+
+#18 [stage-0 12/27] COPY overlay-dflash2/compact_kda_replay.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/mamba/ops/compact_kda_replay.py
+#18 DONE 0.0s
+
+#19 [stage-0 13/27] COPY overlay-exl3-fp8/patch_b12x_fp8_topk_2176.py overlay-dflash2/patch_kv_accounting.py overlay-dflash2/patch_vllm_glm_ct_fp8_passthrough.py overlay-exl3-fp8/patch_vllm_fp8_zero_rope.py overlay-dflash2/patch_vllm_sm121_fp4_indexer.py overlay-exl3-fp8/patch_vllm_fp8_dcp.py overlay-dflash2/patch_vllm_kda_fp16_state.py overlay-dflash2/patch_vllm_compact_kda_replay.py overlay-dflash2/patch_compact_replay_production.py overlay-dflash2/patch_resident_dtype_inventory.py overlay-dflash2/patch_long_context_replicated_groups.py overlay-dflash2/patch_long_context_indexer_workspace.py /tmp/
+#19 DONE 0.0s
+
+#20 [stage-0 14/27] RUN python3 /tmp/patch_b12x_fp8_topk_2176.py && python3 /tmp/patch_kv_accounting.py && python3 /tmp/patch_vllm_glm_ct_fp8_passthrough.py && python3 /tmp/patch_vllm_fp8_zero_rope.py && python3 /tmp/patch_vllm_sm121_fp4_indexer.py && python3 /tmp/patch_vllm_fp8_dcp.py && python3 /tmp/patch_vllm_kda_fp16_state.py && python3 /tmp/patch_vllm_compact_kda_replay.py && python3 /tmp/patch_compact_replay_production.py && python3 /tmp/patch_resident_dtype_inventory.py && python3 /tmp/patch_long_context_replicated_groups.py && python3 /tmp/patch_long_context_indexer_workspace.py && rm /tmp/patch_*.py && python3 -m compileall -q /usr/local/lib/python3.12/dist-packages/b12x /usr/local/lib/python3.12/dist-packages/vllm
+#20 0.113 B12X GLM zero-RoPE FP8 top-k 2176 enabled in /usr/local/lib/python3.12/dist-packages/b12x/attention/_shared/mla/prefill.py
+#20 0.146 kv_accounting: patched /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py
+#20 0.146 kv_accounting: patched /usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_utils.py
+#20 0.188 GLM compressed-tensors FP8 passthrough loader patch applied
+#20 0.384 compact_replay_production: debug is opt-in; runner banners removed
+#20 0.408 resident_dtype_inventory: patched /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py
+#20 DONE 4.4s
+
+#21 [stage-0 15/27] COPY overlay-exl3-fp8/patch_vllm_b12x_mxfp8.py overlay-exl3-fp8/patch_dflash_mxfp8_context.py overlay-exl3-fp8/patch_dflash_only_cudagraph_lifecycle.py /tmp/
+#21 DONE 0.0s
+
+#22 [stage-0 16/27] RUN python3 /tmp/patch_vllm_b12x_mxfp8.py && python3 /tmp/patch_dflash_mxfp8_context.py && python3 /tmp/patch_dflash_only_cudagraph_lifecycle.py && rm /tmp/patch_vllm_b12x_mxfp8.py /tmp/patch_dflash_mxfp8_context.py /tmp/patch_dflash_only_cudagraph_lifecycle.py && python3 -m compileall -q /usr/local/lib/python3.12/dist-packages/vllm
+#22 0.200 patched DFlash-only CUDA graph lifecycle
+#22 DONE 0.3s
+
+#23 [stage-0 17/27] COPY vendor/miaai-exl3/exl3.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py
+#23 DONE 0.0s
+
+#24 [stage-0 18/27] COPY vendor/miaai-exl3/patch_model_overrides.py overlay-exl3-fp8/patch_exl3_registry.py overlay-exl3-fp8/patch_spinwait.py /opt/glm53/
+#24 DONE 0.0s
+
+#25 [stage-0 19/27] RUN python3 /opt/glm53/patch_exl3_registry.py && python3 /opt/glm53/patch_model_overrides.py && GLM53_SPINWAIT_MS=stock python3 /opt/glm53/patch_spinwait.py --preflight && python3 -m py_compile /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py
+#25 0.140 registered EXL3 quantization method
+#25 0.166 exl3 added to ModelConfig overrides
+#25 0.196 shm_broadcast.py: spinwait preflight OK (stock; stock)
+#25 DONE 0.3s
+
+#26 [stage-0 20/27] COPY probes/test_exl3_fp8_dcp2_image.py /opt/glm53/
+#26 DONE 0.0s
+
+#27 [stage-0 21/27] COPY probes/test_exl3_e2_kernel.py /opt/glm53/
+#27 DONE 0.0s
+
+#28 [stage-0 22/27] COPY probes/test_fp8_zero_rope_writer.py /opt/glm53/
+#28 DONE 0.0s
+
+#29 [stage-0 23/27] COPY probes/test_fp8_zero_rope_b12x.py /opt/glm53/
+#29 DONE 0.0s
+
+#30 [stage-0 24/27] COPY probes/test_spinwait_patch.py /opt/glm53/
+#30 DONE 0.0s
+
+#31 [stage-0 25/27] COPY probes/test_mxfp8_drafter_image.py /opt/glm53/
+#31 DONE 0.0s
+
+#32 [stage-0 26/27] RUN python3 /opt/glm53/test_exl3_fp8_dcp2_image.py && python3 /opt/glm53/test_spinwait_patch.py && python3 /opt/glm53/test_mxfp8_drafter_image.py
+#32 3.196 INFO 09-04 22:25:10 [importing.py:53] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+#32 3.197 INFO 09-04 22:25:10 [importing.py:88] Triton not installed or not compatible; certain GPU-related functions will not be available.
+#32 3.275 WARNING 09-04 22:25:10 [interface.py:368] Failed to import from vllm._C: ModuleNotFoundError("No module named 'vllm._C'")
+#32 3.399 W0904 22:25:10.590000 7 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+#32 3.449 WARNING 09-04 22:25:10 [interface.py:368] Failed to import from vllm._C: ModuleNotFoundError("No module named 'vllm._C'")
+#32 3.450 WARNING 09-04 22:25:10 [interface.py:368] Failed to import from vllm._C: ModuleNotFoundError("No module named 'vllm._C'")
+#32 4.132 EXL3 + zero-RoPE FP8 + DCP2 image composition OK
+#32 5.303 numeric spinwait patch OK (9 tests)
+#32 5.322 MXFP8 DFlash2 image invariants: PASS
+#32 DONE 5.4s
+
+#33 [stage-0 27/27] COPY --chmod=755 overlay-exl3-fp8/entrypoint.sh /opt/glm53/entrypoint.sh
+#33 DONE 0.0s
+
+#34 exporting to image
+#34 exporting layers
+#34 exporting layers 2.9s done
+#34 exporting manifest sha256:a3c895dc053ce81fc4bbfc301af51d31361a9487ce813be893e413d91a055f01 done
+#34 exporting config sha256:b93ccb0ae3c0d3423b3e0b91d225910bae96793b4adf8944ca9b54b990c047bf done
+#34 exporting attestation manifest sha256:96bf731f535881dcaed8c8054d0296315aa094827cf54a7f79488b1d977deb64 done
+#34 exporting manifest list sha256:dc39113a8fce66769da925c2fddcfb58e172b6d73746820a8d5f1f1aebed64cd done
+#34 naming to docker.io/library/glm53-exl3:decode-pipeline-recipe-v1 done
+#34 unpacking to docker.io/library/glm53-exl3:decode-pipeline-recipe-v1
+#34 unpacking to docker.io/library/glm53-exl3:decode-pipeline-recipe-v1 1.2s done
+#34 DONE 4.3s
+built sha256:dc39113a8fce66769da925c2fddcfb58e172b6d73746820a8d5f1f1aebed64cd as glm53-exl3:decode-pipeline-recipe-v1
