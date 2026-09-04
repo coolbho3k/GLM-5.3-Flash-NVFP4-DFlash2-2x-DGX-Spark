@@ -53,6 +53,8 @@ SWIGLU_LIMIT_DEFAULT = 10.0
 # but measured slower than 128+fallback (P2b). Override with EXL3_TEMP_ROWS_FUSED.
 TEMP_ROWS_FUSED = 128
 MOE_ACT_SILU = 0
+# Experimental E2-only activation fusion. No weight/cache format changes.
+_FUSED_FAT_ACTIVATION = os.environ.get("EXL3_FUSED_FAT_ACTIVATION", "0") == "1"
 # Shared fused scratch: decode is sequential across layers.
 _FUSED_TEMP_CACHE: dict[tuple, tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]] = {}
 _FAT_SCRATCH_CACHE: dict[tuple, dict[str, torch.Tensor]] = {}
@@ -813,6 +815,33 @@ def _stage_counts_to_host(
     return host, stream
 
 
+def exl3_fat_activation(
+    gate_up: torch.Tensor,
+    act: torch.Tensor,
+    act_h: torch.Tensor,
+    limit: float,
+    *,
+    fused: bool,
+) -> None:
+    """Clamped FP32 SwiGLU followed by the existing FP16 Hadamard input cast.
+
+    The fused path uses vLLM's existing CUDA op with alpha=1, beta=0. Keep
+    the FP32 intermediate: writing FP16 directly is not this op's contract.
+    The legacy path mutates gate_up; neither caller uses those values again.
+    """
+    if fused:
+        torch.ops._C.silu_and_mul_with_clamp(act, gate_up, float(limit), 1.0, 0.0)
+    else:
+        intermediate = gate_up.shape[-1] // 2
+        gate_out = gate_up[:, :intermediate]
+        up_out = gate_up[:, intermediate:]
+        gate_out.clamp_(max=limit)
+        up_out.clamp_(min=-limit, max=limit)
+        torch.sigmoid(gate_out, out=act)
+        act.mul_(gate_out).mul_(up_out)
+    act_h.copy_(act)
+
+
 def apply_exl3_batched_fat(
     xh: torch.Tensor,
     token_sorted: torch.Tensor,
@@ -869,15 +898,11 @@ def apply_exl3_batched_fat(
             ext.hgemm(h13, w13, gate_up)
             ext.had_r_128(gate_up, gate_up, None, svh13, 1.0)
 
-        gate_out = gate_up[:, :intermediate]
-        up_out = gate_up[:, intermediate:]
-        gate_out.clamp_(max=limit)
-        up_out.clamp_(min=-limit, max=limit)
         act = scratch["act"][:n_rows]
-        torch.sigmoid(gate_out, out=act)
-        act.mul_(gate_out).mul_(up_out)
         act_h = scratch["act_h"][:n_rows]
-        act_h.copy_(act)
+        exl3_fat_activation(
+            gate_up, act, act_h, limit, fused=_FUSED_FAT_ACTIVATION
+        )
 
         h2 = scratch["h2"][:n_rows]
         ext.had_r_128(act_h, h2, down.suh, None, 1.0)

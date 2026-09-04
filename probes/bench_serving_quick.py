@@ -75,7 +75,8 @@ def main():
                     result = prefill_once(args.url, count, case_id=f"{round_index}-{count}",
                         corpus_seed=salt, phrase_index=round_index)
                 result["round"] = round_index
-                result["cold"] = result["cached_prompt_tokens"] == 0
+                cached = result["cached_prompt_tokens"]
+                result["cold"] = None if cached is None else cached == 0
                 report["cases"].append(result)
                 print(json.dumps(result), flush=True)
                 output.write_text(json.dumps(report, indent=2) + "\n")

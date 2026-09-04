@@ -1,0 +1,7 @@
+# Fast Python-only overlay; the full recipe already copies this vendor file.
+ARG BASE_IMAGE=glm53-exl3:e2-fp8-dcp2-target-cg-v1
+FROM ${BASE_IMAGE}
+COPY vendor/miaai-exl3/exl3.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py
+COPY probes/bench_exl3_fat_activation.py /opt/glm53/bench_exl3_fat_activation.py
+COPY probes/test_exl3_runtime_image.py /opt/glm53/test_exl3_runtime_image.py
+RUN python3 -m py_compile /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py && python3 /opt/glm53/test_exl3_runtime_image.py

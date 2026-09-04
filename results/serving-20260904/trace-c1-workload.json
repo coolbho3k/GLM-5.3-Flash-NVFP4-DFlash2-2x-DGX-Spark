@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "config": {
+    "url": "http://127.0.0.1:8000",
+    "mode": "decode",
+    "label": "trace-c1-rows128",
+    "output": "results/serving-20260904/trace-c1-workload.json",
+    "levels": "1",
+    "prompts": "prose",
+    "max_tokens": 96,
+    "prefill_tokens": "32768,131072",
+    "rounds": 1,
+    "profile": true
+  },
+  "timestamp_utc": "2026-09-04T19:52:57.468578+00:00",
+  "cases": [
+    {
+      "round": 0,
+      "concurrency": 1,
+      "kind": "prose",
+      "wall_seconds": 5.014890343998559,
+      "aggregate_tokens_per_second": 19.14299085619799,
+      "streams": [
+        {
+          "started_monotonic": 54795.369516925,
+          "first_token_monotonic": 54795.626320891,
+          "finished_monotonic": 54800.383666738,
+          "cached_prompt_tokens": null,
+          "prompt_tokens": 40,
+          "completion_tokens": 96,
+          "ttft_seconds": 0.256804,
+          "elapsed_seconds": 5.01415,
+          "decode_seconds": 4.757346,
+          "decode_tokens_per_second": 20.179319,
+          "mean_stream_gap_seconds": 0.198217,
+          "p95_stream_gap_seconds": 0.424494,
+          "max_stream_gap_seconds": 1.640724,
+          "stream_events": 25,
+          "content_preview": "# Hash Tables: A Complete Explanation\n\n## The Core Idea\n\nA hash table stores key-value pairs and uses a **hash function** to convert a key into an array index, ",
+          "content_sha256": "e5e467e0bdcbc262ab5afa68ca9eac3de4f32b07d552c25813656315c5f700b4"
+        }
+      ],
+      "metrics_delta": {
+        "spec_decode_num_drafts_total": 24.0,
+        "spec_decode_num_draft_tokens_total": 168.0,
+        "spec_decode_num_accepted_tokens_total": 76.0,
+        "num_preemptions_total": 0.0
+      }
+    }
+  ]
+}

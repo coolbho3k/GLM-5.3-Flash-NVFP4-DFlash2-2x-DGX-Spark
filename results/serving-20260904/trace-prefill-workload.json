@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "config": {
+    "url": "http://127.0.0.1:8000",
+    "mode": "prefill",
+    "label": "trace-prefill-rows128",
+    "output": "results/serving-20260904/trace-prefill-workload.json",
+    "levels": "1,6",
+    "prompts": "prose,code",
+    "max_tokens": 256,
+    "prefill_tokens": "131072",
+    "rounds": 1,
+    "profile": true
+  },
+  "timestamp_utc": "2026-09-04T20:00:19.748161+00:00",
+  "cases": [
+    {
+      "started_monotonic": 55237.64395728,
+      "first_token_monotonic": 55343.747093183,
+      "finished_monotonic": 55343.779592214,
+      "cached_prompt_tokens": null,
+      "prompt_tokens": 87389,
+      "completion_tokens": 2,
+      "ttft_seconds": 106.103136,
+      "elapsed_seconds": 106.135635,
+      "decode_seconds": 0.032499,
+      "decode_tokens_per_second": 61.540296,
+      "mean_stream_gap_seconds": 0.0,
+      "p95_stream_gap_seconds": 0.0,
+      "max_stream_gap_seconds": 0.0,
+      "stream_events": 1,
+      "content_preview": "OK",
+      "content_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
+      "target_prompt_tokens": 131072,
+      "input_tokens_per_second": 823.623159,
+      "round": 0,
+      "cold": null
+    }
+  ]
+}

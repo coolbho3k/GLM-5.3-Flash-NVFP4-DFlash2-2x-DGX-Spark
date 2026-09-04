@@ -285,6 +285,7 @@ def main() -> None:
         "decode_tokens": args.decode_tokens,
         "prefill_tokens": args.prefill_tokens,
         "prefills_per_wave": args.prefills_per_wave,
+        "corpus_seed": args.corpus_seed,
         "profile_mixed": args.profile_mixed,
         "cases": [],
     }
