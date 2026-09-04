@@ -464,3 +464,27 @@ As with the EXL3 estimate, this excludes other traffic and does not prove
 measured bandwidth saturation. It suggests a targeted BF16 kernel could
 yield a modest gain, but does not justify predicting a dramatic speedup.
 The generic cuBLAS/Lt/layout screens above already rejected broad changes.
+
+### Restored serving state
+
+After rejecting private output, the validated image was restored with fast=1,
+activation=1 and scratch=128 verified inside both ranks. GMU remains 0.87;
+this boot advertises 4,757,824 KV tokens (4.54x 1M). The API is healthy.
+Two 64-token prose warmup passes covered every concurrency from C1 through
+C6. All expected requests completed, with no preemptions or extra completed
+requests. First-use pauses at C2/C4/C5 disappeared on the second pass.
+These short warmups are not additional A/B performance claims; use the
+matched two-round 256-token results above for comparisons.
+
+`serve-profile.sh show` now displays native-fast, activation and scratch
+settings explicitly. Defaults remain off/off/128; existing profiles are not
+silently switched onto a new extension. Eight CPU recipe-contract tests and
+the scoped native-patch, activation, scratch and private-output source tests
+passed. Broad host discovery cannot run GPU-dependent tests because host
+Python lacks torch; GPU numerical evidence comes from the isolated container
+screens and the serving regression gates, not that host discovery command.
+
+The campaign checkpoints are local on `feature/exl3-ab-current`. Public push
+was rejected by safety review even after read-only verification of the named
+GitHub fork and existing branch. No campaign commits were pushed; main is
+unchanged. Publishing requires renewed approval, not a server change.

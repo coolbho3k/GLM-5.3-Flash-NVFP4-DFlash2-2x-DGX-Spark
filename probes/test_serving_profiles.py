@@ -68,6 +68,22 @@ def test_production_defaults_unchanged() -> None:
     assert values["PREFILL_ADMISSION_POLICY"] == "adaptive"
 
 
+def test_native_pipeline_settings_are_visible_and_opt_in() -> None:
+    defaults = resolved("exl3-fp8-dcp2")
+    assert defaults["GLM53_EXL3_MOE_FAST"] == "0"
+    assert defaults["EXL3_FUSED_FAT_ACTIVATION"] == "0"
+    assert defaults["EXL3_TEMP_ROWS_FUSED"] == "128"
+    assert defaults["EXL3_FAT_ACTIVATION_CONTROL"] == "''"
+    fast = resolved("exl3-fp8-dcp2", GLM53_EXL3_MOE_FAST="1",
+                    EXL3_FUSED_FAT_ACTIVATION="1")
+    assert fast["GLM53_EXL3_MOE_FAST"] == "1"
+    assert fast["EXL3_FUSED_FAT_ACTIVATION"] == "1"
+    for filename in ("start-cluster.sh", "launch-glm53-vllm-tp2-dflash2.sh"):
+        source = (ROOT / filename).read_text()
+        for setting in ("GLM53_EXL3_MOE_FAST", "EXL3_FUSED_FAT_ACTIVATION"):
+            assert setting in source
+
+
 def test_overrides_win() -> None:
     values = resolved(
         "exl3-fp8-dcp2",
