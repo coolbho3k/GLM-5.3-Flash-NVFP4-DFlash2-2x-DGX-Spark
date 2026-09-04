@@ -71,6 +71,11 @@ def main():
         library.probe_init.restype = C.c_int
         library.probe_launch.restype = C.c_int
         library.probe_launch.argtypes = [C.POINTER(C.c_void_p), C.c_int, C.c_void_p]
+        if label.endswith('_private'):
+            assert args.alias_shared_scales, 'Private output requires verified shared input'
+            library.probe_launch_private.restype = C.c_int
+            library.probe_launch_private.argtypes = [C.POINTER(C.c_void_p), C.c_int,
+                                                    C.c_int, C.c_void_p]
         assert library.probe_init() == 0
         scratch = [torch.empty((concurrency, cap, dim), dtype=torch.float16, device='cuda')
                    for dim in (hidden, hidden, intermediate, intermediate)]
@@ -95,10 +100,17 @@ def main():
                     raise ValueError(routing)
                 order = ids.flatten().argsort(stable=True)
                 counts = torch.bincount(ids.flatten(), minlength=n_experts + 1)
+                # Outside timing. Traffic estimate excludes scales/activations
+                # and assumes every expert's packed weights stream per M16 tile.
+                active_experts = int((counts > 0).sum().item())
+                row_tiles = int(((counts + 15) // 16).sum().item())
+                packed_weight_bytes = row_tiles * 3 * hidden * intermediate // 2
                 tokens = torch.arange(rows, device='cuda').repeat_interleave(topk)[order]
                 weights = torch.full((rows * topk,), 1 / topk, dtype=torch.float16, device='cuda')
                 out = torch.empty(rows, hidden, dtype=torch.float32, device='cuda')
                 result = {'rows': rows, 'routing': routing,
+                          'active_experts': active_experts, 'expert_m16_tiles': row_tiles,
+                          'estimated_packed_weight_bytes': packed_weight_bytes,
                           'random_scales': args.random_scales, 'input_scale': args.input_scale,
                           'native_fast': os.environ.get('GLM53_EXL3_MOE_FAST', '0'),
                           'aliased_scales': args.alias_shared_scales,
@@ -122,7 +134,12 @@ def main():
                         argv = (C.c_void_p * len(values))(*[C.addressof(v) for v in values])
                         def run():
                             out.zero_()
-                            rc = lib.probe_launch(argv, concurrency, torch.cuda.current_stream().cuda_stream)
+                            if label.endswith('_private'):
+                                assert rows <= cap // 2
+                                rc = lib.probe_launch_private(argv, concurrency, rows,
+                                    torch.cuda.current_stream().cuda_stream)
+                            else:
+                                rc = lib.probe_launch(argv, concurrency, torch.cuda.current_stream().cuda_stream)
                             assert rc == 0, f'CUDA launch error {rc}'
                     stream = torch.cuda.Stream()
                     stream.wait_stream(torch.cuda.current_stream())
@@ -151,6 +168,7 @@ def main():
                     if label.startswith('g8') and '_k16' not in label:
                         assert rmse < 1e-6, ('same-math parity failure', label, rmse)
                     result['variants'][label] = {'ms': statistics.median(samples),
+                        'estimated_packed_weight_gbps': packed_weight_bytes / statistics.median(samples) / 1e6,
                         'relative_rmse': rmse, 'max_abs_difference': delta.abs().max().item()}
                     del graph
                 print(json.dumps(result), flush=True)

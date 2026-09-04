@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "config": {
+    "url": "http://127.0.0.1:8000",
+    "mode": "prefill",
+    "label": "pipeline-B-fast-warmed",
+    "output": "results/serving-20260904/prefill-pipeline-B-warmed.json",
+    "levels": "1,6",
+    "prompts": "prose,code",
+    "max_tokens": 256,
+    "prefill_tokens": "32768",
+    "rounds": 1,
+    "profile": false,
+    "stable_prefill": true
+  },
+  "timestamp_utc": "2026-09-04T21:51:09.198438+00:00",
+  "cases": [
+    {
+      "started_monotonic": 61887.094257439,
+      "first_token_monotonic": 61906.287884472,
+      "finished_monotonic": 61906.373817468,
+      "cached_prompt_tokens": null,
+      "prompt_tokens": 21850,
+      "completion_tokens": 2,
+      "ttft_seconds": 19.193627,
+      "elapsed_seconds": 19.27956,
+      "decode_seconds": 0.085933,
+      "decode_tokens_per_second": 23.273947,
+      "mean_stream_gap_seconds": 0.0,
+      "p95_stream_gap_seconds": 0.0,
+      "max_stream_gap_seconds": 0.0,
+      "stream_events": 1,
+      "content_preview": "OK",
+      "content_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
+      "prompt_sha256": "56ab27fb7e244e01f4cdb65e5c7c12666ed8a7c9c426b39ff48437d6fd6e00ec",
+      "cache_salt": "1788558669198451311-0-32768",
+      "target_prompt_tokens": 32768,
+      "input_tokens_per_second": 1138.398699,
+      "global_prefix_hit_tokens_delta": 0.0,
+      "round": 0,
+      "cold": null
+    }
+  ]
+}

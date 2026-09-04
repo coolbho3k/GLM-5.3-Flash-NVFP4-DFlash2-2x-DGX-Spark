@@ -323,5 +323,70 @@ decode was 10.310 without prefill and 7.976 with prefill; maximum mixed stream
 gap was 0.596 s. The synthetic decoder text is not an authoritative benchmark
 report; use the measured timestamps/counters only.
 
-A drained successfully. The matching B boot has been started with fast=1;
-its warmup, throughput, correctness, and KV checks remain pending.
+A drained successfully. The matching B boot and results follow.
+
+### Serving B candidate (native pipeline on)
+
+Both ranks verified fast=1 with the same image and other settings as A.
+Boot advertised 4,743,558 KV tokens (4.52x 1M context); the small difference
+from A is boot-profile variance, not a change to KV format or memory fraction.
+After six 64-token warmups, two matched 256-token rounds measured:
+
+| Concurrency | Prose A → B aggregate tok/s | Code A → B aggregate tok/s |
+| --- | ---: | ---: |
+| 1 | 26.75 → 30.13 (+12.7%) | 23.30 → 26.94 (+15.6%) |
+| 3 | 50.65 → 54.84 (+8.3%) | 42.62 → 45.73 (+7.3%) |
+| 6 | 82.45 → 82.61 (+0.2%) | 74.88 → 81.56 (+8.9%) |
+
+These short runs do not establish those percentages as universal gains.
+C1 acceptance increased, while C6 prose acceptance decreased. C1 wall time
+per drafting cycle improved more consistently: prose 126.97 → 118.54 ms
+(-6.6%), code 127.99 → 120.28 ms (-6.0%). This includes first-token work,
+not just GPU execution. Completed-request deltas matched expected traffic.
+The native synthetic parity screens remain the numerical evidence; changed
+completion hashes or speculative acceptance are not quality measurements.
+
+Warmed cold prefill used the identical 21,850-token prompt SHA with zero
+global prefix hits on both boots: 1134.75 → 1138.40 input tok/s (+0.3%),
+essentially unchanged. This thin/decode optimization does not target E2
+fat-expert prefill kernels.
+
+One matched mixed C3 case improved mean per-stream decode 7.976 → 8.636
+tok/s (+8.3%), aggregate decode 23.059 → 24.880 (+7.9%), and concurrent
+prefill 218.03 → 235.81 input tok/s (+8.2%). The 5428-token prefill overlapped
+all three decoders for its entire lifetime on both runs. Maximum mixed
+stream gap changed 0.596 → 0.563 seconds; no preemptions occurred. This is
+one synthetic pressure case, not a general mixed-workload guarantee.
+
+Functional checks passed: exact text, arithmetic, bare-prompt coherence,
+tool parsing, black-PNG vision, 27,049-token retrieval, and an observed
+16,384-token prefix hit. All six concurrent forks also retrieved the correct
+answer from a 131,117-token shared prefix, with 737,280 prefix-hit tokens
+observed. Warm prefill took 114.575 seconds; fork requests took 14.865–51.330
+seconds, so this proves correctness/cache reuse, not low long-context TTFT.
+These are regression smoke checks, not a quality
+benchmark against the original checkpoint.
+
+Raw B JSONs, warmup, and functional results are in `results/serving-20260904`.
+Recompute decode comparisons with:
+
+```bash
+python3 probes/compare_serving_quick.py \
+  results/serving-20260904/decode-pipeline-A.json \
+  results/serving-20260904/decode-pipeline-B.json
+```
+
+### Next isolated screen: group-private output
+
+The probe-only `--private-output` builder option reuses the unused up-input
+scratch (only with verified shared gate/up SUH) as FP32 output per expert
+group. It replaces contended atomic writes with ordinary FP32 additions,
+then reduces groups in a separate kernel. Clearing and reduction are timed.
+The existing allocation fits up to 64 rows at cap=128, covering C1–C6 K7.
+No serving dispatcher/default is changed. This changes FP32 sum order and
+must pass the same 1e-6 relative parity gate before any serving consideration.
+
+The probe now records actual active experts, M16 expert tiles, and an
+estimated packed-weight throughput. That estimate is not a DRAM hardware
+counter: it excludes scales/activations and assumes weight streaming per
+expert tile. Do not treat it as proof of bandwidth saturation.
