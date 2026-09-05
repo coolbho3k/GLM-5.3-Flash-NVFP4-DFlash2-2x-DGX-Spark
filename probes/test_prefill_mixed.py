@@ -10,9 +10,26 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import bench_prefill_mixed as bench
 import compare_prefill_mixed as compare
+import bench_scheduler_pressure as pressure
 
 
 class PrefillMixedToolingTests(unittest.TestCase):
+    def test_pressure_cold_prefills_have_distinct_salts_with_fixed_text(self) -> None:
+        kwargs = dict(prefill_count=2, prefill_tokens=4096,
+                      case_prefix="fixed", corpus_seed="fixed", cold_prefill=True)
+        with patch.object(pressure, "prefill_once", return_value={
+            "prompt_tokens": 100, "ttft_seconds": 2.0,
+        }) as prefill:
+            pressure.prefill_wave("http://unused", **kwargs)
+            pressure.prefill_wave("http://unused", **kwargs)
+        calls = [call.kwargs for call in prefill.call_args_list]
+        salts = [call["cache_salt"] for call in calls]
+        self.assertEqual(len(set(salts)), 4)
+        self.assertTrue(all(salts))
+        self.assertEqual(sorted(call["case_id"] for call in calls[:2]),
+                         sorted(call["case_id"] for call in calls[2:]))
+        self.assertEqual({call["corpus_seed"] for call in calls}, {"fixed"})
+
     def test_cache_salt_changes_cache_identity_not_prompt_content(self) -> None:
         kwargs = dict(case_id="fixed", corpus_seed="fixed", phrase_index=0)
         with patch.object(bench, "stream_chat", side_effect=lambda *args: {

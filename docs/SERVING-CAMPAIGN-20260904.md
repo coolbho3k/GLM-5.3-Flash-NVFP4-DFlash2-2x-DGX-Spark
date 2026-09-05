@@ -1019,3 +1019,148 @@ Final restoration after the isolated M128 screen completed with HTTP 200,
 4,643,693 KV tokens at GMU 0.87, and all short functional checks passing.
 The validated image remains live, with no prefill pipeline candidate enabled.
 See `fat-pipeline-restore.log` and `fat-pipeline-restored-functional.jsonl`.
+
+### M64 prefill pipeline: isolated and installed-extension validation
+
+The follow-up M64 screen is now GPU-qualified for the tested synthetic cases.
+Forward/reverse runs each covered 26 cases (real gate/up and down shapes at
+129 through 8192 rows, plus four tail/scatter boundary cases). All candidates
+were bitwise equal to the installed control before and after graph replay.
+The M64 variant has 64 registers, no spills, 14,336 shared bytes and four
+resident blocks per SM, versus two for the original M128 kernel.
+
+Representative M64 kernel **time reductions** across the two orderings:
+
+| Rows | Gate/up | Down/scatter |
+| ---: | ---: | ---: |
+| 129 | 46.1–46.5% | 26.7–37.1% |
+| 512 | 10.6–14.4% | 13.3–19.2% |
+| 8192 | 21.7–23.2% | 14.4–15.0% |
+
+These are isolated kernel results, not serving speedups. M64 resolved the
+512-row gate/up regression observed with M128 in this screen. Memcheck,
+racecheck and synccheck each passed the four boundary cases with zero errors
+or hazards; these were not sanitizer runs over every real shape. Evidence:
+`exl3-fat-tiles-{forward,reverse}.jsonl` and the three sanitizer logs.
+
+The additive native image `glm53-exl3:prefill-pipeline-v1` now includes both
+M128 and M64 symbols with `glm53_fat_pipeline_version() == 2`. A separate
+12-case test of the actual installed extension also passed bitwise parity
+before/after replay (`fat-pipeline-native-parity.jsonl`). Original control
+and decode entry points remain intact. Eight pipeline CPU tests and nine
+serving-profile tests pass.
+
+The experiment accepts `EXL3_FAT_PIPELINE=off|m128|m64` (default `off`). Optional
+`EXL3_FAT_PIPELINE_CONTROL=/etc/glm53/adaptive-scheduler/exl3-fat-pipeline.json`
+reads `{"mode":"off"}` / `{"mode":"m64"}` / `{"mode":"m128"}` at most once
+per second. Update the host file and its worker copy only with requests
+drained, then verify both ranks have observed the selected mode. Invalid
+updates retain the last valid mode. Opt-in startup checks reject missing
+native symbols instead of silently falling back. This control is restricted
+to the fused E2 EXL3 FP8/DCP2 profile and adaptive-scheduler directory mount.
+
+Serving validation is in progress on the new image with the hot control
+initially `off`, at GMU 0.87. No serving gain or promotion is claimed yet.
+The change affects fat-expert prefill only; C1 decode is unchanged, and small
+mixed-prefill chunks may never cross the fat-expert threshold. Immutable
+weight repacking is still present and is a separate optimization opportunity.
+
+Rebuild the additive experiment from the normal pinned-input recipe (build
+with serving stopped unless the build is separately memory-limited):
+
+```bash
+IMAGE=glm53-exl3:decode-pipeline-recipe-v1 ./serve-profile.sh build exl3-fp8-dcp2
+docker build --file overlay-exl3-fp8/Dockerfile.fat-pipeline-experiment \
+  --build-arg BASE_IMAGE=glm53-exl3:decode-pipeline-recipe-v1 \
+  --tag glm53-exl3:prefill-pipeline-v1 .
+```
+
+The following static-mode launch avoids dependence on a mutable A/B file;
+the cluster launcher supplies the selected image to the worker:
+
+```bash
+IMAGE=glm53-exl3:prefill-pipeline-v1 GPU_MEMORY_UTILIZATION=0.87 \
+  GLM53_EXL3_MOE_FAST=1 GLM53_EXL3_MOE_STREAM_WEIGHTS=0 \
+  EXL3_FUSED_FAT_ACTIVATION=1 EXL3_FAT_ACTIVATION_CONTROL= \
+  EXL3_TEMP_ROWS_FUSED=128 EXL3_FAT_PIPELINE=m64 EXL3_FAT_PIPELINE_CONTROL= \
+  TARGET_CUDAGRAPH_SCOPE=c1 ./serve-profile.sh start exl3-fp8-dcp2
+```
+
+For same-boot A/B, set `EXL3_FAT_PIPELINE_CONTROL` to the path above instead;
+the launch wrapper copies `scheduler_profiles/exl3-fat-pipeline.json` to the
+worker. Later hot updates require copying the changed file to the worker
+again. The control image can be restored with the same launch flags except
+`IMAGE=glm53-exl3:decode-pipeline-recipe-v1 EXL3_FAT_PIPELINE=off
+EXL3_FAT_PIPELINE_CONTROL=`.
+
+Same-boot measurements use `bench_serving_quick.py --stable-prefill` and
+`bench_scheduler_pressure.py --cold-prefill` so every measured large prompt
+has a fresh cache salt without changing its text. Keep pure-prefill repeats
+as separate `--rounds 1` commands: round indices otherwise change prompt size.
+
+### Same-boot M64 serving result: retain as an opt-in prefill win
+
+The alternating `off → m64 → off → m64` sequence completed. All four pure
+prefills used the same 21,850-token prompt/hash, distinct cache salts and
+zero observed prefix-hit tokens. Excluding first-use warmups:
+
+| Mode | Input tok/s samples | Median |
+| --- | --- | ---: |
+| Original | 1114.73, 1147.14 | 1130.94 |
+| M64 pipeline | 1221.97, 1223.50 | 1222.73 |
+
+This is **8.12% higher pure-prefill throughput** on this prompt. The later
+control remains slower than either candidate sample; this is not a cache-hit
+or first-use warmup comparison. Do not generalize it to all prompt lengths.
+
+Two 256-output-token prose/code passes at C1/C3/C6 completed in each mode,
+with no extra requests or preemptions. C1 wall time per drafting cycle was
+117.02 ms in both modes for prose and 119.00 → 119.64 ms for code. C1 prose
+output rate rose with acceptance, not with a faster decode path. Median
+aggregate rates were:
+
+| Workload | Original tok/s | M64 tok/s |
+| --- | ---: | ---: |
+| C1 prose/code | 28.04 / 25.56 | 31.04 / 25.68 |
+| C3 prose/code | 56.15 / 52.48 | 55.45 / 50.37 |
+| C6 prose/code | 84.29 / 76.06 | 82.58 / 77.45 |
+
+No consistent decode improvement is established. These short, acceptance-
+sensitive samples also cannot exclude a small aggregate regression. The
+ordinary <=48-token C1–C6 K7 path returns before the changed fat-expert code
+(scratch cap128); the native decode implementation is unchanged.
+
+The mixed C3+one-prefill tests used identical 5,428-token prefill text with
+fresh salts and full three-decoder overlap throughout prefill. Original
+mixed decode was 8.65/8.77 tok/s per stream, candidate 8.06/8.98. Concurrent
+prefill was 237.34/239.48 versus 243.99/241.26 input tok/s. Acceptance varied;
+no broad mixed-workload win is claimed. Maximum stream gaps after the first
+control were approximately 0.50–0.51 seconds.
+
+All short functional checks passed in both modes. The M64 long test retrieved
+ORCHID from 27,049 prompt tokens; the follow-up also returned ORCHID with
+16,384 prefix-hit tokens. This is a targeted functional gate, not a general
+model-quality evaluation or a full 1M-context test. Final short checks passed
+again, HTTP health was 200, and running/waiting request counts were both zero.
+
+The server remains on M64 at GMU0.87. This boot allocated 4,914,754 KV tokens;
+the difference from prior boots is not credited to the pipeline. The cache
+format, checkpoint, scheduler, scratch capacity and graph settings did not
+change during A/B. Both loaded native binaries have SHA-256
+`2ce291ad4e52d75c0b06f14900e080b3239ca6f2c6e88c2016c040f22c67ed53`, and both
+Python dispatchers match `fat-pipeline-native-{head,worker}.sha256`.
+
+Keep the ordinary launcher default `off`; the validated experiment is
+explicitly selectable with the static command above. Its hot-control sample
+file records the current `m64` experiment, but is ignored unless the control
+path is explicitly set. Results are `fat-native-{A,B,A2,B2}-*.json*`, with
+filtered runtime logs and `fat-native-ab-summary.json`. Regenerate the summary:
+
+```bash
+python3 probes/analyze_exl3_fat_ab.py results/serving-20260904
+```
+
+The summarizer verifies complete matched case sets, output budgets, request
+counts, zero preemptions, fixed prefill hashes and unique cache salts. The
+next prefill lead remains removing runtime gate/up repacking; it was not
+implemented in this candidate. Decode still needs a distinct optimization.

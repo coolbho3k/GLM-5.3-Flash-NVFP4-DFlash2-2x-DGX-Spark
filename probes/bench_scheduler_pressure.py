@@ -9,6 +9,7 @@ import math
 import statistics
 import threading
 import time
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -123,6 +124,7 @@ def prefill_wave(
     prefill_tokens: int,
     case_prefix: str,
     corpus_seed: str,
+    cold_prefill: bool = False,
 ) -> dict[str, Any]:
     boxes: list[dict[str, Any]] = [{} for _ in range(prefill_count)]
     started = time.perf_counter()
@@ -135,6 +137,7 @@ def prefill_wave(
                 case_id=f"{case_prefix}-prefill-{index}",
                 corpus_seed=corpus_seed,
                 phrase_index=index + 1,
+                cache_salt=uuid.uuid4().hex if cold_prefill else None,
             )
         except BaseException as exc:
             boxes[index]["error"] = exc
@@ -177,6 +180,7 @@ def run_case(
     prefill_tokens: int,
     corpus_seed: str,
     profile_mixed: bool = False,
+    cold_prefill: bool = False,
 ) -> dict[str, Any]:
     # Keep decoder prompts identical between control/mixed waves and across
     # scheduler profiles. DFlash acceptance is content-sensitive, while the
@@ -221,6 +225,7 @@ def run_case(
             prefill_tokens=prefill_tokens,
             case_prefix=f"c{decoder_count}-mixed",
             corpus_seed=corpus_seed,
+            cold_prefill=cold_prefill,
         )
     mixed = finish_decode_wave(mixed_threads, mixed_boxes, mixed_started)
     after_mixed = metrics(base_url)
@@ -268,6 +273,8 @@ def main() -> None:
     parser.add_argument("--prefill-tokens", type=int, default=16384)
     parser.add_argument("--profile-mixed", action="store_true",
                         help="Capture bounded traces once mixed decoding is active")
+    parser.add_argument("--cold-prefill", action="store_true",
+                        help="Salt every prefill without changing its text for same-boot A/B")
     args = parser.parse_args()
 
     base_url = args.url.rstrip("/")
@@ -296,6 +303,7 @@ def main() -> None:
         "prefills_per_wave": args.prefills_per_wave,
         "corpus_seed": args.corpus_seed,
         "profile_mixed": args.profile_mixed,
+        "cold_prefill": args.cold_prefill,
         "cases": [],
     }
     output = Path(args.output)
@@ -309,6 +317,7 @@ def main() -> None:
             prefill_tokens=args.prefill_tokens,
             corpus_seed=args.corpus_seed,
             profile_mixed=args.profile_mixed,
+            cold_prefill=args.cold_prefill,
         )
         report["cases"].append(case)
         print(json.dumps(case), flush=True)

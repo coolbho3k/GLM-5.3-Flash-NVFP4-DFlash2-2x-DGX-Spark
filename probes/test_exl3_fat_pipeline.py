@@ -3,6 +3,10 @@ import unittest
 from pathlib import Path
 import importlib.util
 import tempfile
+import ast
+from types import SimpleNamespace
+import json
+import os
 from build_exl3_fat_pipeline import pipelined_source, standalone, small_tile_source
 
 
@@ -67,8 +71,60 @@ class FatPipelineTests(unittest.TestCase):
             self.assertIn('void exl3_fat_gemm_async2(', candidate)
             self.assertIn('void exl3_fat_gemm_scatter_async2(', candidate)
             self.assertIn('#include "exl3_fat_gemm_async2.cuh"', candidate)
+            m64 = (quant / 'exl3_fat_gemm_async2_m64.cu').read_text()
+            self.assertIn('FAT_TILE_M = 64;', m64)
+            self.assertIn('void exl3_fat_gemm_scatter_async2_m64(', m64)
             with self.assertRaises(ValueError):
                 module.patch(root)
+
+    def test_runtime_selector_is_explicit_and_fail_closed(self):
+        source = Path(__file__).resolve().parents[1] / 'vendor/miaai-exl3/exl3.py'
+        tree = ast.parse(source.read_text())
+        node = next(n for n in tree.body if isinstance(n, ast.FunctionDef)
+                    and n.name == 'select_fat_pipeline_ops')
+        env = {}
+        exec(compile(ast.fix_missing_locations(ast.Module(body=[node], type_ignores=[])),
+                     str(source), 'exec'), env)
+        select = env['select_fat_pipeline_ops']
+        old = SimpleNamespace(exl3_fat_gemm=object(), exl3_fat_gemm_scatter=object())
+        self.assertEqual(select(old, 'off'), (old.exl3_fat_gemm, old.exl3_fat_gemm_scatter))
+        for mode in ['m128', 'm64', 'invalid']:
+            with self.assertRaises(RuntimeError):
+                select(old, mode)
+        old.glm53_fat_pipeline_version = lambda: 1
+        with self.assertRaisesRegex(RuntimeError, 'Unsupported'):
+            select(old, 'm64')
+        old.glm53_fat_pipeline_version = lambda: 2
+        for mode, suffix in [('m128', '_async2'), ('m64', '_async2_m64')]:
+            direct, scatter = object(), object()
+            setattr(old, 'exl3_fat_gemm' + suffix, direct)
+            setattr(old, 'exl3_fat_gemm_scatter' + suffix, scatter)
+            self.assertEqual(select(old, mode), (direct, scatter))
+
+    def test_hot_control_retains_valid_mode_and_throttles_reads(self):
+        source = Path(__file__).resolve().parents[1] / 'vendor/miaai-exl3/exl3.py'
+        node = next(n for n in ast.parse(source.read_text()).body
+                    if isinstance(n, ast.FunctionDef) and n.name == 'fat_pipeline_mode')
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'control.json'
+            clock = [1.0]
+            env = {'Path': Path, 'json': json, 'os': os,
+                   '_FAT_PIPELINE_CONTROL': str(path), '_FAT_PIPELINE_STATE': [0.0, 'off', None],
+                   'time': SimpleNamespace(monotonic=lambda: clock[0]),
+                   'logger': SimpleNamespace(info=lambda *args: None, warning=lambda *args: None)}
+            exec(compile(ast.fix_missing_locations(ast.Module(body=[node], type_ignores=[])),
+                         str(source), 'exec'), env)
+            mode = env['fat_pipeline_mode']
+            path.write_text('{"mode":"m64"}')
+            self.assertEqual(mode(), 'm64')
+            path.write_text('{"mode":"off"}')
+            self.assertEqual(mode(), 'm64')
+            clock[0] = 3.0
+            path.write_text('{"mode":"broken"}')
+            self.assertEqual(mode(), 'm64')
+            clock[0] = 5.0
+            path.write_text('{"mode":"off"}')
+            self.assertEqual(mode(), 'off')
 
 
 if __name__ == '__main__':

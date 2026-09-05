@@ -47,6 +47,8 @@ def main():
                         help='Real projection row counts; boundary cases always run first')
     parser.add_argument('--small-only', action='store_true',
                         help='Only boundary cases, suitable for sanitizer checks')
+    parser.add_argument('--native-pipelines', action='store_true',
+                        help='Also validate/time the installed additive native symbols')
     args = parser.parse_args()
     assert args.repeats > 0
     torch.set_num_threads(2)
@@ -59,6 +61,12 @@ def main():
         lib.fat_probe_launch.argtypes = [C.POINTER(C.c_void_p), *([C.c_int]*4), C.c_void_p]
         lib.fat_probe_occupancy.argtypes = [C.c_int]
         libraries[name] = lib
+    installed = {}
+    if args.native_pipelines:
+        assert ext.glm53_fat_pipeline_version() == 2
+        for mode, suffix in [('m128', '_async2'), ('m64', '_async2_m64')]:
+            installed['extension_' + mode] = (getattr(ext, 'exl3_fat_gemm' + suffix),
+                                              getattr(ext, 'exl3_fat_gemm_scatter' + suffix))
     shapes = [(1, 16, 128, False), (127, 48, 256, False),
               (128, 32, 128, True), (129, 48, 256, True)]
     for m in ([] if args.small_only else map(int, args.rows.split(','))):
@@ -85,11 +93,20 @@ def main():
             native()
             reference = out.clone()
             row = dict(m=m, k=k, n=n, scatter=scatter, repeats=args.repeats, seed=73, variants={})
-            for name in ['native', *libraries, 'native_repeat']:
+            for name in ['native', *libraries, *installed, 'native_repeat']:
                 holders = argv = None
                 if name.startswith('native'):
                     call = native
                     metadata = {}
+                elif name in installed:
+                    direct_fn, scatter_fn = installed[name]
+                    metadata = {'installed_extension': True}
+
+                    def call():
+                        if scatter:
+                            scatter_fn(a, packed, out, svh, idx, weights, 4, True, False)
+                        else:
+                            direct_fn(a, packed, out, svh, 4, True, False)
                 else:
                     lib = libraries[name]
                     metadata = dict(shared_bytes=lib.fat_probe_shared_bytes(),

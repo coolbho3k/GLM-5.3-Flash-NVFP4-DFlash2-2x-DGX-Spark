@@ -199,6 +199,16 @@ scp "${ssh_opts[@]}" "$SCRIPT_DIR/docker/sparse_attn_indexer_kpool_sm121.py" \
   "$WORKER_HOST:$REMOTE_DIR/docker/"
 
 worker_adaptive_scheduler_config="$ADAPTIVE_SCHEDULER_CONFIG"
+if [[ -n "${EXL3_FAT_PIPELINE_CONTROL:-}" ]]; then
+  [[ "$PREFILL_ADMISSION_POLICY" == adaptive && "$EXL3_FAT_PIPELINE_CONTROL" == /etc/glm53/adaptive-scheduler/exl3-fat-pipeline.json ]] || {
+    echo "EXL3_FAT_PIPELINE_CONTROL requires the adaptive scheduler's exl3-fat-pipeline.json mount" >&2
+    exit 2
+  }
+  fat_pipeline_control_host="$(dirname -- "$ADAPTIVE_SCHEDULER_CONFIG")/exl3-fat-pipeline.json"
+  test -s "$fat_pipeline_control_host"
+  ssh "${ssh_opts[@]}" "$WORKER_HOST" "mkdir -p $(printf '%q' "$REMOTE_DIR/scheduler_profiles")"
+  scp "${ssh_opts[@]}" "$fat_pipeline_control_host" "$WORKER_HOST:$REMOTE_DIR/scheduler_profiles/exl3-fat-pipeline.json"
+fi
 if [[ -n "${EXL3_FAT_ACTIVATION_CONTROL:-}" ]]; then
   [[ "$PREFILL_ADMISSION_POLICY" == "adaptive" && "$EXL3_FAT_ACTIVATION_CONTROL" == "/etc/glm53/adaptive-scheduler/exl3-activation.json" ]] || {
     echo "EXL3 activation hot control requires the adaptive mount and /etc/glm53/adaptive-scheduler/exl3-activation.json" >&2
@@ -244,6 +254,8 @@ trap cleanup_failed_start ERR INT TERM
 ssh "${ssh_opts[@]}" "$WORKER_HOST" \
   "export PROFILER_CONFIG=$(printf '%q' "${PROFILER_CONFIG:-}");" \
   "export EXL3_FUSED_FAT_ACTIVATION=$(printf '%q' "${EXL3_FUSED_FAT_ACTIVATION:-0}");" \
+  "export EXL3_FAT_PIPELINE=$(printf '%q' "${EXL3_FAT_PIPELINE:-off}");" \
+  "export EXL3_FAT_PIPELINE_CONTROL=$(printf '%q' "${EXL3_FAT_PIPELINE_CONTROL:-}");" \
   "export GLM53_EXL3_MOE_FAST=$(printf '%q' "${GLM53_EXL3_MOE_FAST:-0}");" \
   "export GLM53_EXL3_MOE_STREAM_WEIGHTS=$(printf '%q' "${GLM53_EXL3_MOE_STREAM_WEIGHTS:-0}");" \
   "export EXL3_FAT_ACTIVATION_CONTROL=$(printf '%q' "${EXL3_FAT_ACTIVATION_CONTROL:-}");" \

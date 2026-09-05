@@ -75,6 +75,18 @@ def test_native_pipeline_settings_are_visible_and_opt_in() -> None:
     assert defaults["EXL3_FUSED_FAT_ACTIVATION"] == "0"
     assert defaults["EXL3_TEMP_ROWS_FUSED"] == "128"
     assert defaults["EXL3_FAT_ACTIVATION_CONTROL"] == "''"
+    assert defaults["EXL3_FAT_PIPELINE"] == "off"
+    for mode in ("m128", "m64"):
+        assert resolved("exl3-fp8-dcp2", EXL3_FAT_PIPELINE=mode)["EXL3_FAT_PIPELINE"] == mode
+    for overrides in ({"EXL3_FAT_PIPELINE": "bad"},
+                      {"EXL3_FAT_PIPELINE": "m64", "EXL3_FAT_KERNEL": "0"},
+                      {"EXL3_FAT_PIPELINE": "m64", "EXL3_MOE_ROW_TILE": "1"}):
+        try:
+            resolved("exl3-fp8-dcp2", **overrides)
+        except subprocess.CalledProcessError:
+            pass
+        else:
+            raise AssertionError(overrides)
     fast = resolved("exl3-fp8-dcp2", GLM53_EXL3_MOE_FAST="1",
                     EXL3_FUSED_FAT_ACTIVATION="1", GLM53_EXL3_MOE_STREAM_WEIGHTS="1")
     assert fast["GLM53_EXL3_MOE_FAST"] == "1"
@@ -82,7 +94,7 @@ def test_native_pipeline_settings_are_visible_and_opt_in() -> None:
     assert fast["EXL3_FUSED_FAT_ACTIVATION"] == "1"
     for filename in ("start-cluster.sh", "launch-glm53-vllm-tp2-dflash2.sh"):
         source = (ROOT / filename).read_text()
-        for setting in ("GLM53_EXL3_MOE_FAST", "GLM53_EXL3_MOE_STREAM_WEIGHTS", "EXL3_FUSED_FAT_ACTIVATION"):
+        for setting in ("GLM53_EXL3_MOE_FAST", "GLM53_EXL3_MOE_STREAM_WEIGHTS", "EXL3_FUSED_FAT_ACTIVATION", "EXL3_FAT_PIPELINE"):
             assert setting in source
     starter = (ROOT / "start-cluster.sh").read_text()
     assert 'find_spec("exllamav3_ext")' in starter

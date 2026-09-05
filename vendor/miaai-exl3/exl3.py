@@ -59,6 +59,8 @@ MOE_ACT_SILU = 0
 _FUSED_FAT_ACTIVATION = os.environ.get("EXL3_FUSED_FAT_ACTIVATION", "0") == "1"
 _FAT_ACTIVATION_CONTROL = os.environ.get("EXL3_FAT_ACTIVATION_CONTROL", "")
 _FAT_ACTIVATION_STATE = [0.0, _FUSED_FAT_ACTIVATION, None]
+_FAT_PIPELINE_CONTROL = os.environ.get("EXL3_FAT_PIPELINE_CONTROL", "")
+_FAT_PIPELINE_STATE = [0.0, os.environ.get("EXL3_FAT_PIPELINE", "off"), None]
 # Shared fused scratch: decode is sequential across layers.
 _FUSED_TEMP_CACHE: dict[tuple, tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]] = {}
 _FAT_SCRATCH_CACHE: dict[tuple, dict[str, torch.Tensor]] = {}
@@ -882,6 +884,45 @@ def exl3_fat_activation(
     act_h.copy_(act)
 
 
+def fat_pipeline_mode() -> str:
+    """Optional drained-request A/B control; malformed updates retain last mode."""
+    if not _FAT_PIPELINE_CONTROL:
+        return os.environ.get("EXL3_FAT_PIPELINE", "off")
+    now = time.monotonic()
+    if now < _FAT_PIPELINE_STATE[0]:
+        return _FAT_PIPELINE_STATE[1]
+    _FAT_PIPELINE_STATE[0] = now + 1.0
+    try:
+        mode = json.loads(Path(_FAT_PIPELINE_CONTROL).read_text())["mode"]
+        if mode not in ("off", "m128", "m64"):
+            raise ValueError("mode must be off, m128 or m64")
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        error = str(exc)
+        if error != _FAT_PIPELINE_STATE[2]:
+            logger.warning("EXL3 fat pipeline control ignored: %s", error)
+        _FAT_PIPELINE_STATE[2] = error
+        return _FAT_PIPELINE_STATE[1]
+    if mode != _FAT_PIPELINE_STATE[1]:
+        logger.info("EXL3 E2 prefill pipeline changed to %s", mode)
+    _FAT_PIPELINE_STATE[1:] = [mode, None]
+    return mode
+
+
+def select_fat_pipeline_ops(ext, mode: str):
+    """Fail closed on an explicitly requested, unavailable native pipeline."""
+    if mode not in ("off", "m128", "m64"):
+        raise RuntimeError("EXL3_FAT_PIPELINE must be off, m128 or m64")
+    suffix = ""
+    if mode != "off":
+        if not hasattr(ext, "glm53_fat_pipeline_version"):
+            raise RuntimeError("EXL3_FAT_PIPELINE requires the native fat-pipeline image")
+        if ext.glm53_fat_pipeline_version() != 2:
+            raise RuntimeError("Unsupported native EXL3 fat-pipeline version")
+        suffix = "_async2" if mode == "m128" else "_async2_m64"
+    return (getattr(ext, "exl3_fat_gemm" + suffix),
+            getattr(ext, "exl3_fat_gemm_scatter" + suffix))
+
+
 def apply_exl3_batched_fat(
     xh: torch.Tensor,
     token_sorted: torch.Tensor,
@@ -896,6 +937,11 @@ def apply_exl3_batched_fat(
     """Run fat experts with persistent buffers and optional direct trellis GEMM."""
     ext = load_exllamav3_ext()
     fused_activation = fat_activation_enabled()
+    pipeline_mode = fat_pipeline_mode()
+    if pipeline_mode != "off" and not use_kernel:
+        raise RuntimeError("EXL3_FAT_PIPELINE requires EXL3_FAT_KERNEL=1")
+    if use_kernel:
+        fat_gemm, fat_scatter = select_fat_pipeline_ops(ext, pipeline_mode)
     offset = 0
     for e, n_rows in enumerate(counts_host):
         start = offset
@@ -929,7 +975,7 @@ def apply_exl3_batched_fat(
                 raise RuntimeError(
                     "EXL3_FAT_KERNEL=1 requires exllamav3_ext.exl3_fat_gemm"
                 )
-            ext.exl3_fat_gemm(
+            fat_gemm(
                 h13, packed13, gate_up, svh13, gate.K, gate.mcg, gate.mul1
             )
             _EXL3_FAT_DIAG["direct_calls"] += 1
@@ -953,7 +999,7 @@ def apply_exl3_batched_fat(
                     "EXL3_FAT_KERNEL=1 requires "
                     "exllamav3_ext.exl3_fat_gemm_scatter"
                 )
-            ext.exl3_fat_gemm_scatter(
+            fat_scatter(
                 h2,
                 down.trellis,
                 out,
@@ -980,6 +1026,12 @@ def build_exl3_fused_state(layer: torch.nn.Module, inners: list[dict[str, Any]])
     """Pointer tables + fused temps, once after load. No per-token alloc."""
     import exllamav3_ext
 
+    pipeline_mode = os.environ.get("EXL3_FAT_PIPELINE", "off")
+    if pipeline_mode != "off" or os.environ.get("EXL3_FAT_PIPELINE_CONTROL", ""):
+        if os.environ.get("EXL3_FAT_KERNEL", "0") != "1":
+            raise RuntimeError("EXL3_FAT_PIPELINE requires EXL3_FAT_KERNEL=1")
+        select_fat_pipeline_ops(exllamav3_ext, pipeline_mode if pipeline_mode != "off" else "m64")
+        logger.info("EXL3 E2 native prefill pipeline=%s", pipeline_mode)
     stream_weights = os.environ.get("GLM53_EXL3_MOE_STREAM_WEIGHTS", "0")
     if stream_weights not in ("0", "1"):
         raise RuntimeError("GLM53_EXL3_MOE_STREAM_WEIGHTS must be 0 or 1")
@@ -1665,7 +1717,9 @@ class Exl3MoEMethod(FusedMoEMethodBase):
                     fused_err = "exllamav3_ext.exl3_moe missing"
             except Exception as exc:
                 if (os.environ.get("GLM53_EXL3_MOE_FAST", "0") == "1"
-                        or os.environ.get("GLM53_EXL3_MOE_STREAM_WEIGHTS", "0") != "0"):
+                        or os.environ.get("GLM53_EXL3_MOE_STREAM_WEIGHTS", "0") != "0"
+                        or os.environ.get("EXL3_FAT_PIPELINE", "off") != "off"
+                        or os.environ.get("EXL3_FAT_PIPELINE_CONTROL", "")):
                     raise RuntimeError("Requested native EXL3 fast path could not initialize") from exc
                 fused_err = repr(exc)
                 layer._exl3_ptrs = None

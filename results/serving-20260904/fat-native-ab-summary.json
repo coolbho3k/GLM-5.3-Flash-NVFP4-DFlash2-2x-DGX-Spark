@@ -1,0 +1,191 @@
+{
+  "order": [
+    "A",
+    "B",
+    "A2",
+    "B2"
+  ],
+  "modes": {
+    "off": [
+      "A",
+      "A2"
+    ],
+    "m64": [
+      "B",
+      "B2"
+    ]
+  },
+  "prefill": {
+    "off": {
+      "input_tps": [
+        1114.729945,
+        1147.140722
+      ],
+      "median_input_tps": 1130.9353335
+    },
+    "m64": {
+      "input_tps": [
+        1221.966085,
+        1223.499751
+      ],
+      "median_input_tps": 1222.7329180000002
+    },
+    "gain_percent": 8.11696140184306
+  },
+  "decode": [
+    {
+      "concurrency": 1,
+      "kind": "prose",
+      "off": {
+        "aggregate_tps": [
+          25.839401861874187,
+          30.245505310268722
+        ],
+        "median_aggregate_tps": 28.042453586071453,
+        "accepted_fraction": 0.32302092811646954,
+        "wall_ms_per_draft": 117.01539888539408
+      },
+      "m64": {
+        "aggregate_tps": [
+          30.618073828412058,
+          31.45390183073005
+        ],
+        "median_aggregate_tps": 31.035987829571056,
+        "accepted_fraction": 0.3819655521783181,
+        "wall_ms_per_draft": 117.02106015602745
+      }
+    },
+    {
+      "concurrency": 1,
+      "kind": "code",
+      "off": {
+        "aggregate_tps": [
+          27.13003220057263,
+          23.982528445504144
+        ],
+        "median_aggregate_tps": 25.556280323038386,
+        "accepted_fraction": 0.2890955198647506,
+        "wall_ms_per_draft": 118.99689298220248
+      },
+      "m64": {
+        "aggregate_tps": [
+          23.35923921108482,
+          28.00822999872671
+        ],
+        "median_aggregate_tps": 25.683734604905766,
+        "accepted_fraction": 0.2916666666666667,
+        "wall_ms_per_draft": 119.63947391069226
+      }
+    },
+    {
+      "concurrency": 3,
+      "kind": "prose",
+      "off": {
+        "aggregate_tps": [
+          52.19682660997359,
+          60.10888246471449
+        ],
+        "median_aggregate_tps": 56.15285453734404,
+        "accepted_fraction": 0.3757983193277311
+      },
+      "m64": {
+        "aggregate_tps": [
+          54.24356396272271,
+          56.65259930694069
+        ],
+        "median_aggregate_tps": 55.448081634831695,
+        "accepted_fraction": 0.3706925393108063
+      }
+    },
+    {
+      "concurrency": 3,
+      "kind": "code",
+      "off": {
+        "aggregate_tps": [
+          51.483119105643745,
+          53.482213628445415
+        ],
+        "median_aggregate_tps": 52.48266636704458,
+        "accepted_fraction": 0.31716082659478884
+      },
+      "m64": {
+        "aggregate_tps": [
+          49.271557634857906,
+          51.4660786074123
+        ],
+        "median_aggregate_tps": 50.36881812113511,
+        "accepted_fraction": 0.3012987012987013
+      }
+    },
+    {
+      "concurrency": 6,
+      "kind": "prose",
+      "off": {
+        "aggregate_tps": [
+          84.90076594018358,
+          83.67194056677914
+        ],
+        "median_aggregate_tps": 84.28635325348137,
+        "accepted_fraction": 0.34383908774152677
+      },
+      "m64": {
+        "aggregate_tps": [
+          80.99197527377612,
+          84.17414214900991
+        ],
+        "median_aggregate_tps": 82.58305871139302,
+        "accepted_fraction": 0.3523274478330658
+      }
+    },
+    {
+      "concurrency": 6,
+      "kind": "code",
+      "off": {
+        "aggregate_tps": [
+          84.44898043866459,
+          67.66497539949647
+        ],
+        "median_aggregate_tps": 76.05697791908054,
+        "accepted_fraction": 0.29354792764563453
+      },
+      "m64": {
+        "aggregate_tps": [
+          74.82781070322373,
+          80.06513014776002
+        ],
+        "median_aggregate_tps": 77.44647042549187,
+        "accepted_fraction": 0.294234592445328
+      }
+    }
+  ],
+  "mixed": {
+    "A": {
+      "decode_per_stream_tps": 8.650877,
+      "prefill_input_tps": 237.341597,
+      "full_concurrency_overlap": 1.0,
+      "maximum_stream_gap_seconds": 0.625398,
+      "accepted_fraction": 0.15690866510538642
+    },
+    "B": {
+      "decode_per_stream_tps": 8.063877,
+      "prefill_input_tps": 243.993067,
+      "full_concurrency_overlap": 1.0,
+      "maximum_stream_gap_seconds": 0.503557,
+      "accepted_fraction": 0.12839506172839507
+    },
+    "A2": {
+      "decode_per_stream_tps": 8.76935,
+      "prefill_input_tps": 239.480052,
+      "full_concurrency_overlap": 1.0,
+      "maximum_stream_gap_seconds": 0.508956,
+      "accepted_fraction": 0.16106054610209736
+    },
+    "B2": {
+      "decode_per_stream_tps": 8.975655,
+      "prefill_input_tps": 241.255635,
+      "full_concurrency_overlap": 1.0,
+      "maximum_stream_gap_seconds": 0.507544,
+      "accepted_fraction": 0.1678773204196933
+    }
+  }
+}
