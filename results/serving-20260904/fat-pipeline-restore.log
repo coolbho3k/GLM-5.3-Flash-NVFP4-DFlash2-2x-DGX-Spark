@@ -1,0 +1,12 @@
+Starting worker rank on dgx1.lan...
+bb16f4e02ced034164baa1680a0deb9b054c7dc8a33eeb3235fee5b81b69cbfd
+launched vllm_glm53 rank=1 host=10.100.32.2
+vllm_glm53 Up 2 seconds
+Starting head rank on spark-0...
+b7b1fef895fe173dd6c16e4bb52a7d6a009016ea73651c7d5c318013eeef7e4e
+launched vllm_glm53 rank=0 host=10.100.32.1
+vllm_glm53 Up 2 seconds
+Verified native B12X MXFP8 drafter kernel on both ranks
+GLM-5.3-Flash is healthy at http://10.100.32.1:8000/v1
+{"object":"list","data":[{"id":"glm-5.3-flash","object":"model","created":1788568908,"owned_by":"vllm","root":"/models/glm-5.3-flash-nvfp4","parent":null,"max_model_len":1048576,"permission":[{"id":"modelperm-97939456af54b7b7","object":"model_permission","created":1788568908,"allow_create_engine":false,"allow_sampling":true,"allow_logprobs":true,"allow_search_indices":false,"allow_view":true,"allow_fine_tuning":false,"organization":"*","group":null,"is_blocking":false}]}]}
+(EngineCore pid=175) INFO 09-05 00:39:41 [kv_cache_utils.py:2369] GPU KV cache size: 4,643,693 tokens, Maximum concurrency for 1,048,576 tokens per request: 4.43x

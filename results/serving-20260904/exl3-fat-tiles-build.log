@@ -1,0 +1,117 @@
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(7): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half4") that is explicitly defaulted on its first declaration
+      __attribute__((device)) half4() = default;
+                     ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(19): warning #20012-D: __device__ annotation is ignored on a non-virtual function("bfloat164") that is explicitly defaulted on its first declaration
+      __attribute__((device)) bfloat164() = default;
+                     ^
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(33): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half8") that is explicitly defaulted on its first declaration
+       __attribute__((device)) half8() = default;
+                      ^
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(7): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half4") that is explicitly defaulted on its first declaration
+      __attribute__((device)) half4() = default;
+                     ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(19): warning #20012-D: __device__ annotation is ignored on a non-virtual function("bfloat164") that is explicitly defaulted on its first declaration
+      __attribute__((device)) bfloat164() = default;
+                     ^
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(33): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half8") that is explicitly defaulted on its first declaration
+       __attribute__((device)) half8() = default;
+                      ^
+
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_ZN43_GLOBAL__N__365e669c_10_control_cu_ce55ffd120exl3_fat_gemm_kernelILb0EEEvPK6__halfPKtPfS3_PKlS3_iii' for 'sm_121'
+ptxas info    : Function properties for _ZN43_GLOBAL__N__365e669c_10_control_cu_ce55ffd120exl3_fat_gemm_kernelILb0EEEvPK6__halfPKtPfS3_PKlS3_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 99 registers, used 1 barriers
+ptxas info    : Compile time = 64.230 ms
+ptxas info    : Compiling entry function '_ZN43_GLOBAL__N__365e669c_10_control_cu_ce55ffd120exl3_fat_gemm_kernelILb1EEEvPK6__halfPKtPfS3_PKlS3_iii' for 'sm_121'
+ptxas info    : Function properties for _ZN43_GLOBAL__N__365e669c_10_control_cu_ce55ffd120exl3_fat_gemm_kernelILb1EEEvPK6__halfPKtPfS3_PKlS3_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 106 registers, used 1 barriers
+ptxas info    : Compile time = 77.698 ms
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(7): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half4") that is explicitly defaulted on its first declaration
+      __attribute__((device)) half4() = default;
+                     ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(19): warning #20012-D: __device__ annotation is ignored on a non-virtual function("bfloat164") that is explicitly defaulted on its first declaration
+      __attribute__((device)) bfloat164() = default;
+                     ^
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(33): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half8") that is explicitly defaulted on its first declaration
+       __attribute__((device)) half8() = default;
+                      ^
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(7): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half4") that is explicitly defaulted on its first declaration
+      __attribute__((device)) half4() = default;
+                     ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(19): warning #20012-D: __device__ annotation is ignored on a non-virtual function("bfloat164") that is explicitly defaulted on its first declaration
+      __attribute__((device)) bfloat164() = default;
+                     ^
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(33): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half8") that is explicitly defaulted on its first declaration
+       __attribute__((device)) half8() = default;
+                      ^
+
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_ZN41_GLOBAL__N__f16a215c_9_async2_cu_ce55ffd120exl3_fat_gemm_kernelILb0EEEvPK6__halfPKtPfS3_PKlS3_iii' for 'sm_121'
+ptxas info    : Function properties for _ZN41_GLOBAL__N__f16a215c_9_async2_cu_ce55ffd120exl3_fat_gemm_kernelILb0EEEvPK6__halfPKtPfS3_PKlS3_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 124 registers, used 1 barriers
+ptxas info    : Compile time = 57.914 ms
+ptxas info    : Compiling entry function '_ZN41_GLOBAL__N__f16a215c_9_async2_cu_ce55ffd120exl3_fat_gemm_kernelILb1EEEvPK6__halfPKtPfS3_PKlS3_iii' for 'sm_121'
+ptxas info    : Function properties for _ZN41_GLOBAL__N__f16a215c_9_async2_cu_ce55ffd120exl3_fat_gemm_kernelILb1EEEvPK6__halfPKtPfS3_PKlS3_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 126 registers, used 1 barriers
+ptxas info    : Compile time = 71.095 ms
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(7): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half4") that is explicitly defaulted on its first declaration
+      __attribute__((device)) half4() = default;
+                     ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(19): warning #20012-D: __device__ annotation is ignored on a non-virtual function("bfloat164") that is explicitly defaulted on its first declaration
+      __attribute__((device)) bfloat164() = default;
+                     ^
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(33): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half8") that is explicitly defaulted on its first declaration
+       __attribute__((device)) half8() = default;
+                      ^
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(7): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half4") that is explicitly defaulted on its first declaration
+      __attribute__((device)) half4() = default;
+                     ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(19): warning #20012-D: __device__ annotation is ignored on a non-virtual function("bfloat164") that is explicitly defaulted on its first declaration
+      __attribute__((device)) bfloat164() = default;
+                     ^
+
+/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/util.cuh(33): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half8") that is explicitly defaulted on its first declaration
+       __attribute__((device)) half8() = default;
+                      ^
+
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_ZN46_GLOBAL__N__80db23cb_13_async2_m64_cu_ce55ffd120exl3_fat_gemm_kernelILb0EEEvPK6__halfPKtPfS3_PKlS3_iii' for 'sm_121'
+ptxas info    : Function properties for _ZN46_GLOBAL__N__80db23cb_13_async2_m64_cu_ce55ffd120exl3_fat_gemm_kernelILb0EEEvPK6__halfPKtPfS3_PKlS3_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 64 registers, used 1 barriers
+ptxas info    : Compile time = 31.510 ms
+ptxas info    : Compiling entry function '_ZN46_GLOBAL__N__80db23cb_13_async2_m64_cu_ce55ffd120exl3_fat_gemm_kernelILb1EEEvPK6__halfPKtPfS3_PKlS3_iii' for 'sm_121'
+ptxas info    : Function properties for _ZN46_GLOBAL__N__80db23cb_13_async2_m64_cu_ce55ffd120exl3_fat_gemm_kernelILb1EEEvPK6__halfPKtPfS3_PKlS3_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 64 registers, used 1 barriers
+ptxas info    : Compile time = 37.471 ms

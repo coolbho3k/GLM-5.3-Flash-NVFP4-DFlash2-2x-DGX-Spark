@@ -924,3 +924,98 @@ previous 4,650,826-token boot is profiling-budget variation; neither the
 ticket variant nor a new weight/KV format is installed. The validated server
 is left running. Restore evidence is in `exl3-tickets-restore.log` and
 `exl3-tickets-restored-functional.jsonl`.
+
+### Larger-expert prefill pipeline: promising isolated candidate
+
+`build_exl3_fat_pipeline.py` derives a double-buffered variant of the current
+E2 kernel. It uses the existing 16-byte `cp.async` helper to prefetch the next
+K16 tile into a separate buffer while computing the current tile. M-tail
+rows remain explicitly zero-filled without forming invalid global addresses;
+the last K iteration issues no out-of-range prefetch. The trellis decoder,
+MMA accumulation order, Hadamard output transform, scale application and
+scatter code are unchanged. This also changes the load instruction/cache
+behavior; speed differences are not attributed solely to overlap.
+
+Both direct and scatter variants compiled for SM121 without spills. Control
+register counts are 99/106; async2 counts are 124/126. Shared memory grows from
+13,312 to 18,432 bytes per block. This is on-chip scratch, not an additional
+persistent model/KV buffer. Runtime occupancy queries accompany each result.
+The builder used a CPU-only container limited to 768 MiB while serving was up.
+
+After stopping serving, forward and reverse variant-order screens each ran
+14 shapes, including M=1/127/128/129, K=16/32/48 boundary cases, and actual
+per-rank gate/up (K4096, N2048) and down (K1024, N4096) dimensions at
+129/145/512/2048/8192 rows. Inputs and weights were synthetic; scatter used
+unique nontrivial indices and nonzero pre-existing output, including untouched
+rows. Every candidate output was **bitwise equal** to the installed native
+kernel before and after CUDA-graph replay. All 28 cases passed. Timings are
+median-of-three over 20 replays; scatter includes resetting output equally
+for every variant. Sanitizer checks have not yet been run.
+
+Representative kernel speedups (control time / async2 time minus one):
+
+| Rows | Projection | Forward / reverse speedup |
+|---:|---|---:|
+| 129 | Gate/up | +30.2% / +35.2% |
+| 145 | Gate/up | +39.4% / +33.5% |
+| 512 | Gate/up | -6.9% / +1.7% |
+| 2048 | Gate/up | +15.4% / +29.5% |
+| 8192 | Gate/up | +15.5% / +17.4% |
+| 129 | Down/scatter | +11.9% / +11.0% |
+| 512 | Down/scatter | +11.4% / +8.4% |
+| 2048 | Down/scatter | +11.3% / +9.6% |
+| 8192 | Down/scatter | +7.0% / +9.0% |
+
+The 145-row scatter case showed a first-pass regression but improved on the
+reversed pass; it needs confirmation. For 512-row gate/up, comparing against
+the installed native kernel rather than the variable isolated control still
+shows roughly 6–7% slowdown. Do not enable async2 globally from this screen.
+Follow-up row counts are configurable with `--rows`; `--small-only` supports
+bounded sanitizer checks. A shape-specific dispatcher may be appropriate,
+but is not chosen from these sparse samples.
+
+Fresh control prefill was measured before shutdown. The fixed warmed
+21,850-token prompt achieved 1145.92 input tok/s, TTFT 19.068 s, zero prefix
+hits (`fat-pipeline-A-prefill-warmed.json`). The preceding two-round file
+contains 21,850 and 43,650 input tokens because this harness grows prompts
+across rounds; those are not two warmed repeats of an identical prompt.
+
+Decision: retain for native serving validation, **not yet a serving win**.
+The additive `patch_exl3_fat_pipeline.py` and
+`Dockerfile.fat-pipeline-experiment` stage separate async2 native symbols,
+preserving the control CU/CUH and decode implementation. Six CPU structural
+tests pass, including control preservation and patch reapplication rejection.
+That full native image is not yet built, and no serving dispatcher/default
+selects the candidate. The isolated builder and native patch share the same
+source transformation. Weight-repacking removal is a separate, unimplemented
+lead; this experiment does not include it.
+
+Reproduce the CPU-only build with the validated image and the repository
+`probes`/`vendor/miaai-exl3` directories mounted read-only:
+
+```bash
+python3 /probes/build_exl3_fat_pipeline.py --output /build \
+  --source /recipe-source/exl3_fat_gemm.cu
+# Explicitly stops serving and restores the validated image after the screen:
+bash probes/run_exl3_fat_pipeline_screen.sh /absolute/build /absolute/results
+```
+
+The screen wrapper bounds each GPU process to 6 GiB and 180 seconds. Evidence
+is in `exl3-fat-pipeline-{build,forward,reverse}.*`; these probes are not a
+replacement for warmed C1/C6, prefill, mixed-load and functional serving gates.
+
+A separate `--extra-tile64` option stages `async2_m64` for follow-up. It reduces
+the M tile to 64 and guards the A-copy threads accordingly; the launch grid
+and shared-memory calculation derive from the tile size. Gate/up at 129–145
+rows currently launches only 32 CTAs (N2048/128 times two M tiles), versus
+48 SMs on GB10. An M64 tile launches 48 CTAs for those rows, and compiled
+direct/scatter variants use 64 registers with no spills and 14,336 bytes of
+shared memory. It may improve parallelism but also rereads weights more often.
+This candidate is **CPU-compiled only**, not GPU-qualified, and is not included
+in the staged native patch. Its manifests are `exl3-fat-tiles-build.*`; the
+original measured DSOs remain separately preserved. No M64 gain is claimed.
+
+Final restoration after the isolated M128 screen completed with HTTP 200,
+4,643,693 KV tokens at GMU 0.87, and all short functional checks passing.
+The validated image remains live, with no prefill pipeline candidate enabled.
+See `fat-pipeline-restore.log` and `fat-pipeline-restored-functional.jsonl`.
