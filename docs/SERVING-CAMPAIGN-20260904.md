@@ -916,3 +916,11 @@ those kernels would imply ~14% overall speedup, not 2x prefill. The saved
 trace predates the fused-activation improvement; any new claim needs a fresh
 matched measurement. No implementation or current speed-gain claim is made
 for these leads yet.
+
+Ticket-screen final restore completed with HTTP 200 and 4,629,427 KV tokens
+at GMU 0.87. All short functional checks passed (exact recall, arithmetic,
+coherence, tools and image input). The small capacity difference from the
+previous 4,650,826-token boot is profiling-budget variation; neither the
+ticket variant nor a new weight/KV format is installed. The validated server
+is left running. Restore evidence is in `exl3-tickets-restore.log` and
+`exl3-tickets-restored-functional.jsonl`.
