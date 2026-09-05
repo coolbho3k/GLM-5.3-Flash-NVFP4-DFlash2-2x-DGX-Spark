@@ -808,3 +808,111 @@ batch/data reuse and higher speculative acceptance amortize the same BF16
 weight reads over more useful tokens, offering a more structural route than
 another cache-hint sweep. No new quantization or live kernel change was made
 for this audit.
+
+### Upstream-style expert ticket scheduler: isolated backport
+
+The pinned v0.0.43 kernel assigns active experts round-robin to six groups of
+eight blocks on GB10. Newer upstream uses greedy tickets instead. Reference:
+[`exl3_moe_kernel.cuh` at 499890c75d20d8e7c9d061f37189ae611a5c9f0b](https://github.com/turboderp-org/exllamav3/blob/499890c75d20d8e7c9d061f37189ae611a5c9f0b/exllamav3/exllamav3_ext/quant/exl3_moe_kernel.cuh).
+The probe-only `--ticket-scheduler` backports that scheduling mechanism onto
+our existing shared-input f1/s8 kernel, preserving GEMM code and the number
+of group barriers. It does not import newer quantization formats or change
+the installed extension. Scratch size and KV settings remain unchanged.
+
+The isolated harness reserves 1024 ints in its existing lock allocation for
+scheduler state, bounds group count to keep it disjoint from barriers, and
+checks that next-ticket and retired-group counters return to zero after
+graph replays. Last-group retirement uses acquire/release ordering before
+reset; scratch is private to each variant and is not concurrently reused.
+This probe-only layout is not a production DevCtx integration.
+
+Both kernels compiled with CPU-only containers capped at 1.5 GiB while the
+server was live. The control uses 127 registers with no spills; tickets use
+128 registers with 16 bytes spill stores and 20 bytes spill loads. Serving
+was stopped for GPU checks, then the validated image was restored. The first
+screen stopped at a harness shape mismatch in the synthetic empty-routing
+case (weights had not been resized to zero routes). Its partial result and
+error log are retained. After correcting the harness, the full forward and
+reverse variant-order screens both completed.
+
+Each pass tests 8/48/128 rows, uniform/correlated/striped-hot/empty routing,
+random scales and shared gate/up SUH, with median-of-three timings over 30
+CUDA graph replays. All 24 cases passed finite-output, relative-RMSE <1e-6,
+and scheduler-reset gates. These are synthetic checks, not long-context or
+serving-quality validation. Empty routing verifies idle-group retirement;
+oversized-expert skip behavior is preserved structurally but not separately
+GPU-tested in this screen.
+
+| Routing and rows | Ticket kernel time change, forward / reverse |
+|---|---:|
+| Uniform, 8 | +0.01% / +2.00% |
+| Correlated, 8 | +2.95% / +1.68% |
+| Uniform, 48 | +1.57% / +1.46% |
+| Correlated, 48 | +0.29% / +0.76% |
+| Uniform, 128 | +1.99% / +1.91% |
+| Correlated, 128 | +0.40% / +0.13% |
+| Deliberately striped-hot, 48 | -35.94% / -36.31% |
+| Deliberately striped-hot, 128 | -59.68% / -60.00% |
+
+Negative means faster. The intentionally imbalanced case demonstrates the
+mechanism but is not representative traffic evidence. Its six hot experts
+occupy every sixth active-expert slot, concentrating round-robin work onto
+one group. A simplified M16-tile cost model predicts a makespan change from
+16 to 9 tiles at 48 rows, and 48 to 17 at 128 rows. For ordinary routing the
+same model shows almost no imbalance to fix, matching the lack of timing gain.
+It ignores Hadamard, activation, memory contention and scheduling overhead;
+it is explanatory, not a GPU performance predictor.
+
+Decision: **do not promote** as a general serving optimization. Real
+per-layer route histograms would be needed to justify a conditional ticket
+path. C1 has no demonstrated benefit. Candidate registers/spills and atomic
+scheduling overhead are possible costs, not independently isolated causes
+of the small regressions. No candidate serving A/B was warranted by this screen.
+
+Reproduction tooling:
+
+```bash
+# Build each variant with no GPU access in the validated image:
+python3 /probes/build_exl3_group_probe.py --output /build --groups 8 \
+  --shared-input --frag-stages 1 --shared-stages 8
+python3 /probes/build_exl3_group_probe.py --output /build --groups 8 \
+  --shared-input --frag-stages 1 --shared-stages 8 --ticket-scheduler
+# This wrapper stops serving and restores the validated configuration afterward:
+bash probes/run_exl3_ticket_screen.sh /absolute/build /absolute/results
+python3 probes/analyze_exl3_ticket_screen.py \
+  /absolute/results/exl3-tickets-forward.jsonl \
+  /absolute/results/exl3-tickets-reverse.jsonl
+```
+
+Use the resource-limited build containers described above; the wrapper bounds
+GPU probes to 8 GiB and 180 seconds each. Results, compile manifests and
+analysis are in `results/serving-20260904/exl3-tickets-*`. Six CPU ticket-source
+and cost-model tests, plus the existing cache-policy source tests, pass.
+
+### Remaining outside-GEMM checks
+
+A closer look at the saved head/worker C1 traces explains the apparent rank
+imbalance: one head all-reduce takes 221.234 ms and starts 4.096 ms into the
+trace. Removing just that outlier leaves 30.443 ms of head all-reduce time,
+versus 29.674 ms total on the worker. The ~220 ms difference is therefore not
+evidence of persistently slow networking. Its placement is consistent with a
+profiling/start-boundary wait, but the precise cause was not separately traced.
+
+There is a concrete prefill inefficiency in `apply_exl3_batched_fat`: each
+fat expert copies immutable gate/up trellises into `packed13` and their output
+scales into `svh13` on every invocation. It also stages route counts to the
+CPU and loops over fat experts in Python. Thin-expert work overlaps the count
+transfer, so the explicit synchronization is not proof of equivalent GPU idle
+time. In the old prefill trace, overall GPU idle fraction is only ~1.5%.
+
+The larger-expert `exl3_fat_gemm_kernel` itself loads A/B synchronously and
+executes two block barriers for each K16 iteration. It does not use the
+asynchronous multistage pipeline added to the small-M decode path. These are
+separate quality-preserving opportunities: consume separate gate/up buffers
+without runtime repacking; pipeline the large-M GEMM; and eventually move
+fat-expert scheduling onto the GPU. The two fat GEMM families total 4.670 s
+of the old 18.932 s prefill GPU span. A hypothetical 2x improvement to only
+those kernels would imply ~14% overall speedup, not 2x prefill. The saved
+trace predates the fused-activation improvement; any new claim needs a fresh
+matched measurement. No implementation or current speed-gain claim is made
+for these leads yet.

@@ -52,7 +52,20 @@ extern "C" int probe_init() {
     }
     if (sms % GLM53_GROUP_SIZE) return cudaErrorInvalidConfiguration;
     probe_grid_groups = sms * GLM53_RESIDENT_BLOCKS / GLM53_GROUP_SIZE;
+#if GLM53_TICKET_SCHED
+    // Disjoint GEMM-lock, barrier and scheduler regions in harness allocation.
+    if (2 * probe_grid_groups > 1024 || 2 + probe_grid_groups > 1024)
+        return cudaErrorInvalidConfiguration;
+#endif
     return cudaSuccess;
+}
+
+extern "C" int probe_scheduler_offset() {
+#if GLM53_TICKET_SCHED
+    return BARRIER_LOCKS_OFFSET + 1024;
+#else
+    return -1;
+#endif
 }
 
 extern "C" int probe_concurrency() { return probe_grid_groups; }

@@ -1,0 +1,38 @@
+/build/shared-source/quant/../util.cuh(7): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half4") that is explicitly defaulted on its first declaration
+      __attribute__((device)) half4() = default;
+                     ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/build/shared-source/quant/../util.cuh(19): warning #20012-D: __device__ annotation is ignored on a non-virtual function("bfloat164") that is explicitly defaulted on its first declaration
+      __attribute__((device)) bfloat164() = default;
+                     ^
+
+/build/shared-source/quant/../util.cuh(33): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half8") that is explicitly defaulted on its first declaration
+       __attribute__((device)) half8() = default;
+                      ^
+
+/build/shared-source/quant/../util.cuh(7): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half4") that is explicitly defaulted on its first declaration
+      __attribute__((device)) half4() = default;
+                     ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/build/shared-source/quant/../util.cuh(19): warning #20012-D: __device__ annotation is ignored on a non-virtual function("bfloat164") that is explicitly defaulted on its first declaration
+      __attribute__((device)) bfloat164() = default;
+                     ^
+
+/build/shared-source/quant/../util.cuh(33): warning #20012-D: __device__ annotation is ignored on a non-virtual function("half8") that is explicitly defaulted on its first declaration
+       __attribute__((device)) half8() = default;
+                      ^
+
+/build/shared-source/quant/exl3_moe_kernel.cuh(66): warning #177-D: variable "exp_up_suh" was declared but never referenced
+          const half* exp_up_suh = up_suh[expert_idx];
+                      ^
+
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_Z22glm53_probe_moe_kernelILi4ELi256EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi' for 'sm_121'
+ptxas info    : Function properties for _Z22glm53_probe_moe_kernelILi4ELi256EEvPK6__halfPS0_S3_S3_S3_PfPPKtPS2_S8_S7_S8_S8_S7_S8_S8_PKlSA_S2_iiiiiifiiiiPi
+    16 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 127 registers, used 1 barriers, 16 bytes cumulative stack size
+ptxas info    : Compile time = 139.100 ms

@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/probes/bench_exl3_groups.py", line 207, in <module>
+    main()
+  File "/probes/bench_exl3_groups.py", line 171, in main
+    run()
+  File "/probes/bench_exl3_groups.py", line 148, in run
+    _exl3_moe_launch(ext.exl3_moe, x, out, counts, tokens, weights,
+  File "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py", line 1088, in _exl3_moe_launch
+    fn(*args)
+RuntimeError: token_sorted and weight_sorted have incompatible shapes

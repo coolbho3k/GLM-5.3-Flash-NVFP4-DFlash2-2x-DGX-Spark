@@ -106,6 +106,17 @@ def main():
                     common = base.repeat_interleave(8, dim=0)[:rows]
                     tail = torch.rand(rows, n_experts // 2, device='cuda').topk(2, dim=-1).indices + n_experts // 2
                     ids = torch.cat((common, tail), dim=1)
+                elif routing == 'striped_hot':
+                    # Deliberately adversarial for six round-robin groups:
+                    # common experts occupy every sixth active-expert position.
+                    # This tests the mechanism, not representative serving speed.
+                    common = torch.arange(0, 36, 6, device='cuda').expand(rows, -1)
+                    pool = torch.tensor([i for i in range(36) if i % 6], device='cuda')
+                    tail = pool[torch.rand(rows, len(pool), device='cuda').topk(2, dim=-1).indices]
+                    ids = torch.cat((common, tail), dim=1)
+                elif routing == 'empty':
+                    # All groups must retire and reset even with no expert work.
+                    ids = torch.empty((rows, 0), dtype=torch.int64, device='cuda')
                 else:
                     raise ValueError(routing)
                 order = ids.flatten().argsort(stable=True)
@@ -116,9 +127,10 @@ def main():
                 row_tiles = int(((counts + 15) // 16).sum().item())
                 packed_weight_bytes = row_tiles * 3 * hidden * intermediate // 2
                 tokens = torch.arange(rows, device='cuda').repeat_interleave(topk)[order]
-                weights = torch.full((rows * topk,), 1 / topk, dtype=torch.float16, device='cuda')
+                weights = torch.full((ids.numel(),), 1 / topk, dtype=torch.float16, device='cuda')
                 out = torch.empty(rows, hidden, dtype=torch.float32, device='cuda')
                 result = {'rows': rows, 'routing': routing,
+                          'expert_counts': counts.cpu().tolist(),
                           'active_experts': active_experts, 'expert_m16_tiles': row_tiles,
                           'estimated_packed_weight_bytes': packed_weight_bytes,
                           'random_scales': args.random_scales, 'input_scale': args.input_scale,
@@ -171,10 +183,16 @@ def main():
                         end.synchronize()
                         samples.append(start.elapsed_time(end) / args.repeats)
                     assert out.isfinite().all()
+                    if not label.startswith('stock') and hasattr(lib, 'probe_scheduler_offset'):
+                        offset = lib.probe_scheduler_offset()
+                        if offset >= 0:
+                            assert torch.equal(locks[offset:offset + 2],
+                                               torch.zeros_like(locks[offset:offset + 2])), \
+                                ('ticket scheduler failed to reset', label)
                     if baseline is None:
                         baseline = out.clone()
                     delta = out - baseline
-                    rmse = (delta.square().mean() / baseline.square().mean()).sqrt().item()
+                    rmse = (delta.square().mean() / baseline.square().mean().clamp_min(1e-30)).sqrt().item()
                     assert rmse < 0.005, (label, rmse)
                     if label.startswith('g8') and '_k16' not in label:
                         assert rmse < 1e-6, ('same-math parity failure', label, rmse)
