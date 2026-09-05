@@ -76,6 +76,7 @@ def main():
             for count in map(int, args.prefill_tokens.split(",")):
                 from validate_kv_candidate import metric
                 cache_hits_before = metric(args.url, "vllm:prefix_cache_hits_total")
+                traffic_before = metrics(args.url)
                 with profile_session(args.url, args.profile):
                     result = prefill_once(args.url, count, case_id=f"{round_index}-{count}",
                         corpus_seed="glm53-prefill-fixed-v1" if args.stable_prefill else salt,
@@ -83,6 +84,9 @@ def main():
                         cache_salt=f"{salt}-{round_index}-{count}" if args.stable_prefill else None)
                 result["global_prefix_hit_tokens_delta"] = (
                     metric(args.url, "vllm:prefix_cache_hits_total") - cache_hits_before)
+                traffic_after = metrics(args.url)
+                result["metrics_delta"] = {name: traffic_after[name] - traffic_before[name]
+                                           for name in traffic_before}
                 result["round"] = round_index
                 cached = result["cached_prompt_tokens"]
                 result["cold"] = None if cached is None else cached == 0

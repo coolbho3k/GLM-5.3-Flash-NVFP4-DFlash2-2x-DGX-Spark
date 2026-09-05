@@ -76,7 +76,7 @@ def test_native_pipeline_settings_are_visible_and_opt_in() -> None:
     assert defaults["EXL3_TEMP_ROWS_FUSED"] == "128"
     assert defaults["EXL3_FAT_ACTIVATION_CONTROL"] == "''"
     assert defaults["EXL3_FAT_PIPELINE"] == "off"
-    for mode in ("m128", "m64"):
+    for mode in ("m128", "m64", "m64_norepack"):
         assert resolved("exl3-fp8-dcp2", EXL3_FAT_PIPELINE=mode)["EXL3_FAT_PIPELINE"] == mode
     for overrides in ({"EXL3_FAT_PIPELINE": "bad"},
                       {"EXL3_FAT_PIPELINE": "m64", "EXL3_FAT_KERNEL": "0"},

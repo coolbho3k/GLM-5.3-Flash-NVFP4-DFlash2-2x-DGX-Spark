@@ -1,0 +1,36 @@
+{
+  "baseline": {
+    "samples": [
+      {
+        "file": "results/serving-20260904/fat-norepack-A3-prefill.json",
+        "input_tps": 1214.091103
+      },
+      {
+        "file": "results/serving-20260904/fat-norepack-A4-prefill.json",
+        "input_tps": 1221.128621
+      }
+    ],
+    "median_input_tps": 1217.609862,
+    "mean_input_tps": 1217.609862,
+    "min_input_tps": 1214.091103,
+    "max_input_tps": 1221.128621
+  },
+  "candidate": {
+    "samples": [
+      {
+        "file": "results/serving-20260904/fat-norepack-B3-prefill.json",
+        "input_tps": 1245.999827
+      },
+      {
+        "file": "results/serving-20260904/fat-norepack-B4-prefill.json",
+        "input_tps": 1238.962812
+      }
+    ],
+    "median_input_tps": 1242.4813195000002,
+    "mean_input_tps": 1242.4813195000002,
+    "min_input_tps": 1238.962812,
+    "max_input_tps": 1245.999827
+  },
+  "prompt_tokens": 21850,
+  "gain_percent": 2.0426458651662927
+}

@@ -209,13 +209,13 @@ configure_profile() {
   fi
   case "$EXL3_FAT_PIPELINE" in
     off) ;;
-    m128|m64)
+    m128|m64|m64_norepack)
       if [[ "$profile" != exl3-fp8-dcp2 || "$EXL3_FAT_KERNEL" != 1 || "$EXL3_FUSED_MOE" != 1 || "$EXL3_MOE_ROW_TILE" != 0 ]]; then
         echo "EXL3_FAT_PIPELINE requires exl3-fp8-dcp2, fused MoE, E2 kernel and no row-tile override" >&2
         exit 2
       fi
       ;;
-    *) echo "EXL3_FAT_PIPELINE must be off, m128 or m64" >&2; exit 2 ;;
+    *) echo "EXL3_FAT_PIPELINE must be off, m128, m64 or m64_norepack" >&2; exit 2 ;;
   esac
   default_var EXL3_TEMP_ROWS_FUSED 128
   default_var GLM53_EXL3_MOE_FAST 0

@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "config": {
+    "url": "http://127.0.0.1:8000",
+    "mode": "decode",
+    "label": "fat-norepack-A-c1-warm",
+    "output": "results/serving-20260904/fat-norepack-A-c1-warm.json",
+    "levels": "1",
+    "prompts": "prose,code",
+    "max_tokens": 64,
+    "prefill_tokens": "32768,131072",
+    "rounds": 1,
+    "profile": false,
+    "stable_prefill": false
+  },
+  "timestamp_utc": "2026-09-05T02:32:19.653672+00:00",
+  "cases": [
+    {
+      "round": 0,
+      "concurrency": 1,
+      "kind": "prose",
+      "wall_seconds": 2.2859661060065264,
+      "aggregate_tokens_per_second": 27.996915541239122,
+      "streams": [
+        {
+          "started_monotonic": 78757.552725922,
+          "first_token_monotonic": 78757.789994274,
+          "finished_monotonic": 78759.837072516,
+          "cached_prompt_tokens": null,
+          "prompt_tokens": 40,
+          "completion_tokens": 64,
+          "ttft_seconds": 0.237268,
+          "elapsed_seconds": 2.284347,
+          "decode_seconds": 2.047078,
+          "decode_tokens_per_second": 31.264071,
+          "mean_stream_gap_seconds": 0.113715,
+          "p95_stream_gap_seconds": 0.122264,
+          "max_stream_gap_seconds": 0.122264,
+          "stream_events": 19,
+          "content_preview": "# Hash Tables: A Complete Explanation\n\n## The Core Idea\n\nA hash table stores key-value pairs and uses a **hash function** to convert a key into an array index, ",
+          "content_sha256": "e6e13618fa149dc5dab144da04cf5f301595e8598723cf86f407b6076ecf97ae"
+        }
+      ],
+      "metrics_delta": {
+        "spec_decode_num_drafts_total": 18.0,
+        "spec_decode_num_draft_tokens_total": 126.0,
+        "spec_decode_num_accepted_tokens_total": 46.0,
+        "num_preemptions_total": 0.0,
+        "request_success_total": 1.0
+      }
+    },
+    {
+      "round": 0,
+      "concurrency": 1,
+      "kind": "code",
+      "wall_seconds": 2.8557336419908097,
+      "aggregate_tokens_per_second": 22.41105369875597,
+      "streams": [
+        {
+          "started_monotonic": 78759.852737399,
+          "first_token_monotonic": 78760.195504311,
+          "finished_monotonic": 78762.708128095,
+          "cached_prompt_tokens": null,
+          "prompt_tokens": 45,
+          "completion_tokens": 64,
+          "ttft_seconds": 0.342767,
+          "elapsed_seconds": 2.855391,
+          "decode_seconds": 2.512624,
+          "decode_tokens_per_second": 25.471382,
+          "mean_stream_gap_seconds": 0.114203,
+          "p95_stream_gap_seconds": 0.117575,
+          "max_stream_gap_seconds": 0.117707,
+          "stream_events": 23,
+          "content_preview": "# Thread-Safe Token Bucket Rate Limiter\n\n## Design Overview\n\nA **token bucket** maintains a bucket of tokens with capacity `capacity`, refilled at a steady rate",
+          "content_sha256": "30fe10fd26c23f390f67294d1d674bfb9c5eff8499d0e6b03146f84512ebe7dc"
+        }
+      ],
+      "metrics_delta": {
+        "spec_decode_num_drafts_total": 22.0,
+        "spec_decode_num_draft_tokens_total": 154.0,
+        "spec_decode_num_accepted_tokens_total": 43.0,
+        "num_preemptions_total": 0.0,
+        "request_success_total": 1.0
+      }
+    }
+  ]
+}

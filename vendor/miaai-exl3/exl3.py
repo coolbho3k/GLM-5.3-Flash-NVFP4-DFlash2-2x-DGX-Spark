@@ -894,8 +894,8 @@ def fat_pipeline_mode() -> str:
     _FAT_PIPELINE_STATE[0] = now + 1.0
     try:
         mode = json.loads(Path(_FAT_PIPELINE_CONTROL).read_text())["mode"]
-        if mode not in ("off", "m128", "m64"):
-            raise ValueError("mode must be off, m128 or m64")
+        if mode not in ("off", "m128", "m64", "m64_norepack"):
+            raise ValueError("mode must be off, m128, m64 or m64_norepack")
     except (OSError, ValueError, KeyError, TypeError) as exc:
         error = str(exc)
         if error != _FAT_PIPELINE_STATE[2]:
@@ -910,8 +910,8 @@ def fat_pipeline_mode() -> str:
 
 def select_fat_pipeline_ops(ext, mode: str):
     """Fail closed on an explicitly requested, unavailable native pipeline."""
-    if mode not in ("off", "m128", "m64"):
-        raise RuntimeError("EXL3_FAT_PIPELINE must be off, m128 or m64")
+    if mode not in ("off", "m128", "m64", "m64_norepack"):
+        raise RuntimeError("EXL3_FAT_PIPELINE must be off, m128, m64 or m64_norepack")
     suffix = ""
     if mode != "off":
         if not hasattr(ext, "glm53_fat_pipeline_version"):
@@ -919,6 +919,11 @@ def select_fat_pipeline_ops(ext, mode: str):
         if ext.glm53_fat_pipeline_version() != 2:
             raise RuntimeError("Unsupported native EXL3 fat-pipeline version")
         suffix = "_async2" if mode == "m128" else "_async2_m64"
+    if mode == "m64_norepack":
+        if (not hasattr(ext, "glm53_fat_norepack_version")
+                or ext.glm53_fat_norepack_version() != 1):
+            raise RuntimeError("m64_norepack requires native no-repack version 1")
+        return ext.exl3_fat_gate_up_norepack, ext.exl3_fat_gemm_scatter_async2_m64
     return (getattr(ext, "exl3_fat_gemm" + suffix),
             getattr(ext, "exl3_fat_gemm_scatter" + suffix))
 
@@ -964,20 +969,26 @@ def apply_exl3_batched_fat(
 
         packed13 = scratch["packed13"]
         out_tiles = int(gate.trellis.shape[1])
-        packed13[:, :out_tiles].copy_(gate.trellis)
-        packed13[:, out_tiles:].copy_(up.trellis)
         gate_up = scratch["gate_up"][:n_rows]
         svh13 = scratch["svh13"]
-        svh13[:intermediate].copy_(gate.svh)
-        svh13[intermediate:].copy_(up.svh)
+        no_repack = pipeline_mode == "m64_norepack"
+        if not no_repack:
+            packed13[:, :out_tiles].copy_(gate.trellis)
+            packed13[:, out_tiles:].copy_(up.trellis)
+            svh13[:intermediate].copy_(gate.svh)
+            svh13[intermediate:].copy_(up.svh)
         if use_kernel:
             if not hasattr(ext, "exl3_fat_gemm"):
                 raise RuntimeError(
                     "EXL3_FAT_KERNEL=1 requires exllamav3_ext.exl3_fat_gemm"
                 )
-            fat_gemm(
-                h13, packed13, gate_up, svh13, gate.K, gate.mcg, gate.mul1
-            )
+            if no_repack:
+                fat_gemm(h13, gate.trellis, up.trellis, gate_up,
+                         gate.svh, up.svh, gate.K, gate.mcg, gate.mul1)
+            else:
+                fat_gemm(
+                    h13, packed13, gate_up, svh13, gate.K, gate.mcg, gate.mul1
+                )
             _EXL3_FAT_DIAG["direct_calls"] += 1
         else:
             w13 = scratch["w13"]

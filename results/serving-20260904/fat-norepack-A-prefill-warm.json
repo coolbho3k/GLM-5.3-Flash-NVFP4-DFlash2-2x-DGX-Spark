@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "config": {
+    "url": "http://127.0.0.1:8000",
+    "mode": "prefill",
+    "label": "fat-norepack-A-warm",
+    "output": "results/serving-20260904/fat-norepack-A-prefill-warm.json",
+    "levels": "1,6",
+    "prompts": "prose,code",
+    "max_tokens": 256,
+    "prefill_tokens": "32768",
+    "rounds": 1,
+    "profile": false,
+    "stable_prefill": true
+  },
+  "timestamp_utc": "2026-09-05T02:08:30.705287+00:00",
+  "cases": [
+    {
+      "started_monotonic": 77328.619510074,
+      "first_token_monotonic": 77350.858952989,
+      "finished_monotonic": 77350.867080317,
+      "cached_prompt_tokens": null,
+      "prompt_tokens": 21850,
+      "completion_tokens": 2,
+      "ttft_seconds": 22.239443,
+      "elapsed_seconds": 22.24757,
+      "decode_seconds": 0.008127,
+      "decode_tokens_per_second": 246.083338,
+      "mean_stream_gap_seconds": 0.0,
+      "p95_stream_gap_seconds": 0.0,
+      "max_stream_gap_seconds": 0.0,
+      "stream_events": 1,
+      "content_preview": "OK",
+      "content_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
+      "prompt_sha256": "56ab27fb7e244e01f4cdb65e5c7c12666ed8a7c9c426b39ff48437d6fd6e00ec",
+      "cache_salt": "1788574110705295453-0-32768",
+      "target_prompt_tokens": 32768,
+      "input_tokens_per_second": 982.488635,
+      "global_prefix_hit_tokens_delta": 0.0,
+      "round": 0,
+      "cold": null
+    }
+  ]
+}

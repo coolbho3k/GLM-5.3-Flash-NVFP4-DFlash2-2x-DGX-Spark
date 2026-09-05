@@ -6,11 +6,13 @@ from pathlib import Path
 import statistics
 
 
-def analyze(root):
+def analyze(root, prefix="fat-native", control_mode="off", candidate_mode="m64", single_workload_pass=False):
+    assert control_mode != candidate_mode
     labels = ("A", "B", "A2", "B2")
+    workload_labels = ("A", "B") if single_workload_pass else labels
     data = {
-        label: {kind: json.loads((root / f"fat-native-{label}-{kind}.json").read_text())
-                for kind in ("prefill", "decode", "mixed")}
+        label: {kind: json.loads((root / f"{prefix}-{label}-{kind}.json").read_text())
+                for kind in (("prefill", "decode", "mixed") if label in workload_labels else ("prefill",))}
         for label in labels
     }
     prefills = [data[label]["prefill"]["cases"][0] for label in labels]
@@ -20,10 +22,12 @@ def analyze(root):
     assert len({p["cache_salt"] for p in prefills}) == 4
     assert all(p["cache_salt"] and p["global_prefix_hit_tokens_delta"] == 0 for p in prefills)
     assert all(p["content_preview"].strip() == "OK" for p in prefills)
-    result = {"order": list(labels), "modes": {"off": ["A", "A2"], "m64": ["B", "B2"]},
+    result = {"order": list(labels), "modes": {control_mode: ["A", "A2"], candidate_mode: ["B", "B2"]},
               "prefill": {}, "decode": [], "mixed": {}}
+    if single_workload_pass:
+        result["decode_and_mixed_labels"] = list(workload_labels)
     reference_config = data["A"]["decode"]["config"]
-    for label in labels:
+    for label in workload_labels:
         report = data[label]["decode"]
         for field in ("mode", "levels", "prompts", "max_tokens", "rounds", "profile"):
             assert report["config"].get(field) == reference_config.get(field), (label, field)
@@ -40,12 +44,12 @@ def analyze(root):
         samples = [data[label]["prefill"]["cases"][0]["input_tokens_per_second"] for label in members]
         result["prefill"][mode] = {"input_tps": samples, "median_input_tps": statistics.median(samples)}
     result["prefill"]["gain_percent"] = 100 * (
-        result["prefill"]["m64"]["median_input_tps"] / result["prefill"]["off"]["median_input_tps"] - 1)
+        result["prefill"][candidate_mode]["median_input_tps"] / result["prefill"][control_mode]["median_input_tps"] - 1)
     for concurrency in (1, 3, 6):
         for kind in ("prose", "code"):
             row = {"concurrency": concurrency, "kind": kind}
             for mode, members in result["modes"].items():
-                cases = [c for label in members for c in data[label]["decode"]["cases"]
+                cases = [c for label in members if label in workload_labels for c in data[label]["decode"]["cases"]
                          if c["concurrency"] == concurrency and c["kind"] == kind]
                 metrics = [c["metrics_delta"] for c in cases]
                 row[mode] = {
@@ -59,7 +63,7 @@ def analyze(root):
                         m["spec_decode_num_drafts_total"] for m in metrics)
             result["decode"].append(row)
     mixed_prompts, mixed_salts = set(), set()
-    for label in labels:
+    for label in workload_labels:
         report = data[label]["mixed"]
         assert report["cold_prefill"] and not report["profile_mixed"]
         assert len(report["cases"]) == 1
@@ -77,12 +81,18 @@ def analyze(root):
             "maximum_stream_gap_seconds": case["mixed_decode"]["maximum_stream_gap_seconds"],
             "accepted_fraction": metrics["spec_decode_num_accepted_tokens_total"] / metrics["spec_decode_num_draft_tokens_total"],
         }
-    assert len(mixed_prompts) == 1 and len(mixed_salts) == 4 and None not in mixed_salts
+    assert len(mixed_prompts) == 1 and len(mixed_salts) == len(workload_labels) and None not in mixed_salts
     return result
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("directory", type=Path)
+    parser.add_argument("--prefix", default="fat-native")
+    parser.add_argument("--control-mode", default="off")
+    parser.add_argument("--candidate-mode", default="m64")
+    parser.add_argument("--single-workload-pass", action="store_true",
+                        help="A2/B2 repeat prefill only; do not imply repeated decode/mixed measurements")
     args = parser.parse_args()
-    print(json.dumps(analyze(args.directory), indent=2))
+    print(json.dumps(analyze(args.directory, args.prefix, args.control_mode, args.candidate_mode,
+                             args.single_workload_pass), indent=2))

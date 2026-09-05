@@ -1164,3 +1164,140 @@ The summarizer verifies complete matched case sets, output budgets, request
 counts, zero preemptions, fixed prefill hashes and unique cache salts. The
 next prefill lead remains removing runtime gate/up repacking; it was not
 implemented in this candidate. Decode still needs a distinct optimization.
+
+### No-repack gate/up follow-up (serving validation pending)
+
+The next candidate keeps the validated M64 pipeline, but lets each 128-column
+output tile select the existing gate or up weight/scale buffers. Their
+dimensions are multiples of 128, so no tile crosses the gate/up boundary.
+Pointer selection happens before the K loop; output layout, MMA order,
+Hadamard scaling, FP32 intermediate and down/scatter path are unchanged.
+It removes four per-expert copies without retaining duplicate weights.
+For K4096/N2048 this removes about 8.4 MB of copy read/write traffic per call.
+The initial serving experiment retains the original scratch allocations for
+same-boot A/B; no extra KV capacity is claimed.
+
+`build_exl3_fat_norepack.py` compiles an isolated M64 control and separate-
+buffer candidate. Both use 64 registers, no spills and the existing 14,336
+shared bytes. The CPU-only build was limited to 768 MiB while serving ran.
+After stopping serving, forward/reverse screens each passed 13 cases bitwise
+before and after graph replay. Six boundary cases cover M tails and odd K
+loops; seven real-shape cases cover rows129–8192. The benchmark includes the
+four actual staging copies in its primary control, and reports kernel-only
+controls separately to avoid confusing the two.
+
+Copy-inclusive gate/up operation time reductions in forward/reverse order:
+
+| Rows | Forward | Reverse |
+| ---: | ---: | ---: |
+| 129 | 17.37% | 17.46% |
+| 145 | 17.33% | 17.38% |
+| 256 | 11.46% | 3.90% |
+| 512 | 28.71% | 9.14% |
+| 1024 | 9.47% | 10.43% |
+| 2048 | 7.51% | 7.92% |
+| 8192 | 3.83% | 2.43% |
+
+Ordering variability is substantial at some sizes; these are operation-level
+results, not a promised end-to-end gain. Memcheck, racecheck and synccheck
+each passed all six boundary cases with zero errors/hazards. Evidence is in
+`fat-norepack-{build,forward,reverse}.*` and the three sanitizer logs.
+
+The additive native patch exports `exl3_fat_gate_up_norepack` and
+`glm53_fat_norepack_version()==1` without replacing any existing symbol.
+`EXL3_FAT_PIPELINE=m64_norepack` explicitly selects it; the launcher and
+hot-control file also accept the new mode. Startup fails closed without the
+matching native version. Native shape/dtype/device checks validate both
+halves, and the candidate is restricted to the probed dimension bounds.
+Seven CPU guards pass; an installed-native GPU check and warmed serving A/B
+are still required. The native image build is in progress; do not treat
+this candidate as a validated serving improvement yet.
+
+The native build subsequently completed successfully. Its installed entry
+point passed all 13 parity/graph-replay cases and five invalid-input rejection
+checks (scale length, gate/up shape, output dtype, unsupported K and empty M).
+See `fat-norepack-native-parity.jsonl`. Cluster startup is now in progress on
+`glm53-exl3:prefill-norepack-v1` at GMU0.87 with the hot file still selecting
+the original `m64` control; no serving-speed claim has been made yet.
+
+Build on top of the preceding validated M64 image:
+
+```bash
+docker build -f overlay-exl3-fp8/Dockerfile.fat-norepack-experiment \
+  -t glm53-exl3:prefill-norepack-v1 .
+```
+
+For a later validated static launch, use the preceding M64 command with
+`IMAGE=glm53-exl3:prefill-norepack-v1 EXL3_FAT_PIPELINE=m64_norepack`.
+For the initial A/B launch, keep the hot-control file at `m64`; after draining
+requests, copy `{"mode":"m64_norepack"}` to both ranks to switch the candidate
+on. Do not run the standalone GPU probes beside the loaded server.
+
+### No-repack serving result: modest opt-in gain
+
+The same-boot screen and final restoration completed. Initial alternating
+prefill samples were noisy: M64 1160.21/1140.94 versus no-repack
+1160.49/1235.34 input tok/s. Do not use that apparent 4.1% median gain as the
+headline. Four additional fixed-text, cold-prefill requests explicitly counted
+completed requests and preemptions, in B3/A3/B4/A4 order:
+
+| Mode | Input tok/s samples | Median |
+| --- | --- | ---: |
+| M64 control | 1214.09, 1221.13 | 1217.61 |
+| M64 no-repack | 1246.00, 1238.96 | 1242.48 |
+
+This confirmation shows **2.04% higher pure-prefill throughput**. All four
+used exactly the same 21,850-token prompt, unique salts, zero cache hits,
+one completed request and zero preemptions. It is a small gain on this
+synthetic workload, not the 17% isolated-operation improvement. All earlier
+samples remain preserved rather than silently discarded.
+
+C1/C3/C6 prose/code decode each had one warmed 256-token A/B pass. Raw
+aggregate rates were 30.41/28.02 → 32.12/25.71 at C1,
+51.31/50.20 → 50.03/47.86 at C3 and 80.38/77.68 → 77.04/85.36 at C6.
+Acceptance varied; no decode gain is established. Initial C1 wall time per
+draft rose 116.92→120.75 ms for prose and 118.64→119.98 ms for code.
+A further equally warmed C1 pass measured 117.60→116.74 ms for prose and
+118.71→120.18 ms for code. These short samples do not establish a consistent
+overall cycle-time regression, but cannot rule out small workload-dependent
+differences. Normal <=48-token K7 decode returns before the modified fat
+path; its implementation and precision are unchanged.
+
+The C3 mixed case had full decoder overlap with its cold prefill: per-stream
+decode 8.49→8.71 tok/s, prefill 238.05→241.35 input tok/s. This single case
+and its differing acceptance do not establish a broad mixed-load gain.
+All measured decode/mixed waves had the expected completed-request counts
+and zero preemptions.
+
+Long retrieval returned ORCHID from 27,049 prompt tokens, and prefix reuse
+returned ORCHID with 16,384 hit tokens. Final short functional checks passed
+again. The final cold prefill exercised the selected no-repack entry point;
+both ranks logged that mode. HTTP health is 200 and the queues were empty
+after testing. The server remains at GMU0.87, with 4,879,088 KV tokens on this
+boot. Cache format, weights and persistent scratch capacity are unchanged;
+the small boot-to-boot capacity difference is not a pipeline effect.
+
+Retain `m64_norepack` as an explicitly selectable prefill optimization. The
+ordinary launcher default remains `off`. The current hot file selects
+`m64_norepack`; static launch and M64 rollback require no further kernel work.
+Native/Python identities are in `fat-norepack-{head,worker}.sha256`; filtered
+logs record the mode changes on each rank.
+
+Evidence: `fat-norepack-{A,B}-*.json*`, the A2/B2 and A3/B3/A4/B4 prefill
+samples, native parity/sanitizer records, final functional report and
+`fat-norepack-prefill-confirmation.json`. Reproduce the initial report with:
+
+```bash
+python3 probes/analyze_exl3_fat_ab.py results/serving-20260904 \
+  --prefix fat-norepack --control-mode m64 --candidate-mode m64_norepack \
+  --single-workload-pass
+python3 probes/compare_prefill_samples.py \
+  --baseline results/serving-20260904/fat-norepack-A3-prefill.json \
+             results/serving-20260904/fat-norepack-A4-prefill.json \
+  --candidate results/serving-20260904/fat-norepack-B3-prefill.json \
+              results/serving-20260904/fat-norepack-B4-prefill.json
+```
+
+The single-workload-pass flag explicitly reports that A2/B2 repeat only
+prefill, not decode/mixed. The confirmation comparator additionally rejects
+unexpected completed requests, preemptions, cache hits or reused salts.

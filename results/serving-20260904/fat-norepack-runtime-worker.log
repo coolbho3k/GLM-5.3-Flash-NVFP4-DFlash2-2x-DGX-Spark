@@ -1,0 +1,12 @@
+(Worker_TP1_DCP1 pid=191) INFO 09-05 02:04:52 [exl3.py:906] EXL3 E2 prefill pipeline changed to m64
+(Worker_TP1_DCP1 pid=191) INFO 09-05 02:04:57 [speculator.py:235] DFlash2-only CUDA graphs enabled for request batches [1, 2, 3, 4, 5, 6] ([8, 16, 24, 32, 40, 48] query tokens); target graph mode remains unchanged
+(Worker_TP1_DCP1 pid=191) INFO 09-05 02:05:11 [speculator.py:235] DFlash2-only CUDA graphs enabled for request batches [1, 2, 3, 4, 5, 6] ([8, 16, 24, 32, 40, 48] query tokens); target graph mode remains unchanged
+(Worker_TP1_DCP1 pid=191) INFO 09-05 02:07:02 [gpu_worker.py:878] CUDA graph pool memory: 0.19 GiB (actual), 1.28 GiB (estimated), difference: 1.09 GiB (567.7%).
+(Worker_TP1_DCP1 pid=191) INFO 09-05 02:07:02 [gpu_worker.py:941] Free memory on device (108.48/121.69 GiB) on startup. Desired GPU memory utilization is (0.87, 105.87 GiB). Actual usage is 84.53 GiB for consumed memory (weights + non-torch), 5.06 GiB for peak activation, and 0.19 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=17112630539` (15.94 GiB) to fit into requested memory, or `--kv-cache-memory=19914656256` (18.55 GiB) to fully utilize gpu memory. Current kv cache memory in use is 16.28 GiB.
+(Worker_TP1_DCP1 pid=191) INFO 09-05 02:13:58 [exl3.py:906] EXL3 E2 prefill pipeline changed to m64_norepack
+(Worker_TP1_DCP1 pid=191) INFO 09-05 02:17:43 [exl3.py:906] EXL3 E2 prefill pipeline changed to m64
+(Worker_TP1_DCP1 pid=191) INFO 09-05 02:18:05 [exl3.py:906] EXL3 E2 prefill pipeline changed to m64_norepack
+(Worker_TP1_DCP1 pid=191) INFO 09-05 02:25:36 [exl3.py:906] EXL3 E2 prefill pipeline changed to m64
+(Worker_TP1_DCP1 pid=191) INFO 09-05 02:25:57 [exl3.py:906] EXL3 E2 prefill pipeline changed to m64_norepack
+(Worker_TP1_DCP1 pid=191) INFO 09-05 02:26:17 [exl3.py:906] EXL3 E2 prefill pipeline changed to m64
+(Worker_TP1_DCP1 pid=191) INFO 09-05 02:32:46 [exl3.py:906] EXL3 E2 prefill pipeline changed to m64_norepack
