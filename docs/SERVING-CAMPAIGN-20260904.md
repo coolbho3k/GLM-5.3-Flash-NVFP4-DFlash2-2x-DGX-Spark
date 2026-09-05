@@ -661,10 +661,9 @@ only a private copy of the decode GEMM helper, and exports its own version
 check. Python rejects a requested but unsupported native variant. The
 shared and independent-input native kernels compile for SM121 without spills;
 CPU source/compatibility guards pass. The experimental Dockerfile is
-`overlay-exl3-fp8/Dockerfile.stream-experiment`. Full image build and native
-serving A/B are still pending; isolated timing is not a serving-speed claim.
-Given the profiled expert-kernel share, a roughly 1% end-to-end benefit is
-a hypothesis, not a measurement.
+`overlay-exl3-fp8/Dockerfile.stream-experiment`. The subsequently completed
+native serving A/B below rejected promotion: isolated gains did not translate
+into a worthwhile serving improvement.
 
 The switch is forwarded to both ranks and shown by the profile launcher;
 defaults remain off. The launcher rejects incompatible profiles or a request
@@ -692,3 +691,120 @@ python3 /probes/bench_exl3_groups.py --libraries /build \
 Use the same GPU-enabled, 8-GiB-limited probe container described above.
 Reverse the variant list for the second pass. The sources copied into
 `/build` are disposable experiment artifacts, not serving dependencies.
+
+### Native streaming serving A/B
+
+The current-image control was warmed at C1/C3/C6 with both prompts and then
+measured with the same two-round, 256-token decode protocol. No unexpected
+completed requests were present. `stream-A.json` records C1 prose/code
+29.09/27.25 tok/s, C3 aggregate 55.93/50.92, and C6 aggregate 81.75/79.21.
+C1 wall time per draft was 118.120/118.944 ms. The identical cold-salted
+21,850-token prefill prompt measured 1104.15 input tok/s on first use and
+1150.28 on the warmed repeat, both with zero prefix-hit delta.
+
+Only 2.5 GiB of host RAM was available with the loaded server, so both ranks
+were stopped before the full native image rebuild. It completed from the
+validated base using a minimal four-file build context:
+
+```bash
+tar -cf - overlay-exl3-fp8/Dockerfile.stream-experiment \
+  overlay-exl3-fp8/rebuild_exl3_extension.py \
+  vendor/miaai-exl3/patch_exl3_stream_weights.py vendor/miaai-exl3/exl3.py |
+docker build --network=none -f overlay-exl3-fp8/Dockerfile.stream-experiment \
+  -t glm53-exl3:decode-stream-v1 -
+```
+
+Native build/link and both version-symbol checks passed. Image manifest-list
+SHA is `b8ba69e289c0027ceaee79c64f04e92e3f9763773b68dd4693e3a8c50d6b5250`.
+The normal launcher transferred the image to dgx1. Both installed native
+libraries hash to `7007f20411eb7eef4e6efdb6811e089660716bfe790011d18c6d3c9b8d71911d`.
+The generic GEMM, original MoE and validated fast-kernel source hashes match
+the control image byte-for-byte. Docker image identifiers were presented
+differently by the two daemons; matching installed native binary/content
+hashes establish the cross-rank code match for this experiment.
+
+Candidate launch adds only `GLM53_EXL3_MOE_STREAM_WEIGHTS=1` and selects the
+new image; GMU 0.87, fast=1, activation=1, scratch=128, C1 target graphs,
+MXFP8 drafter graphs C1–C6, K7 and scheduler settings remain unchanged.
+Non-secret runtime settings are saved in `stream-{A,B}-runtime.txt` and
+`stream-B-worker-runtime.txt`.
+
+Completed results (two rounds, 256 output tokens per request):
+
+| Workload | Control | Streaming | Change |
+|---|---:|---:|---:|
+| C1 prose tok/s | 29.09 | 29.64 | +1.9% |
+| C1 code tok/s | 27.25 | 25.54 | -6.3% |
+| C3 aggregate prose tok/s | 55.93 | 53.19 | -4.9% |
+| C3 aggregate code tok/s | 50.92 | 50.57 | -0.7% |
+| C6 aggregate prose tok/s | 81.75 | 81.63 | -0.2% |
+| C6 aggregate code tok/s | 79.21 | 74.45 | -6.0% |
+| Warmed uncached prefill input tok/s | 1150.28 | 1132.27 | -1.6% |
+
+C1 wall time per draft changed only 118.120 to 117.517 ms for prose and
+118.944 to 118.672 ms for code. Code acceptance differed (32.01% vs 29.16%),
+so its throughput regression is not a clean measurement of kernel slowdown.
+The conclusion is no worthwhile demonstrated serving gain, not proof that
+the cache hint always hurts. Both prefill runs used the identical 21,850-token
+prompt with zero prefix hits. Short functionality passed; the candidate was
+not taken through mixed-load or long-context qualification after this rejection.
+
+The validated `decode-pipeline-recipe-v1` image was restored with stream=0,
+GMU 0.87 and 4,650,826 KV tokens. API health, exact recall, arithmetic, short
+coherence, tool calling and image input passed. Evidence is in
+`stream-final-restore.log` and `stream-final-functional.jsonl`. The candidate's
+5,036,018-token startup budget is boot/profiling variation, not a cache-format
+improvement. No weight or KV precision was changed.
+
+### BF16 audit after the streaming experiment
+
+The two dominant BF16 GEMM families total 214.80 ms / 605.68 ms (35.46%)
+in the saved five-step C1 worker trace. This is an earlier profiling snapshot,
+not a fresh profile of the final restored image. It includes more than one
+module family and must not all be labelled target dense projections.
+
+The largest grid group is the inferred KDA fused input described above:
+80.18 ms, or 13.24% of the GPU span. Another N=4096 grid group contributes
+63.70 ms but mixes several operations; it needs module-level attribution
+before a specialized optimization. Two vocabulary-sized groups together
+cost 26.52 ms (4.38%); their graph/count/shape signatures are consistent with
+target and draft heads, not independently confirmed module annotations.
+
+The EXL3 checkpoint's `ORIGINAL_MODEL_CARD.md` names
+`zai-org/GLM-5.3-Flash-BF16`. KDA q/o weights are BF16 even in the earlier
+official-FP8-derived repaired checkpoint. A stdlib-only read-only probe,
+`probes/audit_exl3_bf16_source.py`, samples 1,152 elements per tensor without
+Torch/CUDA or whole-tensor reads. The two sampled KDA weights match exactly.
+The sampled dense MLP, shared-expert and MLA BF16 tensors are close to, but
+not identical to, the repaired official FP8 tensors dequantized with FP32
+block scales and rounded to BF16: 75, 151 and 48 differing elements,
+respectively. This disproves exact passthrough in these samples; it is not a
+full provenance or model-quality evaluation. Results: `bf16-source-audit.jsonl`.
+Consequently, replacing these weights with official FP8 is a precision/source
+tradeoff, not an established lossless export repair. It also cannot remove
+the native-BF16 KDA bottleneck.
+
+Installed CUDA unquantized dispatch ends in `torch.nn.functional.linear`;
+`VLLM_BATCH_INVARIANT` is unset (default false). The existing cuBLAS/Lt probe
+therefore tests the relevant default backend, rather than an unrelated path.
+For the dominant M=8, N=12576, K=4096 case it measured 456.3 us with cuBLAS,
+454.8 us with Lt and 453.7 us on repeated control. Column-major storage did
+not help the dominant shape. The `cutlass_80` kernel name alone is not proof
+of a broken dispatch on Blackwell.
+
+At 103.02 MB/rank and about 0.472 ms per large KDA input GEMM, the weight-only
+estimate is 218 GB/s, versus the Spark's advertised 273 GB/s. This is not a
+DRAM-counter measurement, but it makes a 2x quality-neutral speedup of that
+operation implausible without changing data reuse. Reaching ideal bandwidth
+for that operation alone would save roughly 2.7% of this GPU span. See
+[Spark hardware](https://docs.nvidia.com/dgx/dgx-spark/hardware.html) and
+[NVIDIA's GEMM memory/compute discussion](https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html).
+
+Next worthwhile quality-preserving checks are exact-shape/module attribution
+of the mixed N=4096 group and a tightly bounded SM121 small-M BF16 kernel
+screen with unchanged dtypes and numerical gates. KDA's six input projections
+are already fused; a global BLAS or layout switch has already failed. Larger
+batch/data reuse and higher speculative acceptance amortize the same BF16
+weight reads over more useful tokens, offering a more structural route than
+another cache-hint sweep. No new quantization or live kernel change was made
+for this audit.

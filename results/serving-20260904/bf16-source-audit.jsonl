@@ -1,0 +1,5 @@
+{"name": "model.language_model.layers.0.mlp.down_proj.weight", "shape": [4096, 12288], "exl3_dtype": "BF16", "reference_dtype": "F8_E4M3", "samples": 1152, "differing": 75, "relative_rmse_to_exl3_sample": 0.00012566555299355756}
+{"name": "model.language_model.layers.3.mlp.shared_experts.down_proj.weight", "shape": [4096, 2048], "exl3_dtype": "BF16", "reference_dtype": "F8_E4M3", "samples": 1152, "differing": 151, "relative_rmse_to_exl3_sample": 0.0002434622499323561}
+{"name": "model.language_model.layers.3.self_attn.q_b_proj.weight", "shape": [16384, 1536], "exl3_dtype": "BF16", "reference_dtype": "F8_E4M3", "samples": 1152, "differing": 48, "relative_rmse_to_exl3_sample": 5.2242308854686576e-05}
+{"name": "model.language_model.layers.0.self_attn.q_proj.weight", "shape": [8192, 4096], "exl3_dtype": "BF16", "reference_dtype": "BF16", "samples": 1152, "differing": 0, "relative_rmse_to_exl3_sample": 0.0}
+{"name": "model.language_model.layers.0.self_attn.o_proj.weight", "shape": [4096, 8192], "exl3_dtype": "BF16", "reference_dtype": "BF16", "samples": 1152, "differing": 0, "relative_rmse_to_exl3_sample": 0.0}
