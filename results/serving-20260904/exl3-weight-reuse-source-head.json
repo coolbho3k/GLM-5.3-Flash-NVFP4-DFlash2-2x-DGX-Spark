@@ -1,0 +1,48 @@
+{
+  "measurement_kind": "CPU source/address and synthetic-route accounting",
+  "caveats": [
+    "Not measured DRAM bytes or serving speedup",
+    "No real-model routing trace was collected",
+    "Cross-step cache residency is not modelled"
+  ],
+  "c1_c2_k7": "At most 8/16 rows: one M16 pass per active expert; no extra passes",
+  "address_coverage": [
+    {
+      "k": 4096,
+      "n": 1024,
+      "blocks_per_expert": 8,
+      "unique_bytes": 2097152,
+      "issued_copy_bytes": 2097152,
+      "max_copies_per_address": 1,
+      "duplicate_bytes": 0
+    },
+    {
+      "k": 1024,
+      "n": 4096,
+      "blocks_per_expert": 8,
+      "unique_bytes": 2097152,
+      "issued_copy_bytes": 2097152,
+      "max_copies_per_address": 1,
+      "duplicate_bytes": 0
+    }
+  ],
+  "synthetic_samples": [],
+  "installed_source": {
+    "scope": "structural guards, not formal CUDA verification",
+    "sha256": {
+      "/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/quant/glm53_exl3_moe_fast_kernel.cuh": "21e581ea3af66142a433a8077c3b23220a525b06170f95cb7bc7002256123c71",
+      "/usr/local/lib/python3.12/dist-packages/exllamav3/exllamav3_ext/quant/exl3_gemm_inner.cuh": "c4f938dd53faac6e9732ab7a188531846ce293b690aa3c03d89dddf72d778615"
+    },
+    "guards": [
+      "single_group_per_expert",
+      "gate_up_m16_loop",
+      "down_m16_loop",
+      "m16_only",
+      "disjoint_slice_begin",
+      "disjoint_slice_end",
+      "one_copy_subgroup",
+      "weight_copy_address",
+      "weight_stride"
+    ]
+  }
+}

@@ -1,0 +1,583 @@
+{
+  "measurement_kind": "CPU source/address and synthetic-route accounting",
+  "caveats": [
+    "Not measured DRAM bytes or serving speedup",
+    "No real-model routing trace was collected",
+    "Cross-step cache residency is not modelled"
+  ],
+  "c1_c2_k7": "At most 8/16 rows: one M16 pass per active expert; no extra passes",
+  "address_coverage": [
+    {
+      "k": 4096,
+      "n": 1024,
+      "blocks_per_expert": 8,
+      "unique_bytes": 2097152,
+      "issued_copy_bytes": 2097152,
+      "max_copies_per_address": 1,
+      "duplicate_bytes": 0
+    },
+    {
+      "k": 1024,
+      "n": 4096,
+      "blocks_per_expert": 8,
+      "unique_bytes": 2097152,
+      "issued_copy_bytes": 2097152,
+      "max_copies_per_address": 1,
+      "duplicate_bytes": 0
+    }
+  ],
+  "synthetic_samples": [
+    {
+      "source": "results/serving-20260904/exl3-tickets-forward.jsonl",
+      "routing": "uniform",
+      "rows": 8,
+      "routes": 64,
+      "active_experts": 56,
+      "max_rows_per_expert": 3,
+      "m16_weight_passes": 56,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 352321536,
+      "unique_packed_weight_bytes": 352321536,
+      "ideal_copy_byte_reduction_pct": 0.0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 56,
+          "copy_byte_reduction_pct": 0.0
+        },
+        "64": {
+          "weight_passes": 56,
+          "copy_byte_reduction_pct": 0.0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-forward.jsonl",
+      "routing": "correlated",
+      "rows": 8,
+      "routes": 64,
+      "active_experts": 22,
+      "max_rows_per_expert": 8,
+      "m16_weight_passes": 22,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 138412032,
+      "unique_packed_weight_bytes": 138412032,
+      "ideal_copy_byte_reduction_pct": 0.0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 22,
+          "copy_byte_reduction_pct": 0.0
+        },
+        "64": {
+          "weight_passes": 22,
+          "copy_byte_reduction_pct": 0.0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-forward.jsonl",
+      "routing": "striped_hot",
+      "rows": 8,
+      "routes": 64,
+      "active_experts": 18,
+      "max_rows_per_expert": 8,
+      "m16_weight_passes": 18,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 113246208,
+      "unique_packed_weight_bytes": 113246208,
+      "ideal_copy_byte_reduction_pct": 0.0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 18,
+          "copy_byte_reduction_pct": 0.0
+        },
+        "64": {
+          "weight_passes": 18,
+          "copy_byte_reduction_pct": 0.0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-forward.jsonl",
+      "routing": "empty",
+      "rows": 8,
+      "routes": 0,
+      "active_experts": 0,
+      "max_rows_per_expert": 0,
+      "m16_weight_passes": 0,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 0,
+      "unique_packed_weight_bytes": 0,
+      "ideal_copy_byte_reduction_pct": 0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 0,
+          "copy_byte_reduction_pct": 0
+        },
+        "64": {
+          "weight_passes": 0,
+          "copy_byte_reduction_pct": 0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-forward.jsonl",
+      "routing": "uniform",
+      "rows": 48,
+      "routes": 384,
+      "active_experts": 214,
+      "max_rows_per_expert": 6,
+      "m16_weight_passes": 214,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 1346371584,
+      "unique_packed_weight_bytes": 1346371584,
+      "ideal_copy_byte_reduction_pct": 0.0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 214,
+          "copy_byte_reduction_pct": 0.0
+        },
+        "64": {
+          "weight_passes": 214,
+          "copy_byte_reduction_pct": 0.0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-forward.jsonl",
+      "routing": "correlated",
+      "rows": 48,
+      "routes": 384,
+      "active_experts": 104,
+      "max_rows_per_expert": 16,
+      "m16_weight_passes": 104,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 654311424,
+      "unique_packed_weight_bytes": 654311424,
+      "ideal_copy_byte_reduction_pct": 0.0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 104,
+          "copy_byte_reduction_pct": 0.0
+        },
+        "64": {
+          "weight_passes": 104,
+          "copy_byte_reduction_pct": 0.0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-forward.jsonl",
+      "routing": "striped_hot",
+      "rows": 48,
+      "routes": 384,
+      "active_experts": 35,
+      "max_rows_per_expert": 48,
+      "m16_weight_passes": 47,
+      "extra_weight_passes": 12,
+      "issued_packed_weight_bytes": 295698432,
+      "unique_packed_weight_bytes": 220200960,
+      "ideal_copy_byte_reduction_pct": 25.53191489361702,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 41,
+          "copy_byte_reduction_pct": 12.76595744680851
+        },
+        "64": {
+          "weight_passes": 35,
+          "copy_byte_reduction_pct": 25.53191489361702
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-forward.jsonl",
+      "routing": "empty",
+      "rows": 48,
+      "routes": 0,
+      "active_experts": 0,
+      "max_rows_per_expert": 0,
+      "m16_weight_passes": 0,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 0,
+      "unique_packed_weight_bytes": 0,
+      "ideal_copy_byte_reduction_pct": 0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 0,
+          "copy_byte_reduction_pct": 0
+        },
+        "64": {
+          "weight_passes": 0,
+          "copy_byte_reduction_pct": 0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-forward.jsonl",
+      "routing": "uniform",
+      "rows": 128,
+      "routes": 1024,
+      "active_experts": 279,
+      "max_rows_per_expert": 10,
+      "m16_weight_passes": 279,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 1755316224,
+      "unique_packed_weight_bytes": 1755316224,
+      "ideal_copy_byte_reduction_pct": 0.0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 279,
+          "copy_byte_reduction_pct": 0.0
+        },
+        "64": {
+          "weight_passes": 279,
+          "copy_byte_reduction_pct": 0.0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-forward.jsonl",
+      "routing": "correlated",
+      "rows": 128,
+      "routes": 1024,
+      "active_experts": 190,
+      "max_rows_per_expert": 24,
+      "m16_weight_passes": 194,
+      "extra_weight_passes": 4,
+      "issued_packed_weight_bytes": 1220542464,
+      "unique_packed_weight_bytes": 1195376640,
+      "ideal_copy_byte_reduction_pct": 2.0618556701030926,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 190,
+          "copy_byte_reduction_pct": 2.0618556701030926
+        },
+        "64": {
+          "weight_passes": 190,
+          "copy_byte_reduction_pct": 2.0618556701030926
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-forward.jsonl",
+      "routing": "striped_hot",
+      "rows": 128,
+      "routes": 1024,
+      "active_experts": 36,
+      "max_rows_per_expert": 128,
+      "m16_weight_passes": 78,
+      "extra_weight_passes": 42,
+      "issued_packed_weight_bytes": 490733568,
+      "unique_packed_weight_bytes": 226492416,
+      "ideal_copy_byte_reduction_pct": 53.84615384615385,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 54,
+          "copy_byte_reduction_pct": 30.76923076923077
+        },
+        "64": {
+          "weight_passes": 42,
+          "copy_byte_reduction_pct": 46.15384615384615
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-forward.jsonl",
+      "routing": "empty",
+      "rows": 128,
+      "routes": 0,
+      "active_experts": 0,
+      "max_rows_per_expert": 0,
+      "m16_weight_passes": 0,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 0,
+      "unique_packed_weight_bytes": 0,
+      "ideal_copy_byte_reduction_pct": 0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 0,
+          "copy_byte_reduction_pct": 0
+        },
+        "64": {
+          "weight_passes": 0,
+          "copy_byte_reduction_pct": 0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-reverse.jsonl",
+      "routing": "uniform",
+      "rows": 8,
+      "routes": 64,
+      "active_experts": 56,
+      "max_rows_per_expert": 3,
+      "m16_weight_passes": 56,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 352321536,
+      "unique_packed_weight_bytes": 352321536,
+      "ideal_copy_byte_reduction_pct": 0.0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 56,
+          "copy_byte_reduction_pct": 0.0
+        },
+        "64": {
+          "weight_passes": 56,
+          "copy_byte_reduction_pct": 0.0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-reverse.jsonl",
+      "routing": "correlated",
+      "rows": 8,
+      "routes": 64,
+      "active_experts": 22,
+      "max_rows_per_expert": 8,
+      "m16_weight_passes": 22,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 138412032,
+      "unique_packed_weight_bytes": 138412032,
+      "ideal_copy_byte_reduction_pct": 0.0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 22,
+          "copy_byte_reduction_pct": 0.0
+        },
+        "64": {
+          "weight_passes": 22,
+          "copy_byte_reduction_pct": 0.0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-reverse.jsonl",
+      "routing": "striped_hot",
+      "rows": 8,
+      "routes": 64,
+      "active_experts": 18,
+      "max_rows_per_expert": 8,
+      "m16_weight_passes": 18,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 113246208,
+      "unique_packed_weight_bytes": 113246208,
+      "ideal_copy_byte_reduction_pct": 0.0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 18,
+          "copy_byte_reduction_pct": 0.0
+        },
+        "64": {
+          "weight_passes": 18,
+          "copy_byte_reduction_pct": 0.0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-reverse.jsonl",
+      "routing": "empty",
+      "rows": 8,
+      "routes": 0,
+      "active_experts": 0,
+      "max_rows_per_expert": 0,
+      "m16_weight_passes": 0,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 0,
+      "unique_packed_weight_bytes": 0,
+      "ideal_copy_byte_reduction_pct": 0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 0,
+          "copy_byte_reduction_pct": 0
+        },
+        "64": {
+          "weight_passes": 0,
+          "copy_byte_reduction_pct": 0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-reverse.jsonl",
+      "routing": "uniform",
+      "rows": 48,
+      "routes": 384,
+      "active_experts": 214,
+      "max_rows_per_expert": 6,
+      "m16_weight_passes": 214,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 1346371584,
+      "unique_packed_weight_bytes": 1346371584,
+      "ideal_copy_byte_reduction_pct": 0.0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 214,
+          "copy_byte_reduction_pct": 0.0
+        },
+        "64": {
+          "weight_passes": 214,
+          "copy_byte_reduction_pct": 0.0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-reverse.jsonl",
+      "routing": "correlated",
+      "rows": 48,
+      "routes": 384,
+      "active_experts": 104,
+      "max_rows_per_expert": 16,
+      "m16_weight_passes": 104,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 654311424,
+      "unique_packed_weight_bytes": 654311424,
+      "ideal_copy_byte_reduction_pct": 0.0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 104,
+          "copy_byte_reduction_pct": 0.0
+        },
+        "64": {
+          "weight_passes": 104,
+          "copy_byte_reduction_pct": 0.0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-reverse.jsonl",
+      "routing": "striped_hot",
+      "rows": 48,
+      "routes": 384,
+      "active_experts": 35,
+      "max_rows_per_expert": 48,
+      "m16_weight_passes": 47,
+      "extra_weight_passes": 12,
+      "issued_packed_weight_bytes": 295698432,
+      "unique_packed_weight_bytes": 220200960,
+      "ideal_copy_byte_reduction_pct": 25.53191489361702,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 41,
+          "copy_byte_reduction_pct": 12.76595744680851
+        },
+        "64": {
+          "weight_passes": 35,
+          "copy_byte_reduction_pct": 25.53191489361702
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-reverse.jsonl",
+      "routing": "empty",
+      "rows": 48,
+      "routes": 0,
+      "active_experts": 0,
+      "max_rows_per_expert": 0,
+      "m16_weight_passes": 0,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 0,
+      "unique_packed_weight_bytes": 0,
+      "ideal_copy_byte_reduction_pct": 0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 0,
+          "copy_byte_reduction_pct": 0
+        },
+        "64": {
+          "weight_passes": 0,
+          "copy_byte_reduction_pct": 0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-reverse.jsonl",
+      "routing": "uniform",
+      "rows": 128,
+      "routes": 1024,
+      "active_experts": 279,
+      "max_rows_per_expert": 10,
+      "m16_weight_passes": 279,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 1755316224,
+      "unique_packed_weight_bytes": 1755316224,
+      "ideal_copy_byte_reduction_pct": 0.0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 279,
+          "copy_byte_reduction_pct": 0.0
+        },
+        "64": {
+          "weight_passes": 279,
+          "copy_byte_reduction_pct": 0.0
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-reverse.jsonl",
+      "routing": "correlated",
+      "rows": 128,
+      "routes": 1024,
+      "active_experts": 190,
+      "max_rows_per_expert": 24,
+      "m16_weight_passes": 194,
+      "extra_weight_passes": 4,
+      "issued_packed_weight_bytes": 1220542464,
+      "unique_packed_weight_bytes": 1195376640,
+      "ideal_copy_byte_reduction_pct": 2.0618556701030926,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 190,
+          "copy_byte_reduction_pct": 2.0618556701030926
+        },
+        "64": {
+          "weight_passes": 190,
+          "copy_byte_reduction_pct": 2.0618556701030926
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-reverse.jsonl",
+      "routing": "striped_hot",
+      "rows": 128,
+      "routes": 1024,
+      "active_experts": 36,
+      "max_rows_per_expert": 128,
+      "m16_weight_passes": 78,
+      "extra_weight_passes": 42,
+      "issued_packed_weight_bytes": 490733568,
+      "unique_packed_weight_bytes": 226492416,
+      "ideal_copy_byte_reduction_pct": 53.84615384615385,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 54,
+          "copy_byte_reduction_pct": 30.76923076923077
+        },
+        "64": {
+          "weight_passes": 42,
+          "copy_byte_reduction_pct": 46.15384615384615
+        }
+      }
+    },
+    {
+      "source": "results/serving-20260904/exl3-tickets-reverse.jsonl",
+      "routing": "empty",
+      "rows": 128,
+      "routes": 0,
+      "active_experts": 0,
+      "max_rows_per_expert": 0,
+      "m16_weight_passes": 0,
+      "extra_weight_passes": 0,
+      "issued_packed_weight_bytes": 0,
+      "unique_packed_weight_bytes": 0,
+      "ideal_copy_byte_reduction_pct": 0,
+      "hypothetical_tiles": {
+        "32": {
+          "weight_passes": 0,
+          "copy_byte_reduction_pct": 0
+        },
+        "64": {
+          "weight_passes": 0,
+          "copy_byte_reduction_pct": 0
+        }
+      }
+    }
+  ]
+}
