@@ -142,13 +142,16 @@ Inspect the fully resolved serving configuration without launching anything:
 ```bash
 ./serve-profile.sh prepare exl3-fp8-dcp2
 ./serve-profile.sh build exl3-fp8-dcp2
-./serve-profile.sh start exl3-fp8-dcp2
+./start-cluster.sh
 ```
 
 `prepare` downloads pinned target and draft revisions to the head and rsyncs
 them to the worker. `build` creates the patched image on the head. `start`
-copies the image to the worker if needed, verifies the runtime files on both
-ranks, starts the worker and then the head, and waits for `/health`.
+via `./start-cluster.sh` selects the canonical `exl3-fp8-dcp2` profile with
+probabilistic DFlash2 proposals, copies the image to the worker if needed,
+verifies the runtime files on both ranks, starts the worker and then the head,
+and waits for `/health`. The explicit equivalent is
+`DFLASH_DRAFT_SAMPLE_METHOD=probabilistic ./serve-profile.sh start exl3-fp8-dcp2`.
 
 Cold model startup normally takes several minutes. The command returns only
 after the API is healthy or startup has failed.
@@ -323,8 +326,9 @@ limits include reasoning tokens when thinking is enabled.
   return before the distributed engine is usable.
 - Follow rank-0 logs with `docker logs -f vllm_glm53` and rank-1 logs with
   `ssh "$WORKER_HOST" docker logs -f vllm_glm53`.
-- Use `serve-profile.sh start`; it removes stale containers from both nodes
-  before forming a new rendezvous and cleans up both ranks if startup fails.
+- Use `./start-cluster.sh` for the canonical launch; it removes stale
+  containers from both nodes before forming a new rendezvous and cleans up both
+  ranks if startup fails.
 - A wrong HCA, interface, or subnet can look like a model startup hang. Verify
   the fabric settings first when the ranks cannot join.
 - The launcher verifies runtime-defining files across ranks and replaces a
