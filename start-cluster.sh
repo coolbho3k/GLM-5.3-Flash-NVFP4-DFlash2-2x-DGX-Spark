@@ -3,6 +3,14 @@
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+# Direct use selects the canonical production profile. serve-profile.sh exports
+# SERVE_PROFILE before it calls back into this script with the resolved settings.
+if [[ -z "${SERVE_PROFILE:-}" ]]; then
+  exec env DFLASH_DRAFT_SAMPLE_METHOD=probabilistic \
+    "$SCRIPT_DIR/serve-profile.sh" start exl3-fp8-dcp2
+fi
+
 WORKER_HOST="${WORKER_HOST:-dgx1.lan}"
 REMOTE_DIR="${REMOTE_DIR:-$HOME/.cache/glm53-tp2-deploy}"
 CONTAINER_NAME="${CONTAINER_NAME:-vllm_glm53}"
