@@ -351,6 +351,8 @@ limits include reasoning tokens when thinking is enabled.
 [Z.ai](https://huggingface.co/zai-org) for GLM-5.3-Flash,
 [Mia-AI Lab](https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks)
 for the EXL3 checkpoint and integration work,
+[tonyd2wild](https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark)
+for the original base,
 [local-inference-lab](https://huggingface.co/local-inference-lab/GLM-5.3-Flash-DFlash2-MXFP8)
 and [incoai](https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2) for the DFlash2
 checkpoints, [Red Hat AI](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4)
