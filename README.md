@@ -221,7 +221,7 @@ before `prepare`, `build`, or `start`, or prefix an individual command.
 | `GPU_MEMORY_UTILIZATION` | `0.87` | Fraction of unified memory available to vLLM |
 | `MAX_MODEL_LEN` | `1048576` | Per-request model context limit |
 | `MAX_NUM_SEQS` | `6` | Maximum concurrent sequences |
-| `MAX_NUM_BATCHED_TOKENS` | `8192` | Pure-prefill scheduler budget and EXL3 scratch size |
+| `MAX_NUM_BATCHED_TOKENS` | `7168` | Pure-prefill budget selected by MiaAI's latest E3 ladder |
 | `MODEL_HOST_PATH` | profile-specific | Target checkpoint path on both nodes |
 | `DRAFT_HOST_PATH` | profile-specific | DFlash2 checkpoint path on both nodes |
 
@@ -276,7 +276,7 @@ checkpoint; rebuilding its quantization is not required to serve it.
 
 ## Scheduler and CUDA-graph controls
 
-The recommended adaptive scheduler gives pure-prefill work the full 8,192-token
+The recommended adaptive scheduler gives pure-prefill work the full 7,168-token
 budget. When decode is active, it admits smaller aggregate prefill packets at a
 cadence based on the number of active decoders. This keeps ongoing chats and
 agents responsive without completely starving new prompts.

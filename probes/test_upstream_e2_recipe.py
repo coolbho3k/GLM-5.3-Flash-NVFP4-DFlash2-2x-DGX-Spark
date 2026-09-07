@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Host-only contract checks for the selective MiaAI E2 integration."""
+"""Host-only contract checks for the selective MiaAI E2/E3 integration."""
 
 from __future__ import annotations
 
@@ -10,12 +10,14 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-UPSTREAM = "eb0469fbb2b49fd7c025f594a3339a121e58f7a9"
+UPSTREAM = "6599585438d6046cb6b4800411b8570971c15dcc"
 EXPECTED_HASHES = {
-    "vendor/miaai-exl3/exl3.py": "c9e765e13747cde82840c7af44945b7f06a1dee176df472dcebd1d858f9a5843",
+    "vendor/miaai-exl3/exl3.py": "f02574b9e28d56509159ed1e1c091148388466635e46ba5e9bd7f5e755482d47",
     "vendor/miaai-exl3/exl3_fat_gemm.cu": "1442a09d79915206abdc2379c093f9bb25b45cd74d295486c1135bd112cc6ea7",
     "vendor/miaai-exl3/exl3_fat_gemm.cuh": "b5ed5ee3d2b028d4be2091d5c5f14ae13daa2df44246fe9acda08ff92ab3262a",
-    "vendor/miaai-exl3/patch_exl3_fat_kernel.py": "ce2aa43b0560e931a60831c5539e83faaed56e80a58b1bd5fda7610781c234a8",
+    "vendor/miaai-exl3/exl3_fat_moe.cu": "21e625aa439367ed13feb88bbb55b72a06f2e5ce56d3615b3d4e1a28cb231e44",
+    "vendor/miaai-exl3/exl3_fat_moe.cuh": "0b3ae15e9d42a582c32368ec4f36e386580d4207408cedb0cd44784ee85a8e0e",
+    "vendor/miaai-exl3/patch_exl3_fat_kernel.py": "6fb6ed425251e500bc362fc22cd3e5cf1c87a0a8d861a95573297dde8a0c8f0f",
     "overlay-exl3-fp8/patch_spinwait.py": "09ec72e41d48181bb62b84c54d7a45956943271477bd6ca02c6ae221ba0d282c",
 }
 
@@ -55,7 +57,12 @@ def test_extension_patch_fixture() -> None:
         assert patched.count('#include "quant/exl3_fat_gemm.cuh"') == 1
         assert patched.count('m.def("exl3_fat_gemm"') == 1
         assert patched.count('m.def("exl3_fat_gemm_scatter"') == 1
-        for name in ("exl3_fat_gemm.cu", "exl3_fat_gemm.cuh"):
+        for symbol in ("gather", "gateup", "down", "tile_rows_gateup", "tile_rows_down"):
+            assert patched.count(f'm.def("exl3_fat_moe_{symbol}"') == 1
+        for name in (
+            "exl3_fat_gemm.cu", "exl3_fat_gemm.cuh",
+            "exl3_fat_moe.cu", "exl3_fat_moe.cuh",
+        ):
             assert (quant / name).read_bytes() == (
                 ROOT / "vendor/miaai-exl3" / name
             ).read_bytes()
@@ -70,29 +77,34 @@ def test_recipe_wiring_and_capacity_guardrail() -> None:
     assert "patch_exl3_fat_kernel.py" in dockerfile
     assert "exl3_fat_gemm_scatter" in dockerfile
     assert f'glm53.miaai-exl3.commit="{UPSTREAM}"' in dockerfile
-    assert 'glm53.serving.profile="e2-fp8-dcp2"' in dockerfile
+    assert 'glm53.serving.profile="e3-fp8-dcp2"' in dockerfile
     assert 'ENTRYPOINT ["/opt/glm53/entrypoint.sh"]' in dockerfile
     assert "python3 /opt/glm53/patch_spinwait.py" in entrypoint
-    assert 'MAX_NUM_BATCHED_TOKENS:-8192' in launch
+    assert 'MAX_NUM_BATCHED_TOKENS:-7168' in launch
     assert 'MAX_NUM_SEQS:-6' in launch
     assert 'BLOCK_SIZE:-2048' in launch
     assert 'ENFORCE_EAGER:-1' in launch
-    assert 'GLM53_SPINWAIT_MS:-stock' in launch
+    assert 'GLM53_SPINWAIT_MS:-16' in launch
     assert "launch-glm53-vllm-tp2-dflash2.sh" in launch
     assert "serve-profile.sh" in cluster
     assert "start exl3-fp8-dcp2" in cluster
-    assert "default_var MAX_NUM_BATCHED_TOKENS 8192" in selector
+    shown = subprocess.check_output(
+        [str(ROOT / "serve-profile.sh"), "show", "exl3-fp8-dcp2"], text=True
+    )
+    assert "MAX_NUM_BATCHED_TOKENS             7168" in shown
+    assert "EXL3_FAT_GROUPED                   1" in shown
+    assert "EXL3_TEMP_ROWS_FUSED               64" in shown
     assert "default_var MAX_NUM_SEQS 6" in selector
     assert "default_var ENFORCE_EAGER 1" in selector
     assert "default_var BLOCK_SIZE 2048" in selector
-    assert "7168" not in launch + cluster + selector
+    assert "7168" in selector
 
 
 def main() -> None:
     tests = [value for name, value in sorted(globals().items()) if name.startswith("test_")]
     for test in tests:
         test()
-    print(f"selective MiaAI E2 recipe OK ({len(tests)} tests)")
+    print(f"selective MiaAI E2/E3 recipe OK ({len(tests)} tests)")
 
 
 if __name__ == "__main__":

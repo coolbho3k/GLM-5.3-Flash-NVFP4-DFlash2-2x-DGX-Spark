@@ -12,7 +12,7 @@ PROFILES = {
     "nvfp4-fp4-dcp2": ("glm53-v14:nvfp4-gscale-tooling", "", "marlin", "1"),
     "nvfp4-fp8-dcp2": ("glm53-exl3:e2-fp8-dcp2", "", "marlin", "0"),
     "exl3-fp4-dcp2": ("glm53-exl3:e2-native-fp4-dcp2", "exl3", "auto", "1"),
-    "exl3-fp8-dcp2": ("glm53-exl3:e2-fp8-dcp2", "exl3", "auto", "0"),
+    "exl3-fp8-dcp2": ("glm53-exl3:e3-fp8-dcp2", "exl3", "auto", "0"),
 }
 
 
@@ -73,11 +73,16 @@ def test_native_pipeline_settings_are_visible_and_opt_in() -> None:
     assert defaults["GLM53_EXL3_MOE_FAST"] == "0"
     assert defaults["GLM53_EXL3_MOE_STREAM_WEIGHTS"] == "0"
     assert defaults["EXL3_FUSED_FAT_ACTIVATION"] == "0"
-    assert defaults["EXL3_TEMP_ROWS_FUSED"] == "128"
+    assert defaults["EXL3_FAT_GROUPED"] == "1"
+    assert defaults["EXL3_TEMP_ROWS_FUSED"] == "64"
+    assert defaults["MAX_NUM_BATCHED_TOKENS"] == "7168"
     assert defaults["EXL3_FAT_ACTIVATION_CONTROL"] == "''"
     assert defaults["EXL3_FAT_PIPELINE"] == "off"
+    # E2 remains selectable for direct comparison and rollback.
+    e2 = resolved("exl3-fp8-dcp2", EXL3_FAT_GROUPED="0")
+    assert e2["EXL3_FAT_GROUPED"] == "0"
     for mode in ("m128", "m64", "m64_norepack"):
-        assert resolved("exl3-fp8-dcp2", EXL3_FAT_PIPELINE=mode)["EXL3_FAT_PIPELINE"] == mode
+        assert resolved("exl3-fp8-dcp2", EXL3_FAT_GROUPED="0", EXL3_FAT_PIPELINE=mode)["EXL3_FAT_PIPELINE"] == mode
     for overrides in ({"EXL3_FAT_PIPELINE": "bad"},
                       {"EXL3_FAT_PIPELINE": "m64", "EXL3_FAT_KERNEL": "0"},
                       {"EXL3_FAT_PIPELINE": "m64", "EXL3_MOE_ROW_TILE": "1"}):
@@ -128,7 +133,7 @@ def test_streaming_rejects_incompatible_configuration() -> None:
     ):
         env = {"PATH": os.environ["PATH"], "HOME": os.environ.get("HOME", "/home/emi"),
                "GLM53_EXL3_MOE_FAST": fast, "EXL3_FUSED_MOE": fused,
-               "GLM53_EXL3_MOE_STREAM_WEIGHTS": stream}
+               "GLM53_EXL3_MOE_STREAM_WEIGHTS": stream, "EXL3_FAT_GROUPED": "0"}
         result = subprocess.run([str(ROOT / "serve-profile.sh"), "show", profile],
                                 cwd=ROOT, env=env, capture_output=True, text=True)
         assert result.returncode == 2, (profile, fast, fused, stream, result)

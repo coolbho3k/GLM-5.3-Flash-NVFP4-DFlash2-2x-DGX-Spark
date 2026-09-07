@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""GPU parity check for MiaAI's E2 EXL3 fat-expert CUDA kernel."""
+"""GPU parity checks for MiaAI's E2/E3 EXL3 fat-expert CUDA kernels."""
 
 from __future__ import annotations
 
+import os
 import subprocess
+import types
 
 import torch
 
@@ -18,7 +20,10 @@ def main() -> None:
         execute_exl3_linear,
     )
 
-    for symbol in ("exl3_moe", "exl3_fat_gemm", "exl3_fat_gemm_scatter"):
+    for symbol in (
+        "exl3_moe", "exl3_fat_gemm", "exl3_fat_gemm_scatter",
+        "exl3_fat_moe_gather", "exl3_fat_moe_gateup", "exl3_fat_moe_down",
+    ):
         assert hasattr(exllamav3_ext, symbol), (symbol, dir(exllamav3_ext))
     cubins = subprocess.check_output(
         ["cuobjdump", "-lelf", exllamav3_ext.__file__],
@@ -96,6 +101,91 @@ def main() -> None:
         f"rows={rows} direct={direct_error:.5f} "
         f"scatter={scatter_error:.5f} bound={bound:.5f}"
     )
+    check_grouped_e3(device)
+
+
+def check_grouped_e3(device: torch.device) -> None:
+    from vllm.model_executor.layers.quantization.exl3 import (
+        MCG_MARKER_SIGNED_INT32,
+        Exl3Config,
+        Exl3MoEMethod,
+        apply_exl3_experts,
+        exl3_fat_diag,
+    )
+
+    keys = (
+        "EXL3_FAT_GROUPED", "EXL3_FAT_KERNEL", "EXL3_MOE_ROW_TILE",
+        "EXL3_TEMP_ROWS_FUSED", "EXL3_FAT_SCRATCH_ROWS", "EXL3_FAT_EXPERT_LOG",
+    )
+    previous = {key: os.environ.get(key) for key in keys}
+    try:
+        os.environ.update({
+            "EXL3_FAT_GROUPED": "1",
+            "EXL3_FAT_KERNEL": "1",
+            "EXL3_MOE_ROW_TILE": "0",
+            "EXL3_TEMP_ROWS_FUSED": "32",
+            "EXL3_FAT_SCRATCH_ROWS": "256",
+            "EXL3_FAT_EXPERT_LOG": "0",
+        })
+        method = Exl3MoEMethod(types.SimpleNamespace(swiglu_limit=10.0), Exl3Config())
+        layer = torch.nn.Module()
+        method.create_weights(
+            layer, num_experts=3, hidden_size=256,
+            intermediate_size_per_partition=256, params_dtype=torch.float16,
+        )
+        generator = torch.Generator(device="cpu")
+        generator.manual_seed(73)
+        with torch.no_grad():
+            layer.w13_trellis.copy_(torch.randint(
+                -30000, 30000, tuple(layer.w13_trellis.shape),
+                dtype=torch.int16, generator=generator,
+            ))
+            layer.w2_trellis.copy_(torch.randint(
+                -30000, 30000, tuple(layer.w2_trellis.shape),
+                dtype=torch.int16, generator=generator,
+            ))
+            layer.w13_suh.copy_(torch.randn(
+                tuple(layer.w13_suh.shape), generator=generator,
+            ).half())
+            layer.w13_suh[:, 1].copy_(layer.w13_suh[:, 0])
+            layer.w13_svh.copy_(torch.randn(
+                tuple(layer.w13_svh.shape), generator=generator,
+            ).half())
+            layer.w2_suh.copy_(torch.randn(
+                tuple(layer.w2_suh.shape), generator=generator,
+            ).half())
+            layer.w2_svh.copy_(torch.randn(
+                tuple(layer.w2_svh.shape), generator=generator,
+            ).half())
+            layer.w13_mcg.fill_(MCG_MARKER_SIGNED_INT32)
+            layer.w2_mcg.fill_(MCG_MARKER_SIGNED_INT32)
+        layer = layer.to(device)
+        method.process_weights_after_loading(layer)
+        assert layer._exl3_fat_effective_tier == "grouped", (
+            layer._exl3_fat_effective_tier, layer._exl3_fat_tier_reason,
+        )
+
+        rows = 160
+        x = torch.randn(rows, 256, dtype=torch.float16, device=device)
+        ids = torch.zeros(rows, 2, dtype=torch.long, device=device)
+        ids[:, 1] = 1
+        weights = torch.full((rows, 2), 0.5, dtype=torch.float16, device=device)
+        reference = apply_exl3_experts(x, ids, weights, layer, fused=False)
+        grouped = apply_exl3_experts(x, ids, weights, layer, fused=True)
+        error = float((reference.float() - grouped.float()).abs().max())
+        bound = max(0.15, 0.08 * float(reference.float().abs().max().clamp_min(1.0)))
+        assert torch.isfinite(grouped).all()
+        assert error < bound, (error, bound)
+        assert layer._exl3_last_fat_fallback == "grouped"
+        diag = exl3_fat_diag()
+        assert diag["sym_fat_moe"] and diag["grouped_calls"] >= 1
+        print(f"EXL3 E3 grouped parity OK rows={rows} error={error:.5f} bound={bound:.5f}")
+    finally:
+        for key, value in previous.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
 
 
 if __name__ == "__main__":

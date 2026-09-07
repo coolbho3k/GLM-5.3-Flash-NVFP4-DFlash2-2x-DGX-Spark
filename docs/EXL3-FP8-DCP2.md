@@ -42,7 +42,7 @@ per-layer CPU synchronization and re-plan.
 - base image digest: 4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6
 - SparkInfer: 3a437ab5168060e4d625f05e1625c04089f1ba37
 - ExLlamaV3: c5d9c657966ffeeaa9353f0cc899f18629da4a13
-- MiaAI-Lab source: eb0469fbb2b49fd7c025f594a3339a121e58f7a9
+- MiaAI-Lab source: 6599585438d6046cb6b4800411b8570971c15dcc
 - EXL3 checkpoint: Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw at 25a44fdbf16862a46b7cc9921142c6c81350af2f
 - default DFlash2: local-inference-lab/GLM-5.3-Flash-DFlash2-MXFP8 at 610aa967a92bfeb97e3d848dcb8693553e8b6a55
 - BF16 draft rollback: incoai/GLM-5.3-Flash-DFlash2 at bf582e4eacc1810f76656d1811693ff6c6737d2a
@@ -95,9 +95,10 @@ The validated EXL3+FP8 defaults are:
 
 - max model length: 1,048,576
 - maximum sequences: 6
-- maximum batched tokens: 8,192
-- E2 fat-expert prefill kernel enabled
-- E2 scratch sized against the 8,192-token scheduler budget
+- maximum batched tokens: 7,168
+- E3 grouped fat-expert prefill kernels enabled
+- 64 fused rows/expert, which keeps C1-C6 K=7 decode on the fused path
+- E2 kernel and no-repack paths retained as rollback/experimentation tiers
 - 16 ms SpinCondition reader window
 - CLI block size: 2,048 (attention-manager block size: 4,096)
 - quantization: EXL3
@@ -114,10 +115,9 @@ The validated EXL3+FP8 defaults are:
 Do not add **--moe-backend marlin**; that belongs to the NVFP4 target and is
 incorrect for EXL3 weights.
 
-Set `EXL3_FAT_KERNEL=0` to select the pre-E2 expert path without rebuilding.
+Set `EXL3_FAT_GROUPED=0` to select the retained E2 path without rebuilding; set `EXL3_FAT_KERNEL=0` as well to select the pre-E2 expert path.
 Set `GLM53_SPINWAIT_MS=stock` to restore vLLM's one-second reader spin
-window after overriding it. The 8,192-token budget is the current mixed-load
-default and can be reduced with `MAX_NUM_BATCHED_TOKENS`.
+window after overriding it. The 7,168-token budget follows MiaAI's current grouped-prefill result and can be overridden with `MAX_NUM_BATCHED_TOKENS`.
 The upstream indexer-workspace policy is also not stacked over this repo's
 existing long-context workspace bound; changing that allocator remains a
 separate concurrency-versus-capacity experiment.
@@ -242,9 +242,9 @@ With the server stopped and both GPUs available, run the numerical kernel
 gates before a new image is served:
 
     docker run --rm --gpus all --entrypoint python3 \
-      glm53-exl3:e2-fp8-dcp2 /opt/glm53/test_fp8_zero_rope_writer.py
+      glm53-exl3:e3-fp8-dcp2 /opt/glm53/test_fp8_zero_rope_writer.py
     docker run --rm --gpus all --entrypoint python3 \
-      glm53-exl3:e2-fp8-dcp2 /opt/glm53/test_exl3_e2_kernel.py
+      glm53-exl3:e3-fp8-dcp2 /opt/glm53/test_exl3_e2_kernel.py
 
 The tests check byte-exact E4M3 values, FP32 scales, paged slot addressing,
 negative-slot suppression, and the additive E2 CUDA kernel against reference

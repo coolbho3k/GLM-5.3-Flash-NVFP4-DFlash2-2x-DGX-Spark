@@ -2,15 +2,19 @@
 
 These files are vendored from
 [MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks](https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks)
-at commit eb0469fbb2b49fd7c025f594a3339a121e58f7a9:
+at commit 6599585438d6046cb6b4800411b8570971c15dcc:
 
 - exl3.py
 - exl3_fat_gemm.cu
 - exl3_fat_gemm.cuh
+- exl3_fat_moe.cu
+- exl3_fat_moe.cuh
 - patch_exl3_fat_kernel.py
 - patch_exl3_ext_aarch64.py
 - patch_model_overrides.py
 - LICENSE
+
+The Python overlay retains this recipe's validated decode/no-repack extensions while incorporating MiaAI's E3 grouped-prefill tier.
 
 The upstream numeric spin-wait patch is vendored separately at
 `overlay-exl3-fp8/patch_spinwait.py` because it modifies the vLLM runtime,

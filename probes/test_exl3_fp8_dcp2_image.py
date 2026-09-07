@@ -39,6 +39,11 @@ def main() -> None:
     assert hasattr(exllamav3_ext, "exl3_moe_max_concurrency")
     assert hasattr(exllamav3_ext, "exl3_fat_gemm")
     assert hasattr(exllamav3_ext, "exl3_fat_gemm_scatter")
+    for symbol in (
+        "exl3_fat_moe_gather", "exl3_fat_moe_gateup", "exl3_fat_moe_down",
+        "exl3_fat_moe_tile_rows_gateup", "exl3_fat_moe_tile_rows_down",
+    ):
+        assert hasattr(exllamav3_ext, symbol), symbol
     from vllm.model_executor.layers.quantization.exl3 import (
         EXL3_FAT_DIAG_KEYS,
         EXL3_FAT_DIAG_SCHEMA,
@@ -46,8 +51,10 @@ def main() -> None:
     )
 
     diag = exl3_fat_diag()
-    assert diag["schema"] == EXL3_FAT_DIAG_SCHEMA == 1
+    assert diag["schema"] == EXL3_FAT_DIAG_SCHEMA == 2
     assert set(diag) == set(EXL3_FAT_DIAG_KEYS)
+    assert "grouped" in diag["fallback_calls"]
+    assert {"sym_fat_moe", "grouped_calls", "grouped_scratch_bytes"} <= set(diag)
     kv_interface = (VLLM / "v1/kv_cache_interface.py").read_text()
     sparse = (
         VLLM / "v1/attention/backends/mla/flashinfer_mla_sparse_sm120.py"

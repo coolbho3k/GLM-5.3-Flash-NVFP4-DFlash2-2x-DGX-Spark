@@ -1,13 +1,13 @@
 # Reproducible EXL3 routed experts + native 528-byte FP8 MLA + TP2/DCP2.
 ARG BASE_IMAGE=ghcr.io/tonyd2wild/vllm-glm53-flash@sha256:4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6
 FROM ${BASE_IMAGE}
-LABEL glm53.miaai-exl3.commit="eb0469fbb2b49fd7c025f594a3339a121e58f7a9" \
-      glm53.serving.profile="e2-fp8-dcp2"
+LABEL glm53.miaai-exl3.commit="6599585438d6046cb6b4800411b8570971c15dcc" \
+      glm53.serving.profile="e3-fp8-dcp2"
 
 # Compile the pinned EXL3 extension before the frequently edited cache
 # overlays so a Python/kernel iteration does not trigger a five-minute rebuild.
 COPY vendor/miaai-exl3/patch_exl3_ext_aarch64.py vendor/miaai-exl3/patch_exl3_fat_kernel.py vendor/miaai-exl3/patch_exl3_decode_pipeline.py /opt/glm53/
-COPY vendor/miaai-exl3/exl3_fat_gemm.cu vendor/miaai-exl3/exl3_fat_gemm.cuh /opt/glm53/exl3-fat-kernel/
+COPY vendor/miaai-exl3/exl3_fat_gemm.cu vendor/miaai-exl3/exl3_fat_gemm.cuh vendor/miaai-exl3/exl3_fat_moe.cu vendor/miaai-exl3/exl3_fat_moe.cuh /opt/glm53/exl3-fat-kernel/
 ARG EXLLAMAV3_COMMIT=c5d9c657966ffeeaa9353f0cc899f18629da4a13
 ENV TORCH_CUDA_ARCH_LIST=12.1a
 ENV FLASHINFER_CUDA_ARCH_LIST=12.1a
@@ -23,7 +23,7 @@ RUN set -eux; mkdir -p /tmp/exllamav3; \
     export CPLUS_INCLUDE_PATH="/usr/local/lib/python3.12/dist-packages/nvidia/cu13/include${CPLUS_INCLUDE_PATH:+:$CPLUS_INCLUDE_PATH}"; \
     export C_INCLUDE_PATH="/usr/local/lib/python3.12/dist-packages/nvidia/cu13/include${C_INCLUDE_PATH:+:$C_INCLUDE_PATH}"; \
     cd /tmp/exllamav3; pip install --no-deps --no-build-isolation --no-cache-dir .; \
-    python3 -c "import torch; import exllamav3_ext as e; assert hasattr(e, 'exl3_moe'); assert hasattr(e, 'exl3_moe_max_concurrency'); assert hasattr(e, 'exl3_fat_gemm'); assert hasattr(e, 'exl3_fat_gemm_scatter'); assert e.glm53_fast_moe_version() == 1"; \
+    python3 -c "import torch; import exllamav3_ext as e; assert hasattr(e, 'exl3_moe'); assert hasattr(e, 'exl3_moe_max_concurrency'); assert hasattr(e, 'exl3_fat_gemm'); assert hasattr(e, 'exl3_fat_gemm_scatter'); assert hasattr(e, 'exl3_fat_moe_gather'); assert hasattr(e, 'exl3_fat_moe_gateup'); assert hasattr(e, 'exl3_fat_moe_down'); assert e.glm53_fast_moe_version() == 1"; \
     rm -rf /tmp/exllamav3 /root/.cache/pip
 
 # SparkInfer is pinned and patched by build-exl3-fp8-dcp2-image.sh.

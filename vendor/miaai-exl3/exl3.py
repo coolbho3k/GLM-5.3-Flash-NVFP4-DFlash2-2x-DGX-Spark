@@ -65,6 +65,9 @@ _FAT_PIPELINE_STATE = [0.0, os.environ.get("EXL3_FAT_PIPELINE", "off"), None]
 _FUSED_TEMP_CACHE: dict[tuple, tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]] = {}
 _FAT_SCRATCH_CACHE: dict[tuple, dict[str, torch.Tensor]] = {}
 _FAT_COUNT_CACHE: dict[tuple, tuple[torch.Tensor, torch.cuda.Stream]] = {}
+# Grouped (E3) fat-expert scratch: fat-row activation buffers, grown once.
+_FAT_GROUPED_CACHE: dict[tuple, dict[str, torch.Tensor]] = {}
+_FAT_GROUPED_BYTES: dict[tuple, int] = {}
 _FAT_BUCKET_EDGES = (16, 32, 64, 128, 256, 512, 1024, 2048)
 _FAT_STATS: dict[str, Any] = {
     "layers": 0,
@@ -74,12 +77,13 @@ _FAT_STATS: dict[str, Any] = {
     "sum_max_rows": 0,
     "hist": [0] * (len(_FAT_BUCKET_EDGES) + 1),
 }
-_FAT_TIERS = ("kernel", "batched", "sorted", "legacy")
-# Machine-checkable E2 (fat-expert) diagnostics. Load-time fields mirror the
+_FAT_TIERS = ("grouped", "kernel", "batched", "sorted", "legacy")
+# Machine-checkable E2/E3 (fat-expert) diagnostics. Load-time fields mirror the
 # most recent weight load; counters are monotonic per process and are the
 # ground truth for what actually ran. The key set is contract — extend it only
 # together with a bump of EXL3_FAT_DIAG_SCHEMA.
-EXL3_FAT_DIAG_SCHEMA = 1
+# Schema 2 adds the grouped tier and its kernel/scratch diagnostics.
+EXL3_FAT_DIAG_SCHEMA = 2
 EXL3_FAT_DIAG_KEYS = (
     "schema",
     "configured_tier",
@@ -91,6 +95,10 @@ EXL3_FAT_DIAG_KEYS = (
     "sym_exl3_moe",
     "sym_fat_gemm",
     "sym_fat_gemm_scatter",
+    "sym_fat_moe",
+    "grouped_calls",
+    "grouped_scratch_bytes",
+    "grouped_eligible",
     "cap_major",
     "cap_minor",
     "cap_ok",
@@ -125,6 +133,10 @@ _EXL3_FAT_DIAG: dict[str, Any] = {
     "sym_exl3_moe": False,
     "sym_fat_gemm": False,
     "sym_fat_gemm_scatter": False,
+    "sym_fat_moe": False,
+    "grouped_calls": 0,
+    "grouped_scratch_bytes": 0,
+    "grouped_eligible": False,
     "cap_major": -1,
     "cap_minor": -1,
     "cap_ok": False,
@@ -176,11 +188,20 @@ def fat_kernel_enabled() -> bool:
     return os.environ.get("EXL3_FAT_KERNEL", "0") != "0"
 
 
+def grouped_fat_enabled() -> bool:
+    """Enable MiaAI E3 grouped fat-expert prefill kernels (default off)."""
+    return os.environ.get("EXL3_FAT_GROUPED", "0") != "0"
+
+
 def fat_expert_log_enabled() -> bool:
-    return os.environ.get("EXL3_FAT_EXPERT_LOG", "1") != "0"
+    # E3 avoids a host sync; keep its optional routing histogram off by default.
+    default = "0" if grouped_fat_enabled() else "1"
+    return os.environ.get("EXL3_FAT_EXPERT_LOG", default) != "0"
 
 def configured_fat_tier() -> str:
-    """Highest fat tier the env requests: kernel > batched > sorted > legacy."""
+    """Highest fat tier requested: grouped > kernel > batched > sorted > legacy."""
+    if grouped_fat_enabled():
+        return "grouped"
     if fat_kernel_enabled():
         return "kernel"
     if batched_fat_fallback_enabled():
@@ -201,6 +222,100 @@ def exl3_fat_symbols() -> tuple[bool, bool, bool]:
         hasattr(ext, "exl3_fat_gemm"),
         hasattr(ext, "exl3_fat_gemm_scatter"),
     )
+
+
+EXL3_FAT_MOE_SYMBOLS = (
+    "exl3_fat_moe_gather",
+    "exl3_fat_moe_gateup",
+    "exl3_fat_moe_down",
+    "exl3_fat_moe_tile_rows_gateup",
+    "exl3_fat_moe_tile_rows_down",
+)
+# Grouped kernels: 16 B vector atomics (sm_90+); the image builds sm_121a.
+EXL3_FAT_MOE_MIN_CAPABILITY = (9, 0)
+_FAT_MOE_EXT_CACHE: list = []
+
+
+def load_fat_moe_ext():
+    """Module carrying the E3 kernels, or None.
+
+    Two supported sources: exllamav3_ext itself (bindings patched at the
+    full image build by patch_exl3_fat_kernel.py) or the additive
+    `exl3_fat_moe_ext` module (layered candidate image). Resolved once.
+    """
+    if _FAT_MOE_EXT_CACHE:
+        return _FAT_MOE_EXT_CACHE[0]
+    found = None
+    try:
+        ext = load_exllamav3_ext()
+        if all(hasattr(ext, name) for name in EXL3_FAT_MOE_SYMBOLS):
+            found = ext
+    except Exception:
+        found = None
+    if found is None:
+        try:
+            import exl3_fat_moe_ext  # noqa: F401
+
+            if all(hasattr(exl3_fat_moe_ext, name) for name in EXL3_FAT_MOE_SYMBOLS):
+                found = exl3_fat_moe_ext
+        except Exception:
+            found = None
+    _FAT_MOE_EXT_CACHE.append(found)
+    return found
+
+
+def exl3_fat_moe_symbols() -> bool:
+    """True when every E3 grouped kernel entry point is importable."""
+    return load_fat_moe_ext() is not None
+
+
+def grouped_fat_eligibility(layer: torch.nn.Module) -> tuple[bool, str]:
+    """Load-time checkpoint/device eligibility for the K4/MCG grouped kernels.
+
+    The grouped pointer-table interface does not carry K/mcg/mul1 like the E2
+    GEMM interface, so those invariants are checked here, once per layer,
+    before the tier is resolved: 4-bit trellis (64 int16 words per tile),
+    MCG codebook without mul1, shared gate/up SUH, tile-friendly dimensions
+    (hidden % 256 for the 2x128 down tile and the gather's 128-wide blocks,
+    intermediate % 128 for the gate/up tile), a device capability with 16 B
+    vector atomics, and every packed tensor on one CUDA device.
+    """
+    bits = int(getattr(layer, "_exl3_bits", 0) or 0)
+    if bits != 4:
+        return False, f"bits_{bits}"
+    k_words = int(getattr(layer, "_exl3_k_words", 0) or 0)
+    if k_words != 64:
+        return False, f"k_words_{k_words}"
+    inners = getattr(layer, "_exl3_inners", None) or []
+    if not inners:
+        return False, "no_inners"
+    for pack in inners:
+        for which in ("gate", "up", "down"):
+            inner = pack[which]
+            if int(getattr(inner, "K", 0)) != 4:
+                return False, f"K_{getattr(inner, 'K', '?')}"
+            if not bool(getattr(inner, "mcg", False)):
+                return False, "not_mcg"
+            if bool(getattr(inner, "mul1", False)):
+                return False, "mul1"
+    if not bool(getattr(layer, "_exl3_shared_w13_suh", False)):
+        return False, "shared_suh_absent"
+    hidden = int(getattr(layer, "_exl3_hidden_size", 0) or 0)
+    inter = int(getattr(layer, "_exl3_intermediate_local", 0) or 0)
+    if hidden <= 0 or hidden % 256:
+        return False, f"hidden_{hidden}"
+    if inter <= 0 or inter % 128:
+        return False, f"intermediate_{inter}"
+    device = layer.w13_trellis.device
+    if device.type != "cuda":
+        return False, f"device_{device.type}"
+    for name in ("w13_trellis", "w13_suh", "w13_svh", "w2_trellis", "w2_suh", "w2_svh"):
+        if getattr(layer, name).device != device:
+            return False, f"device_mismatch_{name}"
+    cap = exl3_device_capability()
+    if cap < EXL3_FAT_MOE_MIN_CAPABILITY:
+        return False, f"capability_{cap[0]}.{cap[1]}"
+    return True, "eligible"
 
 
 def exl3_device_capability() -> tuple[int, int]:
@@ -232,6 +347,8 @@ def _exl3_tp_rank_size() -> tuple[int, int]:
 def resolve_exl3_fat_tier(
     shared_suh: bool,
     symbols: tuple[bool, bool, bool] | None = None,
+    fat_moe_symbols: bool | None = None,
+    grouped_eligible: tuple[bool, str] | None = None,
 ) -> tuple[str, str]:
     """Map the configured fat tier onto what this image + checkpoint can run.
 
@@ -245,8 +362,23 @@ def resolve_exl3_fat_tier(
     configured = configured_fat_tier()
     if configured == "legacy":
         return configured, "none_requested"
-    if not shared_suh and configured in ("kernel", "batched"):
+    if not shared_suh and configured in ("grouped", "kernel", "batched"):
         return "sorted", "shared_suh_absent"
+    reason_prefix = ""
+    if configured == "grouped":
+        if fat_moe_symbols is None:
+            fat_moe_symbols = exl3_fat_moe_symbols()
+        if not fat_moe_symbols:
+            raise RuntimeError(
+                "EXL3_FAT_GROUPED=1 requires the grouped E3 kernel symbols; "
+                "rebuild this image or set EXL3_FAT_GROUPED=0"
+            )
+        if grouped_eligible is None:
+            grouped_eligible = (True, "eligible")
+        if grouped_eligible[0]:
+            return "grouped", "grouped_ok"
+        configured = "kernel"
+        reason_prefix = f"grouped_ineligible_{grouped_eligible[1]}:"
     if symbols is None:
         symbols = exl3_fat_symbols()
     if configured == "kernel":
@@ -264,7 +396,7 @@ def resolve_exl3_fat_tier(
                 + "; this image was built without the fat kernel — unset "
                 "EXL3_FAT_KERNEL or serve an E2 image"
             )
-    return configured, f"{configured}_ok"
+    return configured, f"{reason_prefix}{configured}_ok"
 
 
 def exl3_fat_diag() -> dict[str, Any]:
@@ -293,6 +425,10 @@ def _exl3_fat_diag_line() -> str:
         f"sym_exl3_moe={int(d['sym_exl3_moe'])}",
         f"sym_fat_gemm={int(d['sym_fat_gemm'])}",
         f"sym_fat_gemm_scatter={int(d['sym_fat_gemm_scatter'])}",
+        f"sym_fat_moe={int(d['sym_fat_moe'])}",
+        f"grouped_eligible={int(d['grouped_eligible'])}",
+        f"grouped_calls={d['grouped_calls']}",
+        f"grouped_scratch_bytes={d['grouped_scratch_bytes']}",
         f"cap={d['cap_major']}.{d['cap_minor']}",
         f"cap_ok={int(d['cap_ok'])}",
         f"tp_rank={d['tp_rank']} tp_size={d['tp_size']}",
@@ -342,7 +478,11 @@ def _record_exl3_fat_resolution(layer: torch.nn.Module) -> None:
     """
     global _exl3_fat_tier_logged
     shared_suh = bool(getattr(layer, "_exl3_shared_w13_suh", False))
-    effective_tier, tier_reason = resolve_exl3_fat_tier(shared_suh)
+    grouped_eligible = grouped_fat_eligibility(layer)
+    layer._exl3_grouped_eligible = grouped_eligible
+    effective_tier, tier_reason = resolve_exl3_fat_tier(
+        shared_suh, grouped_eligible=grouped_eligible
+    )
     layer._exl3_fat_effective_tier = effective_tier
     layer._exl3_fat_tier_reason = tier_reason
 
@@ -357,6 +497,8 @@ def _record_exl3_fat_resolution(layer: torch.nn.Module) -> None:
     diag["sym_exl3_moe"] = sym_moe
     diag["sym_fat_gemm"] = sym_gemm
     diag["sym_fat_gemm_scatter"] = sym_scatter
+    diag["sym_fat_moe"] = exl3_fat_moe_symbols()
+    diag["grouped_eligible"] = bool(grouped_eligible[0])
     diag["cap_major"] = cap_major
     diag["cap_minor"] = cap_minor
     # LinearEXL3 (and the fat GEMM built on it) needs >= Ampere; GB10 is SM121.
@@ -402,12 +544,14 @@ def reset_exl3_fat_diag_counters() -> None:
         "direct_calls",
         "scatter_calls",
         "fat_scratch_allocs",
+        "grouped_calls",
     ):
         diag[key] = 0
     diag["fallback_calls"] = {tier: 0 for tier in _FAT_TIERS}
     diag["fallback_reasons"] = {}
     diag["fat_scratch_bytes"] = sum(_FAT_SCRATCH_BYTES.values())
     diag["fat_scratch_peak_bytes"] = diag["fat_scratch_bytes"]
+    diag["grouped_scratch_bytes"] = sum(_FAT_GROUPED_BYTES.values())
 
 
 def reset_exl3_fat_expert_stats() -> None:
@@ -1033,6 +1177,177 @@ def apply_exl3_batched_fat(
     return out
 
 
+def _grouped_scratch(
+    device: torch.device, rows: int, hidden: int, intermediate: int
+) -> dict[str, torch.Tensor]:
+    """Fat-row activation buffers for the grouped tier, grown once.
+
+    Capacity covers every routed slot of the configured prefill chunk
+    (MAX_NUM_BATCHED_TOKENS x top-k, EXL3_FAT_GROUPED_TOPK, default 8) so
+    steady-state prefill never reallocates; a larger request grows it once
+    more (outside CUDA graph capture, where growth would be illegal).
+    Persistent: h13 [rows, hidden] fp16 + h2 [rows, intermediate] fp16.
+    """
+    configured = int(
+        os.environ.get(
+            "EXL3_FAT_SCRATCH_ROWS",
+            os.environ.get("MAX_NUM_BATCHED_TOKENS", "0"),
+        )
+        or 0
+    )
+    topk = int(os.environ.get("EXL3_FAT_GROUPED_TOPK", "8") or 8)
+    needed = max(256, rows)
+    key = (str(device), hidden, intermediate)
+    scratch = _FAT_GROUPED_CACHE.get(key)
+    if scratch is not None and int(scratch["h13"].shape[0]) >= needed:
+        return scratch
+    if torch.cuda.is_available() and torch.cuda.is_current_stream_capturing():
+        raise RuntimeError(
+            "EXL3 grouped scratch growth during CUDA graph capture; warm the "
+            f"largest shape first (need {needed} rows)"
+        )
+    capacity = max(needed, configured * topk)
+    scratch = {
+        "h13": torch.empty((capacity, hidden), dtype=torch.float16, device=device),
+        "h2": torch.empty(
+            (capacity, intermediate), dtype=torch.float16, device=device
+        ),
+    }
+    _FAT_GROUPED_CACHE[key] = scratch
+    _FAT_GROUPED_BYTES[key] = sum(
+        t.numel() * t.element_size() for t in scratch.values()
+    )
+    _EXL3_FAT_DIAG["grouped_scratch_bytes"] = sum(_FAT_GROUPED_BYTES.values())
+    return scratch
+
+
+def _excl_cumsum(x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    inclusive = torch.cumsum(x, 0)
+    return inclusive - x, inclusive
+
+
+def build_grouped_fat_tables(
+    counts: torch.Tensor,
+    cap: int,
+    token_sorted: torch.Tensor,
+    weight_sorted: torch.Tensor,
+    rows_cap: int,
+    tile_rows: int,
+) -> dict[str, torch.Tensor]:
+    """Device-side row/segment tables for the grouped fat kernels.
+
+    Fat experts (count > cap) are laid out back to back in expert order in a
+    fat-row buffer; each kernel CTA owns one `tile_rows` slice of one expert.
+    Everything is computed with device ops on capacity-sized tensors and the
+    kernels read the live `num_rows` / `num_segs`, so no host sync happens
+    and the layer stays CUDA-graph capturable. `counts` excludes the
+    invalid/nonlocal sentinel bucket, which the sort places after every
+    real expert, so sentinel routes never enter a fat segment.
+    """
+    n_exp = int(counts.numel())
+    device = counts.device
+    fat_rows = torch.where(counts > cap, counts, torch.zeros_like(counts))
+    row_off, row_cum = _excl_cumsum(fat_rows)
+    sorted_off, _ = _excl_cumsum(counts)
+    tiles = (fat_rows + (tile_rows - 1)) // tile_rows
+    tile_off, tile_cum = _excl_cumsum(tiles)
+    num_segs = tile_cum[-1:].to(torch.int32)
+    num_rows = row_cum[-1:].to(torch.int32)
+    max_segs = (rows_cap + tile_rows - 1) // tile_rows + n_exp
+    seg = torch.arange(max_segs, device=device)
+    e = torch.searchsorted(tile_cum, seg, right=True).clamp_(max=n_exp - 1)
+    local_tile = seg - tile_off[e]
+    seg_row0 = row_off[e] + local_tile * tile_rows
+    seg_rows = torch.clamp(fat_rows[e] - local_tile * tile_rows, min=0, max=tile_rows)
+    r = torch.arange(rows_cap, device=device)
+    re = torch.searchsorted(row_cum, r, right=True).clamp_(max=n_exp - 1)
+    src = (sorted_off[re] + (r - row_off[re])).clamp_(max=rows_cap - 1)
+    return {
+        "seg_expert": e.to(torch.int32),
+        "seg_row0": seg_row0.to(torch.int32),
+        "seg_rows": seg_rows.to(torch.int32),
+        "num_segs": num_segs,
+        "num_rows": num_rows,
+        "row_expert": re.to(torch.int32),
+        "row_token": token_sorted.index_select(0, src),
+        "row_weight": weight_sorted.index_select(0, src),
+    }
+
+
+def apply_exl3_grouped_fat(
+    xh: torch.Tensor,
+    out: torch.Tensor,
+    counts: torch.Tensor,
+    token_sorted: torch.Tensor,
+    weight_sorted: torch.Tensor,
+    layer: torch.nn.Module,
+    cap: int,
+    limit: float,
+) -> None:
+    """E3: every fat expert of the layer in three launches, no host sync."""
+    ext = load_fat_moe_ext()
+    if ext is None:
+        raise RuntimeError("EXL3 grouped tier selected but the E3 kernels are not loaded")
+    ptrs = layer._exl3_ptrs
+    device = ptrs["gate_trellis"].device
+    if xh.device != device or out.device != device or counts.device != device:
+        raise RuntimeError(
+            f"EXL3 grouped tier: activations on {xh.device}, experts on {device}"
+        )
+    if not (xh.is_contiguous() and out.is_contiguous() and out.dtype == torch.float32):
+        raise RuntimeError("EXL3 grouped tier needs contiguous fp16 input / fp32 output")
+    hidden = int(xh.shape[1])
+    intermediate = int(layer._exl3_intermediate_local)
+    rows_cap = int(token_sorted.numel())
+    scratch = _grouped_scratch(device, rows_cap, hidden, intermediate)
+    h13 = scratch["h13"][:rows_cap]
+    h2 = scratch["h2"][:rows_cap]
+    tile_gu = int(ext.exl3_fat_moe_tile_rows_gateup())
+    tile_dn = int(ext.exl3_fat_moe_tile_rows_down())
+    token_sorted = token_sorted.contiguous()
+    weight_sorted = weight_sorted.contiguous()
+    tg = build_grouped_fat_tables(
+        counts, cap, token_sorted, weight_sorted, rows_cap, tile_gu
+    )
+    td = (
+        tg
+        if tile_dn == tile_gu
+        else build_grouped_fat_tables(
+            counts, cap, token_sorted, weight_sorted, rows_cap, tile_dn
+        )
+    )
+    ext.exl3_fat_moe_gather(
+        xh, tg["row_token"], tg["row_expert"], ptrs["gate_suh"], h13, tg["num_rows"]
+    )
+    ext.exl3_fat_moe_gateup(
+        h13,
+        ptrs["gate_trellis"],
+        ptrs["up_trellis"],
+        ptrs["gate_svh"],
+        ptrs["up_svh"],
+        ptrs["down_suh"],
+        h2,
+        tg["seg_expert"],
+        tg["seg_row0"],
+        tg["seg_rows"],
+        tg["num_segs"],
+        float(limit),
+    )
+    ext.exl3_fat_moe_down(
+        h2,
+        ptrs["down_trellis"],
+        ptrs["down_svh"],
+        out,
+        td["row_token"],
+        td["row_weight"],
+        td["seg_expert"],
+        td["seg_row0"],
+        td["seg_rows"],
+        td["num_segs"],
+    )
+    _EXL3_FAT_DIAG["grouped_calls"] += 1
+
+
 def build_exl3_fused_state(layer: torch.nn.Module, inners: list[dict[str, Any]]) -> None:
     """Pointer tables + fused temps, once after load. No per-token alloc."""
     import exllamav3_ext
@@ -1280,7 +1595,24 @@ def apply_exl3_fused_moe(
     # launches thin experts immediately, overlapping the D2H synchronization.
     # Decode never reaches here (capture sizes << cap).
     _EXL3_FAT_DIAG["prefill_layer_calls"] += 1
-    want_fat_kernel = fat_kernel_enabled()
+    use_row_tiles = fused_moe_row_tile_enabled()
+    if (
+        grouped_fat_enabled()
+        and not use_row_tiles
+        and getattr(layer, "_exl3_fat_effective_tier", None) == "grouped"
+    ):
+        _exl3_moe_launch(
+            fn, xh, out, expert_count, token_sorted, weight_sorted,
+            temps, ptrs, k, limit, n_active_host,
+        )
+        apply_exl3_grouped_fat(
+            xh, out, counts, token_sorted, weight_sorted, layer, cap, limit
+        )
+        _record_exl3_fat_tier(layer, "grouped", "grouped_ok")
+        if fat_expert_log_enabled():
+            record_exl3_fat_expert_stats(counts)
+        return out
+    want_fat_kernel = fat_kernel_enabled() or grouped_fat_enabled()
     want_batched_fat = batched_fat_fallback_enabled() or want_fat_kernel
     use_sorted_fat = sorted_fat_fallback_enabled() or want_batched_fat
     use_batched_fat = (
@@ -1288,7 +1620,6 @@ def apply_exl3_fused_moe(
         and bool(getattr(layer, "_exl3_shared_w13_suh", False))
     )
     use_fat_kernel = use_batched_fat and want_fat_kernel
-    use_row_tiles = fused_moe_row_tile_enabled()
     launched = False
     counts_host = None
     if use_batched_fat and not use_row_tiles:
@@ -1692,7 +2023,6 @@ class Exl3MoEMethod(FusedMoEMethodBase):
         layer._exl3_shared_w13_suh = bool(
             torch.equal(layer.w13_suh[:, 0], layer.w13_suh[:, 1])
         )
-        _record_exl3_fat_resolution(layer)
         inners: list[dict[str, Any]] = []
         for e in range(n_exp):
             gate = make_linear_exl3(
@@ -1715,6 +2045,8 @@ class Exl3MoEMethod(FusedMoEMethodBase):
             )
             inners.append({"gate": gate, "up": up, "down": down})
         layer._exl3_inners = inners
+        # E3 eligibility needs the constructed LinearEXL3 handles.
+        _record_exl3_fat_resolution(layer)
         fused_ok = False
         fused_err = None
         if fused_moe_enabled():
@@ -1730,7 +2062,8 @@ class Exl3MoEMethod(FusedMoEMethodBase):
                 if (os.environ.get("GLM53_EXL3_MOE_FAST", "0") == "1"
                         or os.environ.get("GLM53_EXL3_MOE_STREAM_WEIGHTS", "0") != "0"
                         or os.environ.get("EXL3_FAT_PIPELINE", "off") != "off"
-                        or os.environ.get("EXL3_FAT_PIPELINE_CONTROL", "")):
+                        or os.environ.get("EXL3_FAT_PIPELINE_CONTROL", "")
+                        or grouped_fat_enabled()):
                     raise RuntimeError("Requested native EXL3 fast path could not initialize") from exc
                 fused_err = repr(exc)
                 layer._exl3_ptrs = None
