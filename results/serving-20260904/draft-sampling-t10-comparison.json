@@ -1,0 +1,36 @@
+[
+  {
+    "concurrency": 1,
+    "kind": "code",
+    "baseline": {
+      "aggregate_tps": 28.14145092768738,
+      "accepted_fraction": 0.3401629287922658,
+      "accepted_per_draft": 2.3811405015458607,
+      "wall_ms_per_draft": 119.5732389848248
+    },
+    "candidate": {
+      "aggregate_tps": 30.45600679823929,
+      "accepted_fraction": 0.38098561458481695,
+      "accepted_per_draft": 2.666899302093719,
+      "wall_ms_per_draft": 120.42449704491493
+    },
+    "gain_percent": 8.224721164873205
+  },
+  {
+    "concurrency": 1,
+    "kind": "prose",
+    "baseline": {
+      "aggregate_tps": 28.303374544479418,
+      "accepted_fraction": 0.33613660775314913,
+      "accepted_per_draft": 2.3529562542720437,
+      "wall_ms_per_draft": 118.24225203151809
+    },
+    "candidate": {
+      "aggregate_tps": 31.09903292040645,
+      "accepted_fraction": 0.38262764632627644,
+      "accepted_per_draft": 2.678393524283935,
+      "wall_ms_per_draft": 118.73819202637799
+    },
+    "gain_percent": 9.877473696762173
+  }
+]

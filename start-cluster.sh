@@ -7,7 +7,8 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # Direct use selects the canonical production profile. serve-profile.sh exports
 # SERVE_PROFILE before it calls back into this script with the resolved settings.
 if [[ -z "${SERVE_PROFILE:-}" ]]; then
-  exec env DFLASH_DRAFT_SAMPLE_METHOD=probabilistic \
+  exec env DFLASH_DRAFT_SAMPLE_METHOD="${DFLASH_DRAFT_SAMPLE_METHOD:-probabilistic}" \
+    GLM53_ADAPTIVE_K="${GLM53_ADAPTIVE_K:-ema}" \
     "$SCRIPT_DIR/serve-profile.sh" start exl3-fp8-dcp2
 fi
 
@@ -45,6 +46,14 @@ COMPILATION_CONFIG="${COMPILATION_CONFIG-}"
 ENABLE_DFLASH="${ENABLE_DFLASH:-1}"
 DFLASH_TOKENS="${DFLASH_TOKENS:-7}"
 DFLASH_DRAFT_TP="${DFLASH_DRAFT_TP-}"
+GLM53_ADAPTIVE_K="${GLM53_ADAPTIVE_K:-off}"
+GLM53_ADAPTIVE_K_SET="${GLM53_ADAPTIVE_K_SET:-2,4,7}"
+GLM53_ADAPTIVE_K_ALPHA="${GLM53_ADAPTIVE_K_ALPHA:-0.25}"
+GLM53_ADAPTIVE_K_MARGIN="${GLM53_ADAPTIVE_K_MARGIN:-1.0}"
+GLM53_ADAPTIVE_K_MIN_STEPS="${GLM53_ADAPTIVE_K_MIN_STEPS:-4}"
+GLM53_ADAPTIVE_K_SATURATE="${GLM53_ADAPTIVE_K_SATURATE:-max}"
+GLM53_ADAPTIVE_K_HIST="${GLM53_ADAPTIVE_K_HIST:-200}"
+GLM53_DENSE_FP8="${GLM53_DENSE_FP8:-off}"
 DFLASH_DRAFT_SAMPLE_METHOD="${DFLASH_DRAFT_SAMPLE_METHOD-}"
 DFLASH_REJECTION_SAMPLE_METHOD="${DFLASH_REJECTION_SAMPLE_METHOD-}"
 EXL3_FUSED_MOE="${EXL3_FUSED_MOE:-1}"
@@ -110,6 +119,20 @@ if ! ssh "${ssh_opts[@]}" "$WORKER_HOST" \
   fi
 fi
 
+image_key_format='{{if .RootFS.Layers}}layers {{join .RootFS.Layers ","}}{{else if .RepoDigests}}digest {{index .RepoDigests 0}}{{else}}id {{.Id}}{{end}}'
+local_image_identity="$(docker image inspect --format "$image_key_format" "$IMAGE")"
+printf -v remote_image_key_command '%q ' docker image inspect --format "$image_key_format" "$IMAGE"
+remote_image_identity="$(ssh "${ssh_opts[@]}" "$WORKER_HOST" "$remote_image_key_command")"
+[[ -n "$local_image_identity" ]] || { echo "Could not identify head image $IMAGE" >&2; exit 1; }
+[[ -n "$remote_image_identity" ]] || { echo "Could not identify worker image $IMAGE" >&2; exit 1; }
+local_image_key_line="$(printf '%s' "$local_image_identity" | sha256sum)"
+remote_image_key_line="$(printf '%s' "$remote_image_identity" | sha256sum)"
+local_image_key="${local_image_key_line%% *}"
+remote_image_key="${remote_image_key_line%% *}"
+if [[ "$remote_image_key" == "$local_image_key" ]]; then
+  echo "$WORKER_HOST image ready: $IMAGE (RootFS ${local_image_key:0:12})"
+else
+
 # Independent builds can have different image IDs while installing identical
 # runtime files. Compare the files that define cache layout, DCP behavior,
 # compact KDA replay, accounting, and the active SM121 kernels.
@@ -129,6 +152,7 @@ runtime_paths=(
   /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/indexer.py
   /usr/local/lib/python3.12/dist-packages/vllm/v1/core/sched/scheduler.py
   /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py
+  /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/cudagraph_utils.py
   /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/model_runner.py
   /usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/block_table.py
   /usr/local/lib/python3.12/dist-packages/vllm/models/glm5next/nvidia/kda.py
@@ -167,6 +191,14 @@ if docker run --rm --entrypoint test "$IMAGE" \
     runtime_paths+=("$exl3_native_path")
   fi
 fi
+if docker run --rm --entrypoint test "$IMAGE" -f /opt/glm53/patch_adaptive_k.py; then
+  runtime_paths+=(
+    /opt/glm53/entrypoint.sh
+    /opt/glm53/exl3.py
+    /opt/glm53/patch_adaptive_k.py
+    /opt/glm53/patch_dense_fp8.py
+  )
+fi
 local_runtime="$(
   docker run --rm --entrypoint sha256sum "$IMAGE" "${runtime_paths[@]}"
 )"
@@ -183,6 +215,7 @@ fi
   diff <(printf '%s\n' "$local_runtime") <(printf '%s\n' "$remote_runtime") || true
   exit 1
 }
+fi
 
 worker_calibration_host_path="$NVFP4_CALIBRATION_HOST_PATH"
 if [[ -n "$NVFP4_MLA_SCALES_FILE" ]]; then
@@ -263,6 +296,14 @@ trap cleanup_failed_start ERR INT TERM
 ssh "${ssh_opts[@]}" "$WORKER_HOST" \
   "export PROFILER_CONFIG=$(printf '%q' "${PROFILER_CONFIG:-}");" \
   "export EXL3_FUSED_FAT_ACTIVATION=$(printf '%q' "${EXL3_FUSED_FAT_ACTIVATION:-0}");" \
+  "export GLM53_ADAPTIVE_K=$(printf '%q' "$GLM53_ADAPTIVE_K");" \
+  "export GLM53_ADAPTIVE_K_SET=$(printf '%q' "$GLM53_ADAPTIVE_K_SET");" \
+  "export GLM53_ADAPTIVE_K_ALPHA=$(printf '%q' "$GLM53_ADAPTIVE_K_ALPHA");" \
+  "export GLM53_ADAPTIVE_K_MARGIN=$(printf '%q' "$GLM53_ADAPTIVE_K_MARGIN");" \
+  "export GLM53_ADAPTIVE_K_MIN_STEPS=$(printf '%q' "$GLM53_ADAPTIVE_K_MIN_STEPS");" \
+  "export GLM53_ADAPTIVE_K_SATURATE=$(printf '%q' "$GLM53_ADAPTIVE_K_SATURATE");" \
+  "export GLM53_ADAPTIVE_K_HIST=$(printf '%q' "$GLM53_ADAPTIVE_K_HIST");" \
+  "export GLM53_DENSE_FP8=$(printf '%q' "$GLM53_DENSE_FP8");" \
   "export EXL3_FAT_PIPELINE=$(printf '%q' "${EXL3_FAT_PIPELINE:-off}");" \
   "export EXL3_FAT_PIPELINE_CONTROL=$(printf '%q' "${EXL3_FAT_PIPELINE_CONTROL:-}");" \
   "export GLM53_EXL3_MOE_FAST=$(printf '%q' "${GLM53_EXL3_MOE_FAST:-0}");" \
@@ -287,6 +328,14 @@ CONTAINER_NAME="$CONTAINER_NAME" IMAGE="$IMAGE" MODEL_HOST_PATH="$MODEL_HOST_PAT
   DFLASH_DRAFT_TP="$DFLASH_DRAFT_TP" \
   DFLASH_DRAFT_SAMPLE_METHOD="$DFLASH_DRAFT_SAMPLE_METHOD" \
   DFLASH_REJECTION_SAMPLE_METHOD="$DFLASH_REJECTION_SAMPLE_METHOD" \
+  GLM53_ADAPTIVE_K="$GLM53_ADAPTIVE_K" \
+  GLM53_ADAPTIVE_K_SET="$GLM53_ADAPTIVE_K_SET" \
+  GLM53_ADAPTIVE_K_ALPHA="$GLM53_ADAPTIVE_K_ALPHA" \
+  GLM53_ADAPTIVE_K_MARGIN="$GLM53_ADAPTIVE_K_MARGIN" \
+  GLM53_ADAPTIVE_K_MIN_STEPS="$GLM53_ADAPTIVE_K_MIN_STEPS" \
+  GLM53_ADAPTIVE_K_SATURATE="$GLM53_ADAPTIVE_K_SATURATE" \
+  GLM53_ADAPTIVE_K_HIST="$GLM53_ADAPTIVE_K_HIST" \
+  GLM53_DENSE_FP8="$GLM53_DENSE_FP8" \
   EXL3_FUSED_MOE="$EXL3_FUSED_MOE" EXL3_MOE_ROW_TILE="$EXL3_MOE_ROW_TILE" \
   EXL3_FAT_KERNEL="$EXL3_FAT_KERNEL" EXL3_FAT_GROUPED="$EXL3_FAT_GROUPED" EXL3_TEMP_ROWS_FUSED="$EXL3_TEMP_ROWS_FUSED" \
   COMPACT_SPEC_REPLAY="$COMPACT_SPEC_REPLAY" GLM53_SPINWAIT_MS="$GLM53_SPINWAIT_MS" \

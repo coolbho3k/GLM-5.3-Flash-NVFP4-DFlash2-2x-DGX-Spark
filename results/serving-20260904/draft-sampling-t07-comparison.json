@@ -1,0 +1,96 @@
+[
+  {
+    "concurrency": 1,
+    "kind": "code",
+    "baseline": {
+      "aggregate_tps": 36.051569610585524,
+      "accepted_fraction": 0.4838345864661654,
+      "accepted_per_draft": 3.386842105263158,
+      "wall_ms_per_draft": 121.44813343460427
+    },
+    "candidate": {
+      "aggregate_tps": 32.68446993412466,
+      "accepted_fraction": 0.4232257407595968,
+      "accepted_per_draft": 2.9625801853171776,
+      "wall_ms_per_draft": 120.91029410863823
+    },
+    "gain_percent": -9.339675672462855
+  },
+  {
+    "concurrency": 1,
+    "kind": "prose",
+    "baseline": {
+      "aggregate_tps": 28.712358609994958,
+      "accepted_fraction": 0.36706349206349204,
+      "accepted_per_draft": 2.5694444444444446,
+      "wall_ms_per_draft": 123.98541270138392
+    },
+    "candidate": {
+      "aggregate_tps": 25.963653611381815,
+      "accepted_fraction": 0.30078781512605046,
+      "accepted_per_draft": 2.105514705882353,
+      "wall_ms_per_draft": 119.62192687905211
+    },
+    "gain_percent": -9.57324696291687
+  },
+  {
+    "concurrency": 3,
+    "kind": "code",
+    "baseline": {
+      "aggregate_tps": 52.1169658423707,
+      "accepted_fraction": 0.4053319129849742,
+      "accepted_per_draft": 2.837323390894819
+    },
+    "candidate": {
+      "aggregate_tps": 53.17755518484101,
+      "accepted_fraction": 0.40318627450980393,
+      "accepted_per_draft": 2.8223039215686274
+    },
+    "gain_percent": 2.0350174368901186
+  },
+  {
+    "concurrency": 3,
+    "kind": "prose",
+    "baseline": {
+      "aggregate_tps": 47.65798114687429,
+      "accepted_fraction": 0.3431276316890215,
+      "accepted_per_draft": 2.401893421823151
+    },
+    "candidate": {
+      "aggregate_tps": 51.75069064661166,
+      "accepted_fraction": 0.352178754102924,
+      "accepted_per_draft": 2.4652512787204675
+    },
+    "gain_percent": 8.587668636496137
+  },
+  {
+    "concurrency": 6,
+    "kind": "code",
+    "baseline": {
+      "aggregate_tps": 69.7100667759028,
+      "accepted_fraction": 0.36140043698183233,
+      "accepted_per_draft": 2.5298030588728264
+    },
+    "candidate": {
+      "aggregate_tps": 73.92987129726765,
+      "accepted_fraction": 0.3756600635654255,
+      "accepted_per_draft": 2.6296204449579785
+    },
+    "gain_percent": 6.053364623692392
+  },
+  {
+    "concurrency": 6,
+    "kind": "prose",
+    "baseline": {
+      "aggregate_tps": 75.43589351390814,
+      "accepted_fraction": 0.3478377368908232,
+      "accepted_per_draft": 2.4348641582357624
+    },
+    "candidate": {
+      "aggregate_tps": 76.66383792145726,
+      "accepted_fraction": 0.3612303033567329,
+      "accepted_per_draft": 2.5286121234971306
+    },
+    "gain_percent": 1.6277985854608046
+  }
+]

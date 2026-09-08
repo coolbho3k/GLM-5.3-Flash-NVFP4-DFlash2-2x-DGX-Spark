@@ -1,0 +1,1 @@
+{"method":"dflash","model":"/models/dflash2-draft","num_speculative_tokens":7,"draft_tensor_parallel_size":2,"quantization":"modelopt_mxfp8","rejection_sample_method":"standard"}

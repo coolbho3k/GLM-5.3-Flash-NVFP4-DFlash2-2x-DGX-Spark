@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "temperature": 1.0,
+  "top_p": 0.95,
+  "tokens_per_request": 512,
+  "seed_base": 19001,
+  "by_prompt": {
+    "code": {
+      "paired_seeds": 6,
+      "baseline": {
+        "total_output_tokens": 3072,
+        "total_wall_seconds": 101.70334080398607,
+        "throughput_tps": 30.205497437106793,
+        "case_tps_samples": [
+          31.470087112591862,
+          24.285400618751922,
+          31.774074847457868,
+          30.914575344264577,
+          35.43278253885429,
+          29.72273803644012
+        ],
+        "accepted_fraction": 0.3739101274312542,
+        "accepted_per_draft": 2.6173708920187795,
+        "wall_ms_per_draft": 119.37011831453763
+      },
+      "candidate": {
+        "total_output_tokens": 3072,
+        "total_wall_seconds": 96.20418896901538,
+        "throughput_tps": 31.932081470895238,
+        "case_tps_samples": [
+          34.82348078557448,
+          29.961776331726725,
+          35.68336586119978,
+          34.460053998605204,
+          26.489038044006982,
+          32.245730637916786
+        ],
+        "accepted_fraction": 0.4050880626223092,
+        "accepted_per_draft": 2.835616438356164,
+        "wall_ms_per_draft": 119.80596384684355
+      },
+      "throughput_gain_percent": 5.716125143720929,
+      "paired_seed_bootstrap_95_percent": [
+        -9.539301383428544,
+        17.16687285893954
+      ],
+      "candidate_faster_pairs": 5,
+      "confirmed_for_this_prompt": false
+    },
+    "prose": {
+      "paired_seeds": 6,
+      "baseline": {
+        "total_output_tokens": 3072,
+        "total_wall_seconds": 113.18891495100979,
+        "throughput_tps": 27.140466902873104,
+        "case_tps_samples": [
+          30.420684565563846,
+          28.771138262676132,
+          26.58380605500539,
+          23.320617060884754,
+          26.637372193004303,
+          28.24536641324296
+        ],
+        "accepted_fraction": 0.3111505471753919,
+        "accepted_per_draft": 2.1780538302277432,
+        "wall_ms_per_draft": 117.17278980435796
+      },
+      "candidate": {
+        "total_output_tokens": 3072,
+        "total_wall_seconds": 105.4291704819916,
+        "throughput_tps": 29.138045817449825,
+        "case_tps_samples": [
+          29.61471324869051,
+          29.783779427133513,
+          27.93272278696596,
+          27.621255822080762,
+          30.60654084972904,
+          29.501166214068242
+        ],
+        "accepted_fraction": 0.34929532351057013,
+        "accepted_per_draft": 2.445067264573991,
+        "wall_ms_per_draft": 118.19413731164978
+      },
+      "throughput_gain_percent": 7.360149409829253,
+      "paired_seed_bootstrap_95_percent": [
+        1.9298248536780083,
+        13.35007414841769
+      ],
+      "candidate_faster_pairs": 5,
+      "confirmed_for_this_prompt": true
+    }
+  },
+  "confirmed_both_prompts": false,
+  "caveats": [
+    "Intervals quantify seed variation on these two fixed prompts only.",
+    "One boot per mode: restart/thermal variability is not estimated.",
+    "Different continuations are expected; this is not a quality evaluation.",
+    "Temperature 1.0, thinking disabled; no claim for other traffic."
+  ]
+}

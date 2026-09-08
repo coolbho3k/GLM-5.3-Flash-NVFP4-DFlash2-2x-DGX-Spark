@@ -3,4 +3,6 @@
 set -Eeuo pipefail
 
 python3 /opt/glm53/patch_spinwait.py
+python3 /opt/glm53/patch_adaptive_k.py
+python3 /opt/glm53/patch_dense_fp8.py
 exec vllm serve "$@"

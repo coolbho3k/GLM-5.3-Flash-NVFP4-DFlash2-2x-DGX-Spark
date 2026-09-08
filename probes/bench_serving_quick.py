@@ -16,6 +16,8 @@ from bench_prefill_mixed import health, prefill_once, stream_chat
 PROMPTS = {
     "prose": "Explain how a hash table works, including collisions, resizing, and the tradeoffs versus a balanced search tree. Give concrete examples.",
     "code": "Implement a thread-safe token bucket rate limiter in Python. Include a monotonic clock, blocking and nonblocking acquisition, and unit tests. Explain the design.",
+    "reasoning": "A warehouse ships 340 orders per day and volume grows 6 percent each week. Derive the daily volume for each of the next eight weeks, show the recurrence, and check the final value independently.",
+    "structured": "Design a small incident-response checklist for a database latency spike. Return five numbered actions, each with an owner, a measurable completion condition, and one sentence of rationale.",
 }
 
 

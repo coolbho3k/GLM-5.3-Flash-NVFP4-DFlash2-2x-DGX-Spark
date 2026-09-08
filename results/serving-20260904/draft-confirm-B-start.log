@@ -1,0 +1,61 @@
+SERVE_PROFILE                      exl3-fp8-dcp2
+IMAGE                              glm53-exl3:prefill-norepack-v1
+MODEL_HOST_PATH                    /home/emi/.cache/huggingface/glm53-exl3-tr3-4bpw-25a44fdbf16862a46b7cc9921142c6c81350af2f
+DFLASH_DRAFT_VARIANT               mxfp8
+DRAFT_ID                           local-inference-lab/GLM-5.3-Flash-DFlash2-MXFP8
+DRAFT_REVISION                     610aa967a92bfeb97e3d848dcb8693553e8b6a55
+DRAFT_HOST_PATH                    /home/emi/.cache/huggingface/glm53-dflash2-mxfp8-610aa967a92bfeb97e3d848dcb8693553e8b6a55
+EXPECTED_DRAFT_SHA256              c033e03d47c7d5608596c8fc4e9336a1fe086eb781c08fe031be2bdea1614e58
+DFLASH_DRAFT_QUANTIZATION          modelopt_mxfp8
+VLLM_USE_B12X_FP8_GEMM             1
+VLLM_DFLASH_ONLY_CUDAGRAPH         1
+VLLM_DFLASH_CUDAGRAPH_BATCHES      1\,2\,3\,4\,5\,6
+TARGET_CUDAGRAPH_SCOPE             c1
+QUANTIZATION                       exl3
+MOE_BACKEND                        auto
+VLLM_ATTENTION_BACKEND             FLASHINFER_MLA_SPARSE_SM120
+KV_CACHE_DTYPE                     fp8_e4m3
+USE_CALIBRATED_NVFP4_MLA           0
+USE_FP4_INDEXER_CACHE              0
+DCP_SIZE                           2
+GPU_MEMORY_UTILIZATION             0.87
+BLOCK_SIZE                         2048
+MAX_MODEL_LEN                      1048576
+MAX_NUM_SEQS                       6
+MAX_NUM_BATCHED_TOKENS             8192
+ENFORCE_EAGER                      0
+COMPILATION_CONFIG                 \{\"mode\":\"NONE\"\,\"cudagraph_mode\":\"FULL_DECODE_ONLY\"\,\"cudagraph_capture_sizes\":\[8\]\,\"max_cudagraph_capture_size\":8\}
+ENABLE_DFLASH                      1
+DFLASH_TOKENS                      7
+DFLASH_DRAFT_TP                    2
+DFLASH_DRAFT_SAMPLE_METHOD         probabilistic
+DFLASH_REJECTION_SAMPLE_METHOD     standard
+ENABLE_DECODE_FIRST_SCHEDULER      1
+PREFILL_ADMISSION_POLICY           adaptive
+PREFILL_SCHEDULE_INTERVAL          4
+LONG_PREFILL_TOKEN_THRESHOLD       512
+COMPACT_SPEC_REPLAY                1
+GLM53_SPINWAIT_MS                  16
+EXL3_FUSED_MOE                     1
+EXL3_FAT_KERNEL                    1
+SYNC_IMAGE_TO_WORKER               1
+GLM53_EXL3_MOE_FAST                1
+GLM53_EXL3_MOE_STREAM_WEIGHTS      0
+EXL3_TEMP_ROWS_FUSED               128
+EXL3_FUSED_FAT_ACTIVATION          1
+EXL3_FAT_ACTIVATION_CONTROL        ''
+EXL3_FAT_PIPELINE                  m64_norepack
+EXL3_FAT_PIPELINE_CONTROL          /etc/glm53/adaptive-scheduler/exl3-fat-pipeline.json
+Stopped vllm_glm53 on both nodes.
+Starting worker rank on dgx1.lan...
+a89af2a6acf066adb8427b96f9ef492dde3ecfb706cd2b8f56e04e1e3f2f9713
+launched vllm_glm53 rank=1 host=10.100.32.2
+vllm_glm53 Up 2 seconds
+Starting head rank on spark-0...
+d77aceba3ea482e601aede36b3cbebcb55d866fed019188039c2f56620e6dfbc
+launched vllm_glm53 rank=0 host=10.100.32.1
+vllm_glm53 Up 2 seconds
+Verified native B12X MXFP8 drafter kernel on both ranks
+GLM-5.3-Flash is healthy at http://10.100.32.1:8000/v1
+{"object":"list","data":[{"id":"glm-5.3-flash","object":"model","created":1788582508,"owned_by":"vllm","root":"/models/glm-5.3-flash-nvfp4","parent":null,"max_model_len":1048576,"permission":[{"id":"modelperm-87efbf664606aecc","object":"model_permission","created":1788582508,"allow_create_engine":false,"allow_sampling":true,"allow_logprobs":true,"allow_search_indices":false,"allow_view":true,"allow_fine_tuning":false,"organization":"*","group":null,"is_blocking":false}]}]}
+(EngineCore pid=176) INFO 09-05 04:26:38 [kv_cache_utils.py:2369] GPU KV cache size: 4,615,161 tokens, Maximum concurrency for 1,048,576 tokens per request: 4.40x

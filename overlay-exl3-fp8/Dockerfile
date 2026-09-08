@@ -2,6 +2,7 @@
 ARG BASE_IMAGE=ghcr.io/tonyd2wild/vllm-glm53-flash@sha256:4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6
 FROM ${BASE_IMAGE}
 LABEL glm53.miaai-exl3.commit="6599585438d6046cb6b4800411b8570971c15dcc" \
+      glm53.miaai-decode.commit="9c0794b68d7fc124f79104409ab434769503fb31" \
       glm53.serving.profile="e3-fp8-dcp2"
 
 # Compile the pinned EXL3 extension before the frequently edited cache
@@ -43,7 +44,8 @@ COPY overlay-exl3-fp8/patch_vllm_b12x_mxfp8.py overlay-exl3-fp8/patch_dflash_mxf
 RUN python3 /tmp/patch_vllm_b12x_mxfp8.py && python3 /tmp/patch_dflash_mxfp8_context.py && python3 /tmp/patch_dflash_only_cudagraph_lifecycle.py && rm /tmp/patch_vllm_b12x_mxfp8.py /tmp/patch_dflash_mxfp8_context.py /tmp/patch_dflash_only_cudagraph_lifecycle.py && python3 -m compileall -q /usr/local/lib/python3.12/dist-packages/vllm
 
 COPY vendor/miaai-exl3/exl3.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py
-COPY vendor/miaai-exl3/patch_model_overrides.py overlay-exl3-fp8/patch_exl3_registry.py overlay-exl3-fp8/patch_spinwait.py /opt/glm53/
+COPY vendor/miaai-exl3/exl3.py /opt/glm53/exl3.py
+COPY vendor/miaai-exl3/patch_model_overrides.py overlay-exl3-fp8/patch_exl3_registry.py overlay-exl3-fp8/patch_spinwait.py overlay-exl3-fp8/patch_adaptive_k.py overlay-exl3-fp8/patch_dense_fp8.py /opt/glm53/
 RUN python3 /opt/glm53/patch_exl3_registry.py && python3 /opt/glm53/patch_model_overrides.py && GLM53_SPINWAIT_MS=stock python3 /opt/glm53/patch_spinwait.py --preflight && python3 -m py_compile /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py
 
 COPY probes/test_exl3_fp8_dcp2_image.py /opt/glm53/
@@ -52,7 +54,10 @@ COPY probes/test_fp8_zero_rope_writer.py /opt/glm53/
 COPY probes/test_fp8_zero_rope_b12x.py /opt/glm53/
 COPY probes/test_spinwait_patch.py /opt/glm53/
 COPY probes/test_mxfp8_drafter_image.py /opt/glm53/
-RUN python3 /opt/glm53/test_exl3_fp8_dcp2_image.py && python3 /opt/glm53/test_spinwait_patch.py && python3 /opt/glm53/test_mxfp8_drafter_image.py
+COPY overlay-exl3-fp8/patch_adaptive_k.py overlay-exl3-fp8/patch_dense_fp8.py vendor/miaai-exl3/exl3.py /opt/glm53/upstream/overlay/
+COPY probes/test_adaptive_k_patch.py probes/test_dense_fp8_patch.py /opt/glm53/upstream/tests/
+RUN python3 /opt/glm53/test_exl3_fp8_dcp2_image.py && python3 /opt/glm53/test_spinwait_patch.py && python3 /opt/glm53/test_mxfp8_drafter_image.py && \
+    python3 /opt/glm53/upstream/tests/test_adaptive_k_patch.py && python3 /opt/glm53/upstream/tests/test_dense_fp8_patch.py
 
 COPY --chmod=755 overlay-exl3-fp8/entrypoint.sh /opt/glm53/entrypoint.sh
 ENTRYPOINT ["/opt/glm53/entrypoint.sh"]

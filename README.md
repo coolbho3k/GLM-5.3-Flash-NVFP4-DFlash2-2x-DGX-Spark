@@ -46,7 +46,7 @@ The main path below is intentionally short.
 | Target KV | FP8 E4M3, compact NoPE MLA layout |
 | Sparse indexer | FP8 E4M3 |
 | Parallelism | TP2 across two nodes, DCP2 for target decode |
-| Speculation | DFlash2, K=7, draft TP2 |
+| Speculation | DFlash2, adaptive K in `{2,4,7}`, draft TP2 |
 | Drafter | [MXFP8 DFlash2](https://huggingface.co/local-inference-lab/GLM-5.3-Flash-DFlash2-MXFP8) |
 | CUDA graphs | Drafter C1–C6; target eager |
 | Context limit | 1,048,576 tokens |
@@ -54,8 +54,9 @@ The main path below is intentionally short.
 | Scheduler | Adaptive decode-first `AsyncScheduler` |
 | GPU memory utilization | 0.87 |
 
-The launcher selects all of these defaults when given
-`exl3-fp8-dcp2`; they do not need to be entered separately.
+`./start-cluster.sh` selects all of these defaults. A direct
+`./serve-profile.sh start exl3-fp8-dcp2` launch uses fixed K=7 unless adaptive
+verification is explicitly enabled.
 
 ## KV cache: what changed and what to expect
 
@@ -151,7 +152,7 @@ via `./start-cluster.sh` selects the canonical `exl3-fp8-dcp2` profile with
 probabilistic DFlash2 proposals, copies the image to the worker if needed,
 verifies the runtime files on both ranks, starts the worker and then the head,
 and waits for `/health`. The explicit equivalent is
-`DFLASH_DRAFT_SAMPLE_METHOD=probabilistic ./serve-profile.sh start exl3-fp8-dcp2`.
+`DFLASH_DRAFT_SAMPLE_METHOD=probabilistic GLM53_ADAPTIVE_K=ema ./serve-profile.sh start exl3-fp8-dcp2`.
 
 Cold model startup normally takes several minutes. The command returns only
 after the API is healthy or startup has failed.
@@ -173,6 +174,33 @@ a restart, and appear in `serve-profile.sh show` when supplied as environment
 overrides. Startup verifies the EXL3 native binary on both nodes, not just
 the Python files. See the [serving campaign notes](docs/SERVING-CAMPAIGN-20260904.md)
 for the measured gains and validation scope.
+
+#### Adaptive verification and optional dense FP8
+
+The canonical `./start-cluster.sh` enables MiaAI's adaptive verification-length
+path. It keeps the K=7 drafter and selects a target-verification prefix from
+`2,4,7` using each request's recent acceptance EMA. This favors the coding,
+tool-use, and structured-text traffic this recipe targets. Start the lower-level
+profile directly to select adaptive or fixed verification explicitly:
+
+```bash
+./serve-profile.sh build exl3-fp8-dcp2
+GLM53_ADAPTIVE_K=ema ./serve-profile.sh start exl3-fp8-dcp2
+GLM53_ADAPTIVE_K=off ./serve-profile.sh start exl3-fp8-dcp2
+```
+
+MiaAI's dense-projection FP8 path is also included, but remains an optional
+numerical tradeoff:
+
+```bash
+GLM53_DENSE_FP8=dense,kda ./serve-profile.sh start exl3-fp8-dcp2
+```
+
+Dense FP8 accepts any comma-separated subset of `shared,dense,kda,mla` and
+changes target numerics. Both paths must be present at image-build time and
+enabled at process startup. The image synchronization check keys identical
+images by their RootFS layers, with a detailed runtime-file comparison as a
+fallback.
 
 ### 4. Call the API
 
@@ -222,6 +250,7 @@ before `prepare`, `build`, or `start`, or prefix an individual command.
 | `MAX_MODEL_LEN` | `1048576` | Per-request model context limit |
 | `MAX_NUM_SEQS` | `6` | Maximum concurrent sequences |
 | `MAX_NUM_BATCHED_TOKENS` | `7168` | Pure-prefill budget selected by MiaAI's latest E3 ladder |
+| `GLM53_ADAPTIVE_K` | `ema` via `start-cluster.sh` | Adaptive DFlash2 verification; use `off` for fixed K=7 |
 | `MODEL_HOST_PATH` | profile-specific | Target checkpoint path on both nodes |
 | `DRAFT_HOST_PATH` | profile-specific | DFlash2 checkpoint path on both nodes |
 
@@ -345,6 +374,16 @@ limits include reasoning tokens when thinking is enabled.
 - [Native-FP4 KV optimization](docs/KV-OPTIMIZATION-STATUS.md)
 - [Deployment fixes and full serve arguments](docs/DEPLOY-REPORT.md)
 - [Known open problems](docs/OPEN-PROBLEMS.md)
+
+## Licensing and source
+
+Mia-AI Lab's current serving repository is licensed under AGPL-3.0. The
+MiaAI-derived adaptive verification and dense-FP8 components in this repository
+are redistributed under that license, with their complete source and our
+modifications included here. Exact upstream revisions and file provenance are
+documented in [`vendor/miaai-exl3/`](vendor/miaai-exl3/), and the applicable
+[AGPL-3.0 license text](vendor/miaai-exl3/LICENSE.AGPL-3.0) is bundled alongside
+them. Model and checkpoint licenses remain separate.
 
 ## Credits
 

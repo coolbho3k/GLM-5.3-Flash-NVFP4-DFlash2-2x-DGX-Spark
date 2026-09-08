@@ -47,6 +47,15 @@ Piecewise CUDA graphs are retained for diagnostics but are slower here:
   ENFORCE_EAGER=0 \
   COMPILATION_CONFIG='{"mode":3,"cudagraph_mode":"PIECEWISE"}' \
     ./serve-profile.sh start exl3-fp8-dcp2
+
+The canonical ./start-cluster.sh enables MiaAI's adaptive speculative
+verification. Direct profile starts default to fixed K=7; select either mode
+explicitly with:
+  GLM53_ADAPTIVE_K=ema ./serve-profile.sh start exl3-fp8-dcp2
+  GLM53_ADAPTIVE_K=off ./serve-profile.sh start exl3-fp8-dcp2
+
+MiaAI's dense FP8 projections remain an optional numerical tradeoff:
+  GLM53_DENSE_FP8=dense,kda ./serve-profile.sh start exl3-fp8-dcp2
 EOF
 }
 
@@ -200,6 +209,47 @@ configure_profile() {
   default_var PREFILL_ADMISSION_POLICY adaptive
   default_var PREFILL_SCHEDULE_INTERVAL 4
   default_var LONG_PREFILL_TOKEN_THRESHOLD 512
+  default_var GLM53_ADAPTIVE_K off
+  default_var GLM53_ADAPTIVE_K_SET 2,4,7
+  default_var GLM53_ADAPTIVE_K_ALPHA 0.25
+  default_var GLM53_ADAPTIVE_K_MARGIN 1.0
+  default_var GLM53_ADAPTIVE_K_MIN_STEPS 4
+  default_var GLM53_ADAPTIVE_K_SATURATE max
+  default_var GLM53_ADAPTIVE_K_HIST 200
+  default_var GLM53_DENSE_FP8 off
+  case "$GLM53_ADAPTIVE_K" in
+    off|ema|on|1) ;;
+    *) echo "GLM53_ADAPTIVE_K must be off or ema" >&2; exit 2 ;;
+  esac
+  if [[ "$GLM53_ADAPTIVE_K" != off ]]; then
+    [[ "$profile" == exl3-fp8-dcp2 && "$ENABLE_DFLASH" == 1 ]] || {
+      echo "GLM53_ADAPTIVE_K requires exl3-fp8-dcp2 with ENABLE_DFLASH=1" >&2
+      exit 2
+    }
+    [[ "$DFLASH_TOKENS" == 7 ]] || {
+      echo "GLM53_ADAPTIVE_K currently requires DFLASH_TOKENS=7" >&2
+      exit 2
+    }
+  fi
+  case "$GLM53_DENSE_FP8" in
+    ""|off|0|no|none) ;;
+    all|on|1)
+      [[ "$profile" == exl3-fp8-dcp2 ]] || {
+        echo "GLM53_DENSE_FP8 is packaged only in exl3-fp8-dcp2" >&2
+        exit 2
+      }
+      ;;
+    *)
+      [[ "$GLM53_DENSE_FP8" =~ ^(shared|dense|kda|mla)(,(shared|dense|kda|mla))*$ ]] || {
+        echo "GLM53_DENSE_FP8 must be off, all, or a comma list of shared,dense,kda,mla" >&2
+        exit 2
+      }
+      [[ "$profile" == exl3-fp8-dcp2 ]] || {
+        echo "GLM53_DENSE_FP8 is packaged only in exl3-fp8-dcp2" >&2
+        exit 2
+      }
+      ;;
+  esac
   default_var EXL3_FUSED_MOE 1
   default_var EXL3_MOE_ROW_TILE 0
   default_var EXL3_FAT_KERNEL 1
@@ -257,6 +307,7 @@ show_profile() {
   local names=(SERVE_PROFILE IMAGE MODEL_HOST_PATH DFLASH_DRAFT_VARIANT DRAFT_ID DRAFT_REVISION DRAFT_HOST_PATH EXPECTED_DRAFT_SHA256 DFLASH_DRAFT_QUANTIZATION VLLM_USE_B12X_FP8_GEMM VLLM_DFLASH_ONLY_CUDAGRAPH VLLM_DFLASH_CUDAGRAPH_BATCHES TARGET_CUDAGRAPH_SCOPE QUANTIZATION MOE_BACKEND VLLM_ATTENTION_BACKEND KV_CACHE_DTYPE USE_CALIBRATED_NVFP4_MLA USE_FP4_INDEXER_CACHE DCP_SIZE GPU_MEMORY_UTILIZATION BLOCK_SIZE MAX_MODEL_LEN MAX_NUM_SEQS MAX_NUM_BATCHED_TOKENS ENFORCE_EAGER COMPILATION_CONFIG ENABLE_DFLASH DFLASH_TOKENS DFLASH_DRAFT_TP DFLASH_DRAFT_SAMPLE_METHOD DFLASH_REJECTION_SAMPLE_METHOD ENABLE_DECODE_FIRST_SCHEDULER PREFILL_ADMISSION_POLICY PREFILL_SCHEDULE_INTERVAL LONG_PREFILL_TOKEN_THRESHOLD COMPACT_SPEC_REPLAY GLM53_SPINWAIT_MS EXL3_FUSED_MOE EXL3_FAT_KERNEL EXL3_FAT_GROUPED SYNC_IMAGE_TO_WORKER)
   local name
   names+=(GLM53_EXL3_MOE_FAST GLM53_EXL3_MOE_STREAM_WEIGHTS EXL3_TEMP_ROWS_FUSED EXL3_FUSED_FAT_ACTIVATION EXL3_FAT_ACTIVATION_CONTROL)
+  names+=(GLM53_ADAPTIVE_K GLM53_ADAPTIVE_K_SET GLM53_ADAPTIVE_K_ALPHA GLM53_ADAPTIVE_K_MARGIN GLM53_ADAPTIVE_K_MIN_STEPS GLM53_ADAPTIVE_K_SATURATE GLM53_ADAPTIVE_K_HIST GLM53_DENSE_FP8)
   names+=(EXL3_FAT_PIPELINE EXL3_FAT_PIPELINE_CONTROL)
   for name in "${names[@]}"; do
     printf '%-34s %q\n' "$name" "${!name-}"

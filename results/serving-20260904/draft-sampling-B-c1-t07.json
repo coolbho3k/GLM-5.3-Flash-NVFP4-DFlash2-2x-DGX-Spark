@@ -1,0 +1,332 @@
+{
+  "config": {
+    "url": "http://127.0.0.1:8000",
+    "label": "probabilistic-B",
+    "output": "results/serving-20260904/draft-sampling-B-t07.json",
+    "levels": "1",
+    "rounds": 2,
+    "tokens": 256,
+    "warm_tokens": 64,
+    "temperature": 0.7,
+    "top_p": 0.95,
+    "seed": 7301,
+    "compare": null
+  },
+  "cases": [
+    {
+      "round": 0,
+      "concurrency": 1,
+      "kind": "prose",
+      "requests": [
+        {
+          "model": "glm-5.3-flash",
+          "messages": [
+            {
+              "role": "user",
+              "content": "Explain how a hash table works, including collisions, resizing, and the tradeoffs versus a balanced search tree. Give concrete examples."
+            }
+          ],
+          "temperature": 0.7,
+          "top_p": 0.95,
+          "top_k": -1,
+          "presence_penalty": 0,
+          "frequency_penalty": 0,
+          "repetition_penalty": 1,
+          "seed": 7301,
+          "max_tokens": 256,
+          "ignore_eos": true,
+          "chat_template_kwargs": {
+            "enable_thinking": false
+          }
+        }
+      ],
+      "wall_seconds": 9.575997318999725,
+      "streams": [
+        {
+          "started_monotonic": 83666.632260499,
+          "first_token_monotonic": 83666.871704744,
+          "finished_monotonic": 83676.208034073,
+          "cached_prompt_tokens": null,
+          "prompt_tokens": 40,
+          "completion_tokens": 256,
+          "ttft_seconds": 0.239444,
+          "elapsed_seconds": 9.575774,
+          "decode_seconds": 9.336329,
+          "decode_tokens_per_second": 27.41977,
+          "mean_stream_gap_seconds": 0.116702,
+          "p95_stream_gap_seconds": 0.139308,
+          "max_stream_gap_seconds": 0.142449,
+          "stream_events": 81,
+          "content_preview": "# Hash Tables: A Complete Guide\n\n## The Core Idea\n\nA hash table stores key-value pairs and uses a **hash function** to compute an array index directly from the ",
+          "content_sha256": "6e1562f70e01c38a361526aa6bdf4898cec55f373d22388c51586e17fa5e5581"
+        }
+      ],
+      "metrics_delta": {
+        "spec_decode_num_drafts_total": 80.0,
+        "spec_decode_num_draft_tokens_total": 560.0,
+        "spec_decode_num_accepted_tokens_total": 175.0,
+        "num_preemptions_total": 0.0,
+        "request_success_total": 1.0
+      },
+      "aggregate_tps": 26.73350790231224,
+      "accepted_fraction": 0.3125,
+      "accepted_per_draft": 2.1875,
+      "c1_wall_ms_per_draft": 119.69996648749657
+    },
+    {
+      "round": 0,
+      "concurrency": 1,
+      "kind": "code",
+      "requests": [
+        {
+          "model": "glm-5.3-flash",
+          "messages": [
+            {
+              "role": "user",
+              "content": "Implement a thread-safe token bucket rate limiter in Python. Include a monotonic clock, blocking and nonblocking acquisition, and unit tests. Explain the design."
+            }
+          ],
+          "temperature": 0.7,
+          "top_p": 0.95,
+          "top_k": -1,
+          "presence_penalty": 0,
+          "frequency_penalty": 0,
+          "repetition_penalty": 1,
+          "seed": 7301,
+          "max_tokens": 256,
+          "ignore_eos": true,
+          "chat_template_kwargs": {
+            "enable_thinking": false
+          }
+        }
+      ],
+      "wall_seconds": 8.282856710007763,
+      "streams": [
+        {
+          "started_monotonic": 83678.628454708,
+          "first_token_monotonic": 83678.878296578,
+          "finished_monotonic": 83686.911075113,
+          "cached_prompt_tokens": null,
+          "prompt_tokens": 45,
+          "completion_tokens": 256,
+          "ttft_seconds": 0.249842,
+          "elapsed_seconds": 8.28262,
+          "decode_seconds": 8.032779,
+          "decode_tokens_per_second": 31.869421,
+          "mean_stream_gap_seconds": 0.116414,
+          "p95_stream_gap_seconds": 0.123215,
+          "max_stream_gap_seconds": 0.126769,
+          "stream_events": 70,
+          "content_preview": "# Thread-Safe Token Bucket Rate Limiter\n\nHere's a complete, production-quality implementation with tests:\n\n## Implementation\n\n```python\n\"\"\"\ntoken_bucket.py\n\nA t",
+          "content_sha256": "b80281a97112c6ad27723f10f97dd65b8f33775d88bdde0f4793db57a46d8516"
+        }
+      ],
+      "metrics_delta": {
+        "spec_decode_num_drafts_total": 69.0,
+        "spec_decode_num_draft_tokens_total": 483.0,
+        "spec_decode_num_accepted_tokens_total": 186.0,
+        "num_preemptions_total": 0.0,
+        "request_success_total": 1.0
+      },
+      "aggregate_tps": 30.907210997709033,
+      "accepted_fraction": 0.38509316770186336,
+      "accepted_per_draft": 2.6956521739130435,
+      "c1_wall_ms_per_draft": 120.04140159431542
+    },
+    {
+      "round": 1,
+      "concurrency": 1,
+      "kind": "prose",
+      "requests": [
+        {
+          "model": "glm-5.3-flash",
+          "messages": [
+            {
+              "role": "user",
+              "content": "Explain how a hash table works, including collisions, resizing, and the tradeoffs versus a balanced search tree. Give concrete examples."
+            }
+          ],
+          "temperature": 0.7,
+          "top_p": 0.95,
+          "top_k": -1,
+          "presence_penalty": 0,
+          "frequency_penalty": 0,
+          "repetition_penalty": 1,
+          "seed": 7401,
+          "max_tokens": 256,
+          "ignore_eos": true,
+          "chat_template_kwargs": {
+            "enable_thinking": false
+          }
+        }
+      ],
+      "wall_seconds": 10.16123041800165,
+      "streams": [
+        {
+          "started_monotonic": 83790.683433099,
+          "first_token_monotonic": 83791.011366783,
+          "finished_monotonic": 83800.844292748,
+          "cached_prompt_tokens": null,
+          "prompt_tokens": 40,
+          "completion_tokens": 256,
+          "ttft_seconds": 0.327934,
+          "elapsed_seconds": 10.16086,
+          "decode_seconds": 9.832926,
+          "decode_tokens_per_second": 26.034977,
+          "mean_stream_gap_seconds": 0.11568,
+          "p95_stream_gap_seconds": 0.121076,
+          "max_stream_gap_seconds": 0.134088,
+          "stream_events": 86,
+          "content_preview": "# Hash Tables: A Complete Guide\n\n## The Core Idea\n\nA hash table stores key-value pairs by using a **hash function** to convert a key into an array index. Instea",
+          "content_sha256": "be69c936297b5b400cc0d6bede383e79d96bf66426bf156d57067d309b7cd15d"
+        }
+      ],
+      "metrics_delta": {
+        "spec_decode_num_drafts_total": 85.0,
+        "spec_decode_num_draft_tokens_total": 595.0,
+        "spec_decode_num_accepted_tokens_total": 172.0,
+        "num_preemptions_total": 0.0,
+        "request_success_total": 1.0
+      },
+      "aggregate_tps": 25.19379932045139,
+      "accepted_fraction": 0.28907563025210087,
+      "accepted_per_draft": 2.023529411764706,
+      "c1_wall_ms_per_draft": 119.54388727060766
+    },
+    {
+      "round": 1,
+      "concurrency": 1,
+      "kind": "code",
+      "requests": [
+        {
+          "model": "glm-5.3-flash",
+          "messages": [
+            {
+              "role": "user",
+              "content": "Implement a thread-safe token bucket rate limiter in Python. Include a monotonic clock, blocking and nonblocking acquisition, and unit tests. Explain the design."
+            }
+          ],
+          "temperature": 0.7,
+          "top_p": 0.95,
+          "top_k": -1,
+          "presence_penalty": 0,
+          "frequency_penalty": 0,
+          "repetition_penalty": 1,
+          "seed": 7401,
+          "max_tokens": 256,
+          "ignore_eos": true,
+          "chat_template_kwargs": {
+            "enable_thinking": false
+          }
+        }
+      ],
+      "wall_seconds": 7.428530384000624,
+      "streams": [
+        {
+          "started_monotonic": 83800.861438143,
+          "first_token_monotonic": 83801.198191173,
+          "finished_monotonic": 83808.289690334,
+          "cached_prompt_tokens": null,
+          "prompt_tokens": 45,
+          "completion_tokens": 256,
+          "ttft_seconds": 0.336753,
+          "elapsed_seconds": 7.428252,
+          "decode_seconds": 7.091499,
+          "decode_tokens_per_second": 36.09956,
+          "mean_stream_gap_seconds": 0.116252,
+          "p95_stream_gap_seconds": 0.123102,
+          "max_stream_gap_seconds": 0.12627,
+          "stream_events": 62,
+          "content_preview": "# Thread-Safe Token Bucket Rate Limiter\n\nHere's a complete implementation with both blocking and non-blocking acquisition:\n\n```python\nimport threading\nimport ti",
+          "content_sha256": "1adbf02d0db0f4113e2c16d203cd7dbf96b156b82c12dab1a9765d873ec53950"
+        }
+      ],
+      "metrics_delta": {
+        "spec_decode_num_drafts_total": 61.0,
+        "spec_decode_num_draft_tokens_total": 427.0,
+        "spec_decode_num_accepted_tokens_total": 197.0,
+        "num_preemptions_total": 0.0,
+        "request_success_total": 1.0
+      },
+      "aggregate_tps": 34.461728870540284,
+      "accepted_fraction": 0.4613583138173302,
+      "accepted_per_draft": 3.2295081967213113,
+      "c1_wall_ms_per_draft": 121.77918662296105
+    }
+  ],
+  "warmups": [
+    {
+      "concurrency": 1,
+      "kind": "prose",
+      "wall_seconds": 3.7012597959983395,
+      "streams": [
+        {
+          "started_monotonic": 83662.918209181,
+          "first_token_monotonic": 83663.691406545,
+          "finished_monotonic": 83666.617162968,
+          "cached_prompt_tokens": null,
+          "prompt_tokens": 40,
+          "completion_tokens": 64,
+          "ttft_seconds": 0.773197,
+          "elapsed_seconds": 3.698954,
+          "decode_seconds": 2.925756,
+          "decode_tokens_per_second": 21.874685,
+          "mean_stream_gap_seconds": 0.146277,
+          "p95_stream_gap_seconds": 0.11946,
+          "max_stream_gap_seconds": 0.762338,
+          "stream_events": 21,
+          "content_preview": "# Hash Tables: A Complete Guide\n\n## Core Concept\n\nA hash table stores key-value pairs by using a **hash function** to convert a key into an array index, enablin",
+          "content_sha256": "40ac5b59f06f72dfddd8f43cc10aa2a9075292da458c11a37cd5a61d8436d0e2"
+        }
+      ],
+      "metrics_delta": {
+        "spec_decode_num_drafts_total": 20.0,
+        "spec_decode_num_draft_tokens_total": 140.0,
+        "spec_decode_num_accepted_tokens_total": 44.0,
+        "num_preemptions_total": 0.0,
+        "request_success_total": 1.0
+      },
+      "aggregate_tps": 17.29140982462089,
+      "accepted_fraction": 0.3142857142857143,
+      "accepted_per_draft": 2.2,
+      "c1_wall_ms_per_draft": 185.06298979991698
+    },
+    {
+      "concurrency": 1,
+      "kind": "code",
+      "wall_seconds": 2.389845059995423,
+      "streams": [
+        {
+          "started_monotonic": 83676.223915207,
+          "first_token_monotonic": 83676.564041988,
+          "finished_monotonic": 83678.613323065,
+          "cached_prompt_tokens": null,
+          "prompt_tokens": 45,
+          "completion_tokens": 64,
+          "ttft_seconds": 0.340127,
+          "elapsed_seconds": 2.389408,
+          "decode_seconds": 2.049281,
+          "decode_tokens_per_second": 31.230465,
+          "mean_stream_gap_seconds": 0.113836,
+          "p95_stream_gap_seconds": 0.118145,
+          "max_stream_gap_seconds": 0.118145,
+          "stream_events": 19,
+          "content_preview": "# Thread-Safe Token Bucket Rate Limiter\n\nHere's a complete, production-quality implementation with tests:\n\n## Implementation\n\n```python\n\"\"\"\ntoken_bucket.py\n\nA t",
+          "content_sha256": "00e568a177bde5b1cc39f218b20c30d32900b75498499207e996c8055bd9bf31"
+        }
+      ],
+      "metrics_delta": {
+        "spec_decode_num_drafts_total": 18.0,
+        "spec_decode_num_draft_tokens_total": 126.0,
+        "spec_decode_num_accepted_tokens_total": 46.0,
+        "num_preemptions_total": 0.0,
+        "request_success_total": 1.0
+      },
+      "aggregate_tps": 26.779978782441475,
+      "accepted_fraction": 0.36507936507936506,
+      "accepted_per_draft": 2.5555555555555554,
+      "c1_wall_ms_per_draft": 132.7691699997457
+    }
+  ],
+  "derived_from": "draft-sampling-B-t07.json (C1 subset only)"
+}

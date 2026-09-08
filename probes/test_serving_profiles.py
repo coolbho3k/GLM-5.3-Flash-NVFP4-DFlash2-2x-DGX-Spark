@@ -215,6 +215,49 @@ def test_nvfp4_prepare_uses_published_checkpoint() -> None:
     assert 'HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"' in preparer
 
 
+def test_miaai_decode_options_are_opt_in_and_wired() -> None:
+    defaults = resolved("exl3-fp8-dcp2")
+    assert defaults["GLM53_ADAPTIVE_K"] == "off"
+    assert defaults["GLM53_ADAPTIVE_K_SET"] == r"2\,4\,7"
+    assert defaults["GLM53_DENSE_FP8"] == "off"
+
+    adaptive = resolved("exl3-fp8-dcp2", GLM53_ADAPTIVE_K="ema")
+    assert adaptive["GLM53_ADAPTIVE_K"] == "ema"
+    dense = resolved("exl3-fp8-dcp2", GLM53_DENSE_FP8="dense,kda")
+    assert dense["GLM53_DENSE_FP8"] == r"dense\,kda"
+
+    invalid = (
+        ("exl3-fp8-dcp2", {"GLM53_ADAPTIVE_K": "bad"}),
+        ("exl3-fp8-dcp2", {"GLM53_ADAPTIVE_K": "ema", "DFLASH_TOKENS": "4"}),
+        ("nvfp4-fp8-dcp2", {"GLM53_ADAPTIVE_K": "ema"}),
+        ("exl3-fp8-dcp2", {"GLM53_DENSE_FP8": "dense,bad"}),
+        ("nvfp4-fp8-dcp2", {"GLM53_DENSE_FP8": "kda"}),
+    )
+    for profile, overrides in invalid:
+        env = {"PATH": os.environ["PATH"], "HOME": os.environ.get("HOME", "/home/emi")}
+        env.update(overrides)
+        result = subprocess.run(
+            [str(ROOT / "serve-profile.sh"), "show", profile],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 2, (profile, overrides, result)
+
+    for filename in ("start-cluster.sh", "launch-glm53-vllm-tp2-dflash2.sh"):
+        source = (ROOT / filename).read_text()
+        assert "GLM53_ADAPTIVE_K" in source
+        assert "GLM53_DENSE_FP8" in source
+    starter = (ROOT / "start-cluster.sh").read_text()
+    assert ".RootFS.Layers" in starter
+    assert 'GLM53_ADAPTIVE_K="${GLM53_ADAPTIVE_K:-ema}"' in starter
+    assert "local_runtime" in starter, "keep independent-build checksum fallback"
+    entrypoint = (ROOT / "overlay-exl3-fp8/entrypoint.sh").read_text()
+    assert "patch_adaptive_k.py" in entrypoint
+    assert "patch_dense_fp8.py" in entrypoint
+
+
 def main() -> None:
     tests = [value for name, value in sorted(globals().items()) if name.startswith("test_")]
     for test in tests:

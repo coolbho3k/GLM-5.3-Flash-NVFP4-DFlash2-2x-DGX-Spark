@@ -26,3 +26,19 @@ turboderp-org/exllamav3 commit
 c5d9c657966ffeeaa9353f0cc899f18629da4a13. The files here are kept
 separate from this repository's FP8 KV, DCP2, and long-context patches so
 their provenance remains obvious.
+
+The following optional decode components were subsequently incorporated from
+upstream commit 9c0794b68d7fc124f79104409ab434769503fb31:
+
+- `overlay-exl3-fp8/patch_adaptive_k.py`
+- `overlay-exl3-fp8/patch_dense_fp8.py`
+- the dense-FP8 additions in `exl3.py`
+
+MiaAI Lab is credited as the upstream author of these components and distributes
+them under AGPL-3.0. `patch_adaptive_k.py` is copied verbatim. Our
+`patch_dense_fp8.py` adds compatibility with the model constructor already used
+by this recipe, and the local `exl3.py` combines MiaAI's dense-FP8 additions
+with this repository's earlier decode and prefill work. Their complete source,
+including those modifications, is present in this repository. A copy of the
+AGPL-3.0 is provided as `LICENSE.AGPL-3.0`; the older vendored snapshot retains
+its MIT license in `LICENSE`.
