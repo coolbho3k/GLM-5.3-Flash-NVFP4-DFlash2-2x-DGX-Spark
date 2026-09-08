@@ -102,6 +102,6 @@ harness salts its prompts.
 
 The deterministic behavioral suite passed every substantive case, including
 both long-context retrieval repeats. Two original checks exhausted their tiny
-96/16-token budgets inside the intentionally enabled default-high reasoning;
+96/16-token budgets inside the intentionally enabled default-max reasoning;
 with 256-token budgets they returned the normal `test` response and exact
 `ORCHID` output.

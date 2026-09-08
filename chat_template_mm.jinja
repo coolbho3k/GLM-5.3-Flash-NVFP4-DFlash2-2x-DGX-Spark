@@ -1,5 +1,5 @@
 [gMASK]<sop>
-{%- set requested_reasoning_effort = reasoning_effort if reasoning_effort is defined else 'high' -%}
+{%- set requested_reasoning_effort = reasoning_effort if reasoning_effort is defined else 'max' -%}
 {%- if thinking is defined or enable_thinking is defined -%}
     {%- set thinking_enabled = (thinking if thinking is defined else false) or (enable_thinking if enable_thinking is defined else false) -%}
 {%- else -%}
@@ -14,7 +14,7 @@
 {%- elif requested_reasoning_effort in ['xhigh', 'max'] -%}
     {%- set effective_reasoning_effort = 'max' -%}
 {%- else -%}
-    {%- set effective_reasoning_effort = 'high' -%}
+    {%- set effective_reasoning_effort = 'max' -%}
 {%- endif -%}
 {%- if effective_reasoning_effort is not none -%}<|system|>Reasoning Effort: {{ effective_reasoning_effort | capitalize }}{%- endif -%}
 {%- if tools -%}

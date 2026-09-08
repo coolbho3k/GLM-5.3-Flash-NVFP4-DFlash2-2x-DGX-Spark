@@ -383,7 +383,7 @@ docker run --gpus all -d \
     "${eager_args[@]}" "${compilation_args[@]}" --max-num-batched-tokens "$MAX_NUM_BATCHED_TOKENS" \
     "${scheduler_args[@]}" "${profiler_args[@]}" \
     --tool-call-parser glm47 --enable-auto-tool-choice \
-    --reasoning-parser glm45 --default-chat-template-kwargs '{"enable_thinking":true,"reasoning_effort":"high"}' --chat-template /models/chat_template_mm.jinja \
+    --reasoning-parser glm45 --default-chat-template-kwargs '{"enable_thinking":true,"reasoning_effort":"max"}' --chat-template /models/chat_template_mm.jinja \
     --distributed-executor-backend mp \
     --nnodes 2 --node-rank "$NODE_RANK" \
     --master-addr "$HEAD_IP" --master-port "$MPORT" \

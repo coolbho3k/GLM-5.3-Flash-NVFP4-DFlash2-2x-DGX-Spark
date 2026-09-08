@@ -90,7 +90,7 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
 
     failures: list[str] = []
     aliases = {
-        "default": "high",
+        "default": "max",
         "minimal": "low",
         "medium": "high",
         "xhigh": "max",
@@ -152,7 +152,7 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
         "ok": not failures,
         "base_url": base_url,
         "model": args.model,
-        "default_native_effort": "high",
+        "default_native_effort": "max",
         "compatibility_map": EXPECTED_NATIVE,
         "token_counts": {name: len(tokens) for name, tokens in signatures.items()},
         "generation": generation,

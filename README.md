@@ -215,7 +215,7 @@ curl http://10.100.32.1:8000/v1/chat/completions \
   -d '{
     "model": "glm-5.3-flash",
     "messages": [{"role": "user", "content": "Write a haiku about Blackwell."}],
-    "reasoning_effort": "high",
+    "reasoning_effort": "max",
     "max_tokens": 256
   }'
 ```
@@ -335,7 +335,7 @@ graphs remain a diagnostic option in
 
 ## Reasoning effort
 
-The API defaults to `high`. GLM-5.3 exposes three native thinking levels, so
+The API defaults to Z.ai's native `max`. GLM-5.3 exposes three native thinking levels, so
 common OpenAI values are mapped as follows:
 
 | API value | GLM mode |

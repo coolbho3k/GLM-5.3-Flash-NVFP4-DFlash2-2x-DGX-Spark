@@ -38,8 +38,8 @@ def main() -> None:
     for tools in (None, [tool]):
         thinking = render(True, tools)
         no_thinking = render(False, tools)
-        assert "<|system|>Reasoning Effort: High" in thinking
-        assert "<|system|>Reasoning Effort: High" in no_thinking
+        assert "<|system|>Reasoning Effort: Max" in thinking
+        assert "<|system|>Reasoning Effort: Max" in no_thinking
         assert no_thinking == thinking + "</think>", (
             thinking[-100:],
             no_thinking[-100:],
